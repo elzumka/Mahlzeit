@@ -442,6 +442,90 @@ footer p {
     grid-template-columns: 1fr auto;
   }
 }
+.breakfast-section {
+    padding: 100px 0;
+    border-top: 1px solid var(--linie);
+}
+
+.breakfast-heading {
+    max-width: 700px;
+    margin-bottom: 45px;
+}
+
+.breakfast-heading .eyebrow {
+    margin-bottom: 12px;
+    color: var(--green);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+}
+
+.breakfast-heading h2 {
+    margin: 0 0 15px;
+    color: var(--green);
+    font-family: "Barlow Condensed", sans-serif;
+    font-size: clamp(55px, 7vw, 90px);
+    line-height: .85;
+    text-transform: uppercase;
+}
+
+.breakfast-heading > p:last-child {
+    max-width: 520px;
+    font-size: 18px;
+    line-height: 1.6;
+}
+
+.breakfast-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.breakfast-card {
+    position: relative;
+    min-height: 240px;
+    padding: 30px;
+    border: 1px solid var(--linie);
+    background: #f8f4eb;
+}
+
+.breakfast-number {
+    display: block;
+    margin-bottom: 35px;
+    color: var(--green);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .12em;
+}
+
+.breakfast-card h3 {
+    margin: 0 0 12px;
+    color: var(--green);
+    font-family: "Barlow Condensed", sans-serif;
+    font-size: 32px;
+    text-transform: uppercase;
+}
+
+.breakfast-card p {
+    margin: 0 0 25px;
+    line-height: 1.5;
+}
+
+.breakfast-card strong {
+    color: var(--green);
+    font-size: 18px;
+}
+
+@media (max-width: 800px) {
+    .breakfast-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .breakfast-section {
+        padding: 70px 0;
+    }
+}
 </style>
 </head>
 
@@ -464,8 +548,6 @@ footer p {
   </div>
 </header>
 
-
-<main>
 
 <section class="hero">
 
@@ -522,6 +604,7 @@ footer p {
   </div>
 
 </section>
+<main>
 
 
 <section class="section" id="angebot">
@@ -681,7 +764,38 @@ footer p {
 </section>
 
 </main>
+<section class="breakfast-section" id="fruehstueck">
+    <div class="breakfast-heading">
+        <p class="eyebrow">GUTER START IN DEN TAG</p>
+        <h2>FRÜHSTÜCK</h2>
+        <p>Frisch, unkompliziert und genau das Richtige für den kleinen Hunger.</p>
+    </div>
 
+    <div class="breakfast-grid">
+
+        <article class="breakfast-card">
+            <span class="breakfast-number">01</span>
+            <h3>Frühstücksteller</h3>
+            <p>Brötchen, Butter, Marmelade, Käse und Wurst.</p>
+            <strong>ab 5,90 €</strong>
+        </article>
+
+        <article class="breakfast-card">
+            <span class="breakfast-number">02</span>
+            <h3>Belegte Brötchen</h3>
+            <p>Frisch belegt – klassisch oder mit etwas Besonderem.</p>
+            <strong>ab 2,50 €</strong>
+        </article>
+
+        <article class="breakfast-card">
+            <span class="breakfast-number">03</span>
+            <h3>Kaffee & Croissant</h3>
+            <p>Der schnelle Start für unterwegs oder zum Sitzenbleiben.</p>
+            <strong>4,50 €</strong>
+        </article>
+
+    </div>
+</section>
 
 <footer>
 
