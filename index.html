@@ -651,6 +651,14 @@ footer p {
     text-align: center;
 }
 
+.speiseplan-bild {
+    position: relative;
+    width: 100%;
+    max-width: 650px;
+    margin: 30px auto 60px;
+    text-align: center;
+}
+
 .speiseplan-bild img {
     width: 100%;
     height: auto;
@@ -659,20 +667,27 @@ footer p {
 }
 
 .speiseplan-drucken {
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    
     display: block;
-    width: fit-content;
-    margin: 25px auto 0;
-    padding: 16px 32px;
+    width: 80%;
+    padding: 16px 25px;
+    
     background: var(--grün);
     color: white;
     text-decoration: none;
+    text-align: center;
+    
     font-weight: 700;
     letter-spacing: .08em;
     font-size: 15px;
 }
 
 .speiseplan-drucken:hover {
-    opacity: .85;
+    opacity: .9;
 }
 </style>
 </head>
