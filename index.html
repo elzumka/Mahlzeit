@@ -76,6 +76,19 @@ header {
     height: auto;
     display: block;
 }
+header.scrolled {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+header.scrolled .logo img {
+    width: 55px;
+}
+
+header.scrolled .nav {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
 .logo span {
   display: block;
 }
@@ -993,5 +1006,16 @@ footer p {
 
 </footer>
 
+<script>
+window.addEventListener("scroll", function() {
+    const header = document.querySelector("header");
+
+    if (window.scrollY > 80) {
+        header.classList.add("scrolled");
+    } else {
+        header.classList.remove("scrolled");
+    }
+});
+</script>
 </body>
 </html>
