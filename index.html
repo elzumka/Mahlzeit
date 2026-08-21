@@ -1,1 +1,696 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>Mahlzeit! – Kantine & Mittagstisch</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  --green: #285437;
+  --green-dark: #1d4029;
+  --cream: #f5eee4;
+  --beige: #ddd1bf;
+  --black: #20201d;
+  --line: #b8ad9d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--cream);
+  color: var(--black);
+  font-family: "DM Sans", Arial, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ---------------- HEADER ---------------- */
+
+header {
+  padding: 28px 6vw 20px;
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  background: rgba(245,238,228,.96);
+  backdrop-filter: blur(8px);
+  z-index: 20;
+}
+
+.nav {
+  max-width: 1250px;
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 30px;
+}
+
+.logo {
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 700;
+  font-size: 42px;
+  line-height: .75;
+  letter-spacing: -1px;
+  color: var(--green);
+}
+
+.logo span {
+  display: block;
+}
+
+nav {
+  display: flex;
+  gap: 28px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+nav a:hover {
+  color: var(--green);
+}
+
+/* ---------------- HERO ---------------- */
+
+.hero {
+  max-width: 1250px;
+  margin: auto;
+  padding: 90px 6vw 80px;
+  display: grid;
+  grid-template-columns: 1.2fr .8fr;
+  gap: 70px;
+  align-items: center;
+}
+
+.kicker {
+  color: var(--green);
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+h1 {
+  font-family: "Barlow Condensed", sans-serif;
+  color: var(--green);
+  font-size: clamp(70px, 10vw, 145px);
+  line-height: .78;
+  margin: 18px 0 28px;
+  text-transform: uppercase;
+  letter-spacing: -.04em;
+}
+
+.hero p {
+  max-width: 560px;
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+.button {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 15px 24px;
+  background: var(--green);
+  color: var(--cream);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.button:hover {
+  background: var(--green-dark);
+}
+
+/* ---------------- ILLUSTRATION ---------------- */
+
+.hero-art {
+  min-height: 390px;
+  border: 2px solid var(--black);
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero-art::before {
+  content: "FRISCH";
+  position: absolute;
+  top: -25px;
+  left: -20px;
+  background: var(--green);
+  color: var(--cream);
+  padding: 8px 25px;
+  transform: rotate(-5deg);
+  font-family: "Barlow Condensed";
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.pan {
+  width: 230px;
+  height: 120px;
+  border: 7px solid var(--green);
+  border-radius: 0 0 90px 90px;
+  position: relative;
+}
+
+.pan::before {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 65px;
+  border: 7px solid var(--black);
+  border-radius: 50%;
+  top: -38px;
+  left: 32px;
+  background: var(--beige);
+}
+
+.pan::after {
+  content: "";
+  position: absolute;
+  width: 110px;
+  height: 12px;
+  background: var(--green);
+  right: -105px;
+  top: 40px;
+  transform: rotate(-8deg);
+}
+
+/* ---------------- INFO ---------------- */
+
+.info {
+  max-width: 1250px;
+  margin: auto;
+  padding: 0 6vw 80px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.info-card {
+  padding: 30px 25px;
+  border-right: 1px solid var(--line);
+}
+
+.info-card:last-child {
+  border-right: none;
+}
+
+.icon {
+  color: var(--green);
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+.info-card h3 {
+  font-family: "Barlow Condensed";
+  font-size: 27px;
+  margin: 5px 0;
+  text-transform: uppercase;
+}
+
+.info-card p {
+  margin: 5px 0;
+}
+
+/* ---------------- TODAY ---------------- */
+
+.section {
+  padding: 100px 6vw;
+}
+
+.section-inner {
+  max-width: 1250px;
+  margin: auto;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  margin-bottom: 45px;
+}
+
+.section-title h2 {
+  font-family: "Barlow Condensed";
+  color: var(--green);
+  font-size: clamp(45px, 6vw, 80px);
+  line-height: .8;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.rule {
+  height: 1px;
+  background: var(--line);
+  flex: 1;
+}
+
+.menu {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.dish {
+  border: 1px solid var(--line);
+  padding: 25px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px;
+  background: rgba(255,255,255,.18);
+}
+
+.dish h3 {
+  margin: 0;
+  font-size: 21px;
+  text-transform: uppercase;
+}
+
+.dish p {
+  margin: 5px 0 0;
+  font-size: 15px;
+  letter-spacing: .04em;
+}
+
+.price {
+  font-size: 20px;
+  font-weight: 700;
+  align-self: center;
+}
+
+/* ---------------- SPECIALS ---------------- */
+
+.specials {
+  background: var(--beige);
+}
+
+.special-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+}
+
+.special {
+  border: 2px solid var(--black);
+  padding: 35px;
+  position: relative;
+}
+
+.special h3 {
+  font-family: "Barlow Condensed";
+  color: var(--green);
+  font-size: 38px;
+  text-transform: uppercase;
+  margin: 0 0 25px;
+}
+
+.special p {
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.special-price {
+  color: var(--green);
+  font-size: 28px;
+  font-weight: 700;
+}
+
+/* ---------------- CONTACT ---------------- */
+
+.contact {
+  max-width: 1250px;
+  margin: auto;
+  padding: 90px 6vw;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 70px;
+}
+
+.contact h2 {
+  font-family: "Barlow Condensed";
+  color: var(--green);
+  font-size: 70px;
+  text-transform: uppercase;
+  line-height: .8;
+  margin: 0 0 30px;
+}
+
+.contact p {
+  line-height: 1.8;
+}
+
+.contact-box {
+  border: 1px solid var(--line);
+  padding: 35px;
+}
+
+/* ---------------- FOOTER ---------------- */
+
+footer {
+  background: var(--green);
+  color: var(--cream);
+  padding: 50px 6vw;
+  text-align: center;
+}
+
+.footer-logo {
+  font-family: "Barlow Condensed";
+  font-size: 55px;
+  font-weight: 700;
+  line-height: .75;
+}
+
+footer p {
+  margin: 25px 0 0;
+}
+
+/* ---------------- MOBILE ---------------- */
+
+@media (max-width: 800px) {
+
+  header {
+    position: relative;
+  }
+
+  .nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  nav {
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+    padding-top: 60px;
+  }
+
+  .hero-art {
+    min-height: 280px;
+  }
+
+  .info-grid,
+  .menu,
+  .special-grid,
+  .contact {
+    grid-template-columns: 1fr;
+  }
+
+  .info-card {
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .section-title {
+    align-items: flex-start;
+  }
+
+  .rule {
+    display: none;
+  }
+
+  .dish {
+    grid-template-columns: 1fr auto;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="nav">
+
+    <a href="#" class="logo">
+      <span>MAHL</span>
+      <span>ZEIT</span>
+    </a>
+
+    <nav>
+      <a href="#angebot">Angebot</a>
+      <a href="#klassiker">Klassiker</a>
+      <a href="#speiseplan">Speiseplan</a>
+      <a href="#kontakt">Kontakt</a>
+    </nav>
+
+  </div>
+</header>
+
+
+<main>
+
+<section class="hero">
+
+  <div>
+
+    <div class="kicker">
+      Kantine · Mittagstisch · Frühstück
+    </div>
+
+    <h1>
+      Mahlzeit!
+    </h1>
+
+    <p>
+      Frisches Essen, ehrliche Küche und eine gute Mahlzeit
+      mitten in Cottbus.
+    </p>
+
+    <a class="button" href="#angebot">
+      Was gibt's heute?
+    </a>
+
+  </div>
+
+  <div class="hero-art">
+    <div class="pan"></div>
+  </div>
+
+</section>
+
+
+<section class="info">
+
+  <div class="info-grid">
+
+    <div class="info-card">
+      <div class="icon">☕</div>
+      <h3>Frühstück</h3>
+      <p>Mo – Fr · 08:00 – 10:30</p>
+    </div>
+
+    <div class="info-card">
+      <div class="icon">🍽</div>
+      <h3>Mittagstisch</h3>
+      <p>Mo – Fr · 11:00 – 14:30</p>
+    </div>
+
+    <div class="info-card">
+      <div class="icon">🛵</div>
+      <h3>Lieferservice</h3>
+      <p>Mo – Fr · 11:30 – 14:00</p>
+    </div>
+
+  </div>
+
+</section>
+
+
+<section class="section" id="angebot">
+
+  <div class="section-inner">
+
+    <div class="section-title">
+      <h2>Heute bei Mahlzeit</h2>
+      <div class="rule"></div>
+    </div>
+
+    <div class="menu">
+
+      <div class="dish">
+        <div>
+          <h3>Schnitzel</h3>
+          <p>Bratkartoffeln, Bohnen-Pilzrahm</p>
+        </div>
+        <div class="price">8,90 €</div>
+      </div>
+
+      <div class="dish">
+        <div>
+          <h3>Hähnchenpfanne „Asia Style“</h3>
+          <p>Reis, Rohkost</p>
+        </div>
+        <div class="price">7,90 €</div>
+      </div>
+
+      <div class="dish">
+        <div>
+          <h3>Bolognese</h3>
+          <p>Nudeln, Käse</p>
+        </div>
+        <div class="price">8,00 €</div>
+      </div>
+
+      <div class="dish">
+        <div>
+          <h3>Linsenbolognese</h3>
+          <p>Nudeln, Käse</p>
+        </div>
+        <div class="price">8,00 €</div>
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<section class="section specials" id="klassiker">
+
+  <div class="section-inner">
+
+    <div class="section-title">
+      <h2>Unsere Klassiker</h2>
+      <div class="rule"></div>
+    </div>
+
+    <div class="special-grid">
+
+      <div class="special">
+        <h3>Tägliche Klassiker</h3>
+
+        <p>
+          Kräuterquark<br>
+          Kartoffeln · Leinöl · Zwiebeln
+        </p>
+
+        <div class="special-price">
+          6,90 €
+        </div>
+      </div>
+
+      <div class="special">
+        <h3>Schnitzel Menü</h3>
+
+        <p>
+          Schnitzel<br>
+          mit Getränk<br>
+          und Rohkost oder Dessert
+        </p>
+
+        <div class="special-price">
+          11,50 €
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<section class="section" id="speiseplan">
+
+  <div class="section-inner">
+
+    <div class="section-title">
+      <h2>Speiseplan</h2>
+      <div class="rule"></div>
+    </div>
+
+    <p style="font-size:20px; max-width:650px;">
+      Unser aktueller Speiseplan mit allen Gerichten,
+      Klassikern und Wochenangeboten.
+    </p>
+
+    <a class="button" href="#">
+      Speiseplan ansehen
+    </a>
+
+  </div>
+
+</section>
+
+
+<section class="contact" id="kontakt">
+
+  <div>
+    <h2>Kommt<br>vorbei!</h2>
+
+    <p>
+      Mahlzeit! Kantine & Mittagstisch<br>
+      Mönchsgasse 2–3<br>
+      03046 Cottbus
+    </p>
+
+    <p>
+      Montag – Freitag<br>
+      Frühstück · 08:00 – 10:30<br>
+      Mittagstisch · 11:00 – 14:30
+    </p>
+  </div>
+
+  <div class="contact-box">
+
+    <p><strong>Telefon</strong><br>
+    0355 25057</p>
+
+    <p><strong>Website</strong><br>
+    mahlzeit-cottbus.de</p>
+
+    <p><strong>Instagram</strong><br>
+    @mahlzeit_cottbus</p>
+
+    <p>
+      <strong>Lieferservice</strong><br>
+      Montag – Freitag · 11:30 – 14:00
+    </p>
+
+  </div>
+
+</section>
+
+</main>
+
+
+<footer>
+
+  <div class="footer-logo">
+    MAHL<br>ZEIT
+  </div>
+
+  <p>
+    FRISCH. LECKER. FÜR EUCH.
+  </p>
+
+</footer>
+
+</body>
+</html>
