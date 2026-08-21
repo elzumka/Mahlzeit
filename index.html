@@ -526,6 +526,113 @@ footer p {
         padding: 70px 0;
     }
 }
+.week-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 30px;
+    margin-bottom: 35px;
+    padding-bottom: 25px;
+    border-bottom: 1px solid var(--line);
+}
+
+.week-header .eyebrow {
+    margin: 0 0 8px;
+    color: var(--green);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+}
+
+.week-header h3 {
+    margin: 0;
+    font-family: "Barlow Condensed", sans-serif;
+    color: var(--green);
+    font-size: 42px;
+    text-transform: uppercase;
+}
+
+.week-header > p {
+    margin: 0;
+    font-style: italic;
+}
+
+.week-menu {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.day-card {
+    padding: 28px;
+    border: 1px solid var(--line);
+    background: #f8f4eb;
+}
+
+.day-name {
+    display: inline-block;
+    margin-bottom: 22px;
+    padding: 7px 14px;
+    background: var(--green);
+    color: var(--cream);
+    font-family: "Barlow Condensed", sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: .05em;
+}
+
+.day-dish {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 15px;
+    padding: 17px 0;
+    border-top: 1px dotted var(--line);
+}
+
+.day-dish h4 {
+    margin: 0 0 4px;
+    font-size: 17px;
+    text-transform: uppercase;
+}
+
+.day-dish p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.day-dish strong {
+    color: var(--green);
+    font-size: 17px;
+    white-space: nowrap;
+}
+
+.day-dish.veggie h4::before {
+    content: "🌱 ";
+    font-size: 14px;
+}
+
+.menu-note {
+    margin-top: 22px;
+    color: var(--green);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+@media (max-width: 800px) {
+    .week-header {
+        display: block;
+    }
+
+    .week-header > p {
+        margin-top: 15px;
+    }
+
+    .week-menu {
+        grid-template-columns: 1fr;
+    }
+}
 </style>
 </head>
 
@@ -712,14 +819,144 @@ footer p {
       <div class="rule"></div>
     </div>
 
-    <p style="font-size:20px; max-width:650px;">
-      Unser aktueller Speiseplan mit allen Gerichten,
-      Klassikern und Wochenangeboten.
-    </p>
+    <div class="week-header">
+      <div>
+        <p class="eyebrow">MAHLZEIT · KW 34</p>
+        <h3>17.08. – 21.08.2026</h3>
+      </div>
 
-    <a class="button" href="#">
-      Speiseplan ansehen
-    </a>
+      <p>
+        Frisch gekocht. Jeden Tag neu.
+      </p>
+    </div>
+
+    <div class="week-menu">
+
+      <article class="day-card">
+        <div class="day-name">MONTAG</div>
+
+        <div class="day-dish">
+          <div>
+            <h4>Schnitzel</h4>
+            <p>Bratkartoffeln · Bohnen-Pilzrahm</p>
+          </div>
+          <strong>8,90 €</strong>
+        </div>
+
+        <div class="day-dish">
+          <div>
+            <h4>Hähnchenpfanne „Asia Style“</h4>
+            <p>Reis · Rohkost</p>
+          </div>
+          <strong>7,90 €</strong>
+        </div>
+
+        <div class="day-dish">
+          <div>
+            <h4>Bolognese</h4>
+            <p>Nudeln · Käse</p>
+          </div>
+          <strong>8,00 €</strong>
+        </div>
+
+        <div class="day-dish veggie">
+          <div>
+            <h4>Linsenbolognese</h4>
+            <p>Nudeln · Käse</p>
+          </div>
+          <strong>8,00 €</strong>
+        </div>
+      </article>
+
+
+      <article class="day-card">
+        <div class="day-name">DIENSTAG</div>
+
+        <div class="day-dish">
+          <div>
+            <h4>Tagesangebot</h4>
+            <p>Gericht des Tages</p>
+          </div>
+          <strong>–</strong>
+        </div>
+
+        <div class="day-dish veggie">
+          <div>
+            <h4>Vegetarisches Gericht</h4>
+            <p>Beilage · Salat</p>
+          </div>
+          <strong>–</strong>
+        </div>
+      </article>
+
+
+      <article class="day-card">
+        <div class="day-name">MITTWOCH</div>
+
+        <div class="day-dish">
+          <div>
+            <h4>Tagesangebot</h4>
+            <p>Gericht des Tages</p>
+          </div>
+          <strong>–</strong>
+        </div>
+
+        <div class="day-dish veggie">
+          <div>
+            <h4>Vegetarisches Gericht</h4>
+            <p>Beilage · Salat</p>
+          </div>
+          <strong>–</strong>
+        </div>
+      </article>
+
+
+      <article class="day-card">
+        <div class="day-name">DONNERSTAG</div>
+
+        <div class="day-dish">
+          <div>
+            <h4>Tagesangebot</h4>
+            <p>Gericht des Tages</p>
+          </div>
+          <strong>–</strong>
+        </div>
+
+        <div class="day-dish veggie">
+          <div>
+            <h4>Vegetarisches Gericht</h4>
+            <p>Beilage · Salat</p>
+          </div>
+          <strong>–</strong>
+        </div>
+      </article>
+
+
+      <article class="day-card">
+        <div class="day-name">FREITAG</div>
+
+        <div class="day-dish">
+          <div>
+            <h4>Tagesangebot</h4>
+            <p>Gericht des Tages</p>
+          </div>
+          <strong>–</strong>
+        </div>
+
+        <div class="day-dish veggie">
+          <div>
+            <h4>Vegetarisches Gericht</h4>
+            <p>Beilage · Salat</p>
+          </div>
+          <strong>–</strong>
+        </div>
+      </article>
+
+    </div>
+
+    <div class="menu-note">
+      🌱 Vegetarische Gerichte sind entsprechend gekennzeichnet.
+    </div>
 
   </div>
 
