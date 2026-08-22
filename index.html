@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Mahlzeit! – Kantine & Mittagstisch</title>
 
 <style>
@@ -51,16 +50,16 @@ header {
 }
 
 .nav {
-    position: relative;
-    z-index: 1;
-    background: rgba(245,238,228,.96);
-    padding: 15px 0;
-    max-width: 1250px;
-    margin: auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 30px;
+  position: relative;
+  z-index: 1;
+  background: rgba(245,238,228,.96);
+  padding: 15px 0;
+  max-width: 1250px;
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 30px;
 }
 
 .logo {
@@ -71,24 +70,27 @@ header {
   letter-spacing: -1px;
   color: var(--green);
 }
+
 .logo img {
-    width: 150px;
-    height: auto;
-    display: block;
+  width: 150px;
+  height: auto;
+  display: block;
 }
+
 header.scrolled {
-    padding-top: 10px;
-    padding-bottom: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 header.scrolled .logo img {
-    width: 55px;
+  width: 55px;
 }
 
 header.scrolled .nav {
-    padding-top: 5px;
-    padding-bottom: 5px;
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
+
 .logo span {
   display: block;
 }
@@ -257,9 +259,9 @@ h1 {
 }
 
 .info-card .icon img {
-    width: 100px;
-    height: 100px;
-    object-fit: contain;
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
 }
 
 /* ---------------- TODAY ---------------- */
@@ -465,288 +467,274 @@ footer p {
     grid-template-columns: 1fr auto;
   }
 }
+
 .breakfast-section {
-    padding: 100px 0;
-    border-top: 1px solid var(--linie);
+  padding: 100px 0;
+  border-top: 1px solid var(--line);
 }
 
 .breakfast-heading {
-    max-width: 700px;
-    margin-bottom: 45px;
+  max-width: 700px;
+  margin-bottom: 45px;
 }
 
 .breakfast-heading .eyebrow {
-    margin-bottom: 12px;
-    color: var(--green);
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: .18em;
-    text-transform: uppercase;
+  margin-bottom: 12px;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
 }
 
 .breakfast-heading h2 {
-    margin: 0 0 15px;
-    color: var(--green);
-    font-family: "Barlow Condensed", sans-serif;
-    font-size: clamp(55px, 7vw, 90px);
-    line-height: .85;
-    text-transform: uppercase;
+  margin: 0 0 15px;
+  color: var(--green);
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: clamp(55px, 7vw, 90px);
+  line-height: .85;
+  text-transform: uppercase;
 }
 
 .breakfast-heading > p:last-child {
-    max-width: 520px;
-    font-size: 18px;
-    line-height: 1.6;
+  max-width: 520px;
+  font-size: 18px;
+  line-height: 1.6;
 }
 
 .breakfast-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
 }
 
 .breakfast-card {
-    position: relative;
-    min-height: 240px;
-    padding: 30px;
-    border: 1px solid var(--linie);
-    background: #f8f4eb;
+  position: relative;
+  min-height: 240px;
+  padding: 30px;
+  border: 1px solid var(--line);
+  background: #f8f4eb;
 }
 
 .breakfast-number {
-    display: block;
-    margin-bottom: 35px;
-    color: var(--green);
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: .12em;
+  display: block;
+  margin-bottom: 35px;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .12em;
 }
 
 .breakfast-card h3 {
-    margin: 0 0 12px;
-    color: var(--green);
-    font-family: "Barlow Condensed", sans-serif;
-    font-size: 32px;
-    text-transform: uppercase;
+  margin: 0 0 12px;
+  color: var(--green);
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 32px;
+  text-transform: uppercase;
 }
 
 .breakfast-card p {
-    margin: 0 0 25px;
-    line-height: 1.5;
+  margin: 0 0 25px;
+  line-height: 1.5;
 }
 
 .breakfast-card strong {
-    color: var(--green);
-    font-size: 18px;
+  color: var(--green);
+  font-size: 18px;
 }
 
 @media (max-width: 800px) {
-    .breakfast-grid {
-        grid-template-columns: 1fr;
-    }
+  .breakfast-grid {
+    grid-template-columns: 1fr;
+  }
 
-    .breakfast-section {
-        padding: 70px 0;
-    }
+  .breakfast-section {
+    padding: 70px 0;
+  }
 }
+
 .week-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: end;
-    gap: 30px;
-    margin-bottom: 35px;
-    padding-bottom: 25px;
-    border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 30px;
+  margin-bottom: 35px;
+  padding-bottom: 25px;
+  border-bottom: 1px solid var(--line);
 }
 
 .week-header .eyebrow {
-    margin: 0 0 8px;
-    color: var(--green);
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: .15em;
-    text-transform: uppercase;
+  margin: 0 0 8px;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .15em;
+  text-transform: uppercase;
 }
 
 .week-header h3 {
-    margin: 0;
-    font-family: "Barlow Condensed", sans-serif;
-    color: var(--green);
-    font-size: 42px;
-    text-transform: uppercase;
+  margin: 0;
+  font-family: "Barlow Condensed", sans-serif;
+  color: var(--green);
+  font-size: 42px;
+  text-transform: uppercase;
 }
 
 .week-header > p {
-    margin: 0;
-    font-style: italic;
+  margin: 0;
+  font-style: italic;
 }
 
 .week-menu {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 18px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
 }
 
 .day-card {
-    padding: 28px;
-    border: 1px solid var(--line);
-    background: #f8f4eb;
+  padding: 28px;
+  border: 1px solid var(--line);
+  background: #f8f4eb;
 }
 
 .day-name {
-    display: inline-block;
-    margin-bottom: 22px;
-    padding: 7px 14px;
-    background: var(--green);
-    color: var(--cream);
-    font-family: "Barlow Condensed", sans-serif;
-    font-size: 22px;
-    font-weight: 600;
-    letter-spacing: .05em;
+  display: inline-block;
+  margin-bottom: 22px;
+  padding: 7px 14px;
+  background: var(--green);
+  color: var(--cream);
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: .05em;
 }
 
 .day-dish {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 15px;
-    padding: 17px 0;
-    border-top: 1px dotted var(--line);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 15px;
+  padding: 17px 0;
+  border-top: 1px dotted var(--line);
 }
 
 .day-dish h4 {
-    margin: 0 0 4px;
-    font-size: 17px;
-    text-transform: uppercase;
+  margin: 0 0 4px;
+  font-size: 17px;
+  text-transform: uppercase;
 }
 
 .day-dish p {
-    margin: 0;
-    font-size: 14px;
-    line-height: 1.4;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 .day-dish strong {
-    color: var(--green);
-    font-size: 17px;
-    white-space: nowrap;
+  color: var(--green);
+  font-size: 17px;
+  white-space: nowrap;
 }
 
 .day-dish.veggie h4::before {
-    content: "🌱 ";
-    font-size: 14px;
+  content: "🌱 ";
+  font-size: 14px;
 }
 
 .menu-note {
-    margin-top: 22px;
-    color: var(--green);
-    font-size: 13px;
-    font-weight: 600;
+  margin-top: 22px;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 600;
 }
 
 @media (max-width: 800px) {
-    .week-header {
-        display: block;
-    }
+  .week-header {
+    display: block;
+  }
 
-    .week-header > p {
-        margin-top: 15px;
-    }
+  .week-header > p {
+    margin-top: 15px;
+  }
 
-    .week-menu {
-        grid-template-columns: 1fr;
-    }
+  .week-menu {
+    grid-template-columns: 1fr;
+  }
 }
+
 .speiseplan-bild {
-    width: 100%;
-    max-width: 1000px;
-    margin: 0 auto;
+  width: 100%;
+  max-width: 200px;
+  margin: 30px auto 60px;
+  text-align: center;
 }
 
 .speiseplan-bild img {
-    width: 100%;
-    height: auto;
-    display: block;
-}
-.speiseplan-bild {
-    width: 100%;
-    max-width: 300px;
-    margin: 30px auto;
-    text-align: center;
-}
-
-.speiseplan-bild {
-    position: relative;
-    width: 100%;
-    max-width: 200px;
-    margin: 30px auto 60px;
-    text-align: center;
-}
-
-.speiseplan-bild img {
-    width: 100%;
-    height: auto;
-    display: block;
-    border: 1px solid var(--linie);
+  width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid var(--line);
 }
 
 .speiseplan-drucken {
-    display: block;
-    width: 100%;
-    max-width: 420px;
-    margin: 30px auto 0;
-    padding: 20px 30px;
-
-    background: var(--green);
-    color: white;
-    text-decoration: none;
-    text-align: center;
-
-    font-weight: 700;
-    font-size: 17px;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-
-    transition: .2s ease;
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  margin: 30px auto 0;
+  padding: 20px 30px;
+  background: var(--green);
+  color: white;
+  text-decoration: none;
+  text-align: center;
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  transition: .2s ease;
 }
 
 .speiseplan-drucken:hover {
-    transform: translateY(-2px);
-    opacity: .9;
+  transform: translateY(-2px);
+  opacity: .9;
 }
+
 .dish-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .veggie-icon {
-    width: 28px;
-    height: 28px;
-    object-fit: contain;
-    flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 #heutiges-datum {
-    font-size: 18px;
-    font-weight: 600;
-    margin-top: 10px;
-    margin-bottom: 25px;
-    color: #31583d;
+  font-size: 18px;
+  font-weight: 600;
+  margin-top: 10px;
+  margin-bottom: 25px;
+  color: #31583d;
 }
+
+/* ---------------- FEIERABEND ---------------- */
+
 .feierabend-box {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 10px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
 }
 
 .feierabend-box img {
-    width: 100%;
-    max-width: 850px;
-    height: auto;
-    display: block;
+  width: 100%;
+  max-width: 850px;
+  height: auto;
+  display: block;
 }
+
 </style>
 </head>
 
@@ -755,21 +743,20 @@ footer p {
 <header>
   <div class="nav">
 
-   <a href="#" class="logo">
-    <img src="logo.png" alt="Mahlzeit! Logo">
-</a>
-    
+    <a href="#" class="logo">
+      <img src="logo.png" alt="Mahlzeit! Logo">
+    </a>
+
     <nav>
-    <a href="#mittagstisch">Mittagstisch Heute</a>
-<a href="#klassiker">Klassiker</a>
-<a href="#speiseplan">Speiseplan</a>
-<a href="#fruehstueck">Frühstück</a>
-<a href="#kontakt">Kontakt</a>
+      <a href="#mittagstisch">Mittagstisch Heute</a>
+      <a href="#klassiker">Klassiker</a>
+      <a href="#speiseplan">Speiseplan</a>
+      <a href="#fruehstueck">Frühstück</a>
+      <a href="#kontakt">Kontakt</a>
     </nav>
 
   </div>
 </header>
-
 
 <section class="hero">
 
@@ -800,60 +787,59 @@ footer p {
 
 </section>
 
-
 <section class="info">
 
-    <div class="info-grid">
+  <div class="info-grid">
 
-        <div class="info-card">
-            <div class="icon">
-                <img src="kaffee.png" alt="Frühstück">
-            </div>
-            <h3>FRÜHSTÜCK</h3>
-            <div class="info-days">MO – FR</div>
-            <div class="info-time">08:00 – 10:30</div>
-        </div>
-
-        <div class="info-card">
-            <div class="icon">
-                <img src="teller.png" alt="Mittagstisch">
-            </div>
-            <h3>MITTAGSTISCH</h3>
-            <div class="info-days">MO – FR</div>
-            <div class="info-time">11:00 – 14:30</div>
-        </div>
-
-        <div class="info-card">
-            <div class="icon">
-                <img src="roller.png" alt="Lieferservice">
-            </div>
-            <h3>LIEFERSERVICE</h3>
-            <div class="info-days">MO – FR</div>
-            <div class="info-time">11:30 – 14:00</div>
-        </div>
-
+    <div class="info-card">
+      <div class="icon">
+        <img src="kaffee.png" alt="Frühstück">
+      </div>
+      <h3>FRÜHSTÜCK</h3>
+      <div class="info-days">MO – FR</div>
+      <div class="info-time">08:00 – 10:30</div>
     </div>
 
-</section>
-<main>
+    <div class="info-card">
+      <div class="icon">
+        <img src="teller.png" alt="Mittagstisch">
+      </div>
+      <h3>MITTAGSTISCH</h3>
+      <div class="info-days">MO – FR</div>
+      <div class="info-time">11:00 – 14:30</div>
+    </div>
 
+    <div class="info-card">
+      <div class="icon">
+        <img src="roller.png" alt="Lieferservice">
+      </div>
+      <h3>LIEFERSERVICE</h3>
+      <div class="info-days">MO – FR</div>
+      <div class="info-time">11:30 – 14:00</div>
+    </div>
+
+  </div>
+
+</section>
+
+<main>
 
 <section class="section" id="mittagstisch">
 
   <div class="section-inner">
 
-  <div class="section-title">
-    <h2>Heute bei uns</h2>
-    <div class="rule"></div>
-</div>
+    <div class="section-title">
+      <h2>Heute bei uns</h2>
+      <div class="rule"></div>
+    </div>
 
-<div id="heutiges-datum"></div>
+    <div id="heutiges-datum"></div>
 
-<div class="menu" id="gerichte-container"></div>
+    <div class="menu" id="gerichte-container"></div>
+
   </div>
 
 </section>
-
 
 <section class="section specials" id="klassiker">
 
@@ -899,7 +885,6 @@ footer p {
 
 </section>
 
-
 <section class="section" id="speiseplan">
 
   <div class="section-inner">
@@ -920,15 +905,16 @@ footer p {
       </p>
     </div>
 
-   <div class="speiseplan-bild">
-     
-    <img src="speiseplan.png" alt="Speiseplan Mahlzeit Kantine">
-    
-    <a href="speiseplan.png" target="_blank" class="speiseplan-drucken">
+    <div class="speiseplan-bild">
+
+      <img src="speiseplan.png" alt="Speiseplan Mahlzeit Kantine">
+
+      <a href="speiseplan.png" target="_blank" class="speiseplan-drucken">
         SPEISEPLAN ANZEIGEN
-    </a>
-</div>
-    
+      </a>
+
+    </div>
+
     <div class="menu-note">
       Vegetarische Gerichte sind entsprechend gekennzeichnet.
     </div>
@@ -937,10 +923,10 @@ footer p {
 
 </section>
 
-
 <section class="contact" id="kontakt">
 
   <div>
+
     <h2>Kommt<br>vorbei!</h2>
 
     <p>
@@ -954,18 +940,25 @@ footer p {
       Frühstück · 08:00 – 10:30<br>
       Mittagstisch · 11:00 – 14:30
     </p>
+
   </div>
 
   <div class="contact-box">
 
-    <p><strong>Telefon</strong><br>
-    0355 25057</p>
+    <p>
+      <strong>Telefon</strong><br>
+      0355 25057
+    </p>
 
-    <p><strong>Website</strong><br>
-    mahlzeit-cottbus.de</p>
+    <p>
+      <strong>Website</strong><br>
+      mahlzeit-cottbus.de
+    </p>
 
-    <p><strong>Instagram</strong><br>
-    @mahlzeit_cottbus</p>
+    <p>
+      <strong>Instagram</strong><br>
+      @mahlzeit_cottbus
+    </p>
 
     <p>
       <strong>Lieferservice</strong><br>
@@ -977,37 +970,42 @@ footer p {
 </section>
 
 </main>
+
 <section class="breakfast-section" id="fruehstueck">
-    <div class="breakfast-heading">
-        <p class="eyebrow">GUTER START IN DEN TAG</p>
-        <h2>FRÜHSTÜCK</h2>
-        <p>Frisch, unkompliziert und genau das Richtige für den kleinen Hunger.</p>
-    </div>
 
-    <div class="breakfast-grid">
+  <div class="breakfast-heading">
+    <p class="eyebrow">GUTER START IN DEN TAG</p>
+    <h2>FRÜHSTÜCK</h2>
+    <p>
+      Frisch, unkompliziert und genau das Richtige für den kleinen Hunger.
+    </p>
+  </div>
 
-        <article class="breakfast-card">
-            <span class="breakfast-number">01</span>
-            <h3>Frühstücksteller</h3>
-            <p>Brötchen, Butter, Marmelade, Käse und Wurst.</p>
-            <strong>ab 5,90 €</strong>
-        </article>
+  <div class="breakfast-grid">
 
-        <article class="breakfast-card">
-            <span class="breakfast-number">02</span>
-            <h3>Belegte Brötchen</h3>
-            <p>Frisch belegt – klassisch oder mit etwas Besonderem.</p>
-            <strong>ab 2,50 €</strong>
-        </article>
+    <article class="breakfast-card">
+      <span class="breakfast-number">01</span>
+      <h3>Frühstücksteller</h3>
+      <p>Brötchen, Butter, Marmelade, Käse und Wurst.</p>
+      <strong>ab 5,90 €</strong>
+    </article>
 
-        <article class="breakfast-card">
-            <span class="breakfast-number">03</span>
-            <h3>Kaffee & Croissant</h3>
-            <p>Der schnelle Start für unterwegs oder zum Sitzenbleiben.</p>
-            <strong>4,50 €</strong>
-        </article>
+    <article class="breakfast-card">
+      <span class="breakfast-number">02</span>
+      <h3>Belegte Brötchen</h3>
+      <p>Frisch belegt – klassisch oder mit etwas Besonderem.</p>
+      <strong>ab 2,50 €</strong>
+    </article>
 
-    </div>
+    <article class="breakfast-card">
+      <span class="breakfast-number">03</span>
+      <h3>Kaffee & Croissant</h3>
+      <p>Der schnelle Start für unterwegs oder zum Sitzenbleiben.</p>
+      <strong>4,50 €</strong>
+    </article>
+
+  </div>
+
 </section>
 
 <footer>
@@ -1024,109 +1022,297 @@ footer p {
 
 <script>
 window.addEventListener("scroll", function() {
-    const header = document.querySelector("header");
 
-    if (window.scrollY > 80) {
-        header.classList.add("scrolled");
-    } else {
-        header.classList.remove("scrolled");
-    }
+  const header = document.querySelector("header");
+
+  if (window.scrollY > 80) {
+    header.classList.add("scrolled");
+  } else {
+    header.classList.remove("scrolled");
+  }
+
 });
 </script>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
+
 const SUPABASE_URL = "https://kpomtfkngyaojimwaosw.supabase.co";
+
 const SUPABASE_KEY = "sb_publishable_NhBrxE_DK7laWTa3HG1BvQ_JZeBj5NK";
 
 const supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
+  SUPABASE_URL,
+  SUPABASE_KEY
 );
+
 </script>
 
 <script>
+
 async function ladeGerichte() {
-      const jetzt = new Date();
-    const stunde = jetzt.getHours();
 
-    const container = document.getElementById("gerichte-container");
+  const jetzt = new Date();
+  const stunde = jetzt.getHours();
 
-    if (stunde >= 14) {
-        container.innerHTML = `
-            <div class="feierabend-box">
-                <img src="feierabend.png" alt="Feierabend">
-            </div>
-        `;
-        return;
-    }
+  const container = document.getElementById("gerichte-container");
 
-    const heute = new Date().toISOString().split("T")[0];
+  if (!container) {
+    return;
+  }
 
-const { data, error } = await supabaseClient
+  /* --------------------------------
+     AB 14:00 UHR → FEIERABEND
+     -------------------------------- */
+
+  if (stunde >= 14) {
+
+    container.innerHTML = `
+      <div class="feierabend-box">
+        <img
+          src="feierabend.png"
+          alt="Feierabend – morgen sind wir wieder für euch da"
+        >
+      </div>
+    `;
+
+    planeNaechstesUpdate();
+
+    return;
+  }
+
+  /* --------------------------------
+     VOR 14:00 UHR → GERICHTE LADEN
+     -------------------------------- */
+
+  const jahr = jetzt.getFullYear();
+
+  const monat = String(
+    jetzt.getMonth() + 1
+  ).padStart(2, "0");
+
+  const tag = String(
+    jetzt.getDate()
+  ).padStart(2, "0");
+
+  const heute = `${jahr}-${monat}-${tag}`;
+
+  const { data, error } = await supabaseClient
     .from("Gerichte")
     .select("*")
-    .gte("datum", heute)
-    .order("datum", { ascending: true })
+    .eq("datum", heute)
     .order("gerichte", { ascending: true });
 
-    if (error) {
-        console.error("Fehler beim Laden der Gerichte:", error);
-        return;
-    }
+  if (error) {
 
-    container.innerHTML = "";
+    console.error(
+      "Fehler beim Laden der Gerichte:",
+      error
+    );
 
-    data.forEach(gericht => {
+    return;
+  }
 
-        const karte = document.createElement("div");
-        karte.className = "dish";
+  container.innerHTML = "";
 
-       karte.innerHTML = `
-    <div class="dish-info">
-        ${gericht.vegetarisch ? '<img src="vegetarisch.png" class="veggie-icon">' : ''}
+  if (!data || data.length === 0) {
+
+    container.innerHTML = `
+      <div class="dish">
+        <div>
+          <h3>Heute leider kein Gericht eingetragen.</h3>
+          <p>Schaut gerne später noch einmal vorbei.</p>
+        </div>
+      </div>
+    `;
+
+    planeNaechstesUpdate();
+
+    return;
+  }
+
+  data.forEach(gericht => {
+
+    const karte =
+      document.createElement("div");
+
+    karte.className = "dish";
+
+    karte.innerHTML = `
+
+      <div class="dish-info">
+
+        ${
+          gericht.vegetarisch
+            ? `
+              <img
+                src="vegetarisch.png"
+                class="veggie-icon"
+                alt="Vegetarisch"
+              >
+            `
+            : ""
+        }
 
         <div>
-            <h3>${gericht.gerichte}</h3>
-            <p>${gericht.beilage || ""}</p>
+
+          <h3>
+            ${gericht.gerichte}
+          </h3>
+
+          <p>
+            ${gericht.beilage || ""}
+          </p>
+
         </div>
-    </div>
 
-    <div class="price">
-        ${Number(gericht.preis).toFixed(2).replace(".", ",")} €
-    </div>
-`;
+      </div>
 
-        container.appendChild(karte);
-    });
+      <div class="price">
+
+        ${
+          Number(gericht.preis)
+            .toFixed(2)
+            .replace(".", ",")
+        } €
+
+      </div>
+
+    `;
+
+    container.appendChild(karte);
+
+  });
+
+  planeNaechstesUpdate();
+
 }
 
-ladeGerichte();
+
+/* --------------------------------
+   AUTOMATISCHES DATUM
+   -------------------------------- */
+
 function zeigeHeutigesDatum() {
 
-    const datumHeute = new Date();
+  const datumHeute = new Date();
 
-    const wochentage = [
-        "Sonntag",
-        "Montag",
-        "Dienstag",
-        "Mittwoch",
-        "Donnerstag",
-        "Freitag",
-        "Samstag"
-    ];
+  const wochentage = [
+    "Sonntag",
+    "Montag",
+    "Dienstag",
+    "Mittwoch",
+    "Donnerstag",
+    "Freitag",
+    "Samstag"
+  ];
 
-    const tag = datumHeute.getDate().toString().padStart(2, "0");
-    const monat = (datumHeute.getMonth() + 1).toString().padStart(2, "0");
-    const jahr = datumHeute.getFullYear();
+  const tag =
+    datumHeute
+      .getDate()
+      .toString()
+      .padStart(2, "0");
 
-    const datumText =
-        `${wochentage[datumHeute.getDay()]}, ${tag}.${monat}.${jahr}`;
+  const monat =
+    (datumHeute.getMonth() + 1)
+      .toString()
+      .padStart(2, "0");
 
-    document.getElementById("heutiges-datum").textContent = datumText;
+  const jahr =
+    datumHeute.getFullYear();
+
+  const datumText =
+    `${wochentage[datumHeute.getDay()]}, ${tag}.${monat}.${jahr}`;
+
+  const datumElement =
+    document.getElementById("heutiges-datum");
+
+  if (datumElement) {
+    datumElement.textContent =
+      datumText;
+  }
+
 }
 
+
+/* --------------------------------
+   NÄCHSTES AUTOMATISCHES UPDATE
+   -------------------------------- */
+
+function planeNaechstesUpdate() {
+
+  const jetzt = new Date();
+
+  let naechstesUpdate =
+    new Date(jetzt);
+
+  /*
+     Vor 14 Uhr:
+     → nächstes Update exakt um 14 Uhr
+
+     Nach 14 Uhr:
+     → nächstes Update kurz nach Mitternacht
+  */
+
+  if (jetzt.getHours() < 14) {
+
+    naechstesUpdate.setHours(
+      14,
+      0,
+      0,
+      0
+    );
+
+  } else {
+
+    naechstesUpdate.setDate(
+      naechstesUpdate.getDate() + 1
+    );
+
+    naechstesUpdate.setHours(
+      0,
+      1,
+      0,
+      0
+    );
+
+  }
+
+  const zeitBisUpdate =
+    naechstesUpdate.getTime()
+    - jetzt.getTime();
+
+  setTimeout(() => {
+
+    zeigeHeutigesDatum();
+    ladeGerichte();
+
+  }, Math.max(zeitBisUpdate, 1000));
+
+}
+
+
+/* --------------------------------
+   SEITE STARTEN
+   -------------------------------- */
+
 zeigeHeutigesDatum();
+
+ladeGerichte();
+
+
+/*
+   Datum jede Minute prüfen.
+   So wird auch bei einer dauerhaft
+   geöffneten Seite der neue Tag erkannt.
+*/
+
+setInterval(
+  zeigeHeutigesDatum,
+  60 * 1000
+);
+
 </script>
 
 </body>
