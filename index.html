@@ -1027,8 +1027,6 @@ async function ladeGerichte() {
 
     const heute = new Date().toISOString().split("T")[0];
 
-  const heute = new Date().toISOString().split("T")[0];
-
 const { data, error } = await supabaseClient
     .from("Gerichte")
     .select("*")
