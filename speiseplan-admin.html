@@ -108,6 +108,7 @@
         </button>
 
         <div id="meldung"></div>
+        <div id="gerichte-liste" style="margin-top: 40px;"></div>
 
     </div>
 
@@ -166,7 +167,75 @@ async function gerichtSpeichern() {
     document.getElementById("preis").value = "";
     document.getElementById("vegetarisch").checked = false;
 }
+async function gerichteLaden() {
 
+    const { data, error } = await supabaseClient
+        .from("Gerichte")
+        .select("*")
+        .order("datum", { ascending: true });
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    const liste = document.getElementById("gerichte-liste");
+
+    liste.innerHTML = "<h2>Gespeicherte Gerichte</h2>";
+
+    data.forEach(gericht => {
+
+        const eintrag = document.createElement("div");
+
+        eintrag.style.border = "1px solid #ccc";
+        eintrag.style.padding = "15px";
+        eintrag.style.marginBottom = "10px";
+        eintrag.style.background = "white";
+
+        eintrag.innerHTML = `
+            <strong>${gericht.datum}</strong><br>
+            ${gericht.gerichte}<br>
+            ${gericht.beilage || ""}<br>
+            ${Number(gericht.preis).toFixed(2).replace(".", ",")} €
+            ${gericht.vegetarisch ? " 🥬" : ""}
+            <br><br>
+
+            <button onclick="gerichtLoeschen(${gericht.id})">
+                Löschen
+            </button>
+        `;
+
+        liste.appendChild(eintrag);
+    });
+}
+
+
+async function gerichtLoeschen(id) {
+
+    if (!confirm("Dieses Gericht wirklich löschen?")) {
+        return;
+    }
+
+    const { error } = await supabaseClient
+        .from("Gerichte")
+        .delete()
+        .eq("id", id);
+
+    if (error) {
+        console.error(error);
+        document.getElementById("meldung").textContent =
+            "Fehler beim Löschen.";
+        return;
+    }
+
+    document.getElementById("meldung").textContent =
+        "Gericht wurde gelöscht.";
+
+    gerichteLaden();
+}
+
+
+gerichteLaden();
 </script>
 
 </body>
