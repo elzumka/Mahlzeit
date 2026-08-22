@@ -3,9 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Speiseplan – Verwaltung</title>
 
 <style>
+
     body {
         margin: 0;
         padding: 40px 20px;
@@ -75,8 +77,55 @@
         margin-top: 20px;
         font-weight: bold;
     }
+
+    #gerichte-liste {
+        margin-top: 40px;
+    }
+
+    #gerichte-liste h2 {
+        color: #31583d;
+        margin-bottom: 20px;
+    }
+
+    .gericht-eintrag {
+        border: 1px solid #ccc;
+        padding: 20px;
+        margin-bottom: 15px;
+        background: white;
+    }
+
+    .gericht-datum {
+        font-weight: bold;
+        font-size: 18px;
+        margin-bottom: 8px;
+    }
+
+    .gericht-name {
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .gericht-beilage {
+        margin-top: 4px;
+    }
+
+    .gericht-preis {
+        margin-top: 8px;
+        font-weight: bold;
+    }
+
+    .vegetarisch-symbol {
+        margin-left: 5px;
+    }
+
+    .loeschen-button {
+        margin-top: 18px;
+        background: #31583d;
+    }
+
 </style>
 </head>
+
 
 <body>
 
@@ -84,64 +133,145 @@
 
     <h1>Speiseplan verwalten</h1>
 
+
     <div class="form">
 
-        <label for="datum">Datum</label>
-        <input type="date" id="datum">
+        <label for="datum">
+            Datum
+        </label>
 
-        <label for="gericht">Gericht</label>
-        <input type="text" id="gericht" placeholder="z. B. Schnitzel">
+        <input
+            type="date"
+            id="datum"
+        >
 
-        <label for="beilage">Beilage</label>
-        <input type="text" id="beilage" placeholder="z. B. Bratkartoffeln, Bohnen-Pilzrahm">
 
-        <label for="preis">Preis</label>
-        <input type="number" id="preis" step="0.01" placeholder="z. B. 8.90">
+        <label for="gericht">
+            Gericht
+        </label>
+
+        <input
+            type="text"
+            id="gericht"
+            placeholder="z. B. Schnitzel"
+        >
+
+
+        <label for="beilage">
+            Beilage
+        </label>
+
+        <input
+            type="text"
+            id="beilage"
+            placeholder="z. B. Bratkartoffeln, Bohnen-Pilzrahm"
+        >
+
+
+        <label for="preis">
+            Preis
+        </label>
+
+        <input
+            type="number"
+            id="preis"
+            step="0.01"
+            placeholder="z. B. 8.90"
+        >
+
 
         <label class="checkbox">
-            <input type="checkbox" id="vegetarisch">
+
+            <input
+                type="checkbox"
+                id="vegetarisch"
+            >
+
             Vegetarisch
+
         </label>
+
 
         <button onclick="gerichtSpeichern()">
             Gericht speichern
         </button>
 
+
         <div id="meldung"></div>
-        <div id="gerichte-liste" style="margin-top: 40px;"></div>
+
+
+        <div id="gerichte-liste"></div>
 
     </div>
 
 </div>
 
+
+<!-- Supabase -->
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<script>
-    
-const SUPABASE_URL = "https://kpomtfkngyaojimwaosw.supabase.co";
-const SUPABASE_KEY = "sb_publishable_NhBrxE_DK7laWTa3HG1BvQ_JZeBj5NK";
 
-const supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-);
+<script>
+
+/* =========================================
+   SUPABASE
+========================================= */
+
+const SUPABASE_URL =
+    "https://kpomtfkngyaojimwaosw.supabase.co";
+
+const SUPABASE_KEY =
+    "sb_publishable_NhBrxE_DK7laWTa3HG1BvQ_JZeBj5NK";
+
+
+const supabaseClient =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+    );
+
+
+
+/* =========================================
+   GERICHT SPEICHERN
+========================================= */
 
 async function gerichtSpeichern() {
 
-    const datum = document.getElementById("datum").value;
-    const gericht = document.getElementById("gericht").value;
-    const beilage = document.getElementById("beilage").value;
-    const preis = document.getElementById("preis").value;
-    const vegetarisch = document.getElementById("vegetarisch").checked;
+    const datum =
+        document.getElementById("datum").value;
+
+    const gericht =
+        document.getElementById("gericht").value.trim();
+
+    const beilage =
+        document.getElementById("beilage").value.trim();
+
+    const preis =
+        document.getElementById("preis").value;
+
+    const vegetarisch =
+        document.getElementById("vegetarisch").checked;
+
+
+    /* Pflichtfelder prüfen */
 
     if (!datum || !gericht || !preis) {
+
         document.getElementById("meldung").textContent =
             "Bitte Datum, Gericht und Preis ausfüllen.";
+
         return;
     }
 
+
+    /* In Supabase speichern */
+
     const { error } = await supabaseClient
+
         .from("Gerichte")
+
         .insert([
             {
                 datum: datum,
@@ -152,154 +282,352 @@ async function gerichtSpeichern() {
             }
         ]);
 
+
+    /* Fehler */
+
     if (error) {
+
         console.error(error);
+
         document.getElementById("meldung").textContent =
             "Fehler beim Speichern.";
+
         return;
     }
+
+
+    /* Erfolgsmeldung */
 
     document.getElementById("meldung").textContent =
         "Gericht wurde gespeichert.";
 
+
+    /* Eingabefelder leeren */
+
+    document.getElementById("datum").value = "";
+
     document.getElementById("gericht").value = "";
+
     document.getElementById("beilage").value = "";
+
     document.getElementById("preis").value = "";
+
     document.getElementById("vegetarisch").checked = false;
+
+
+    /* Liste aktualisieren */
+
+    gerichteLaden();
+
 }
+
+
+
+/* =========================================
+   GERICHTE LADEN
+========================================= */
+
 async function gerichteLaden() {
 
+
     const { data, error } = await supabaseClient
+
         .from("Gerichte")
+
         .select("*");
 
+
+    /* Fehler */
+
     if (error) {
+
         console.error(error);
+
+        document.getElementById("meldung").textContent =
+            "Fehler beim Laden der Gerichte.";
+
         return;
     }
 
-    // Nach Datum sortieren
-    data.sort((a, b) => a.datum.localeCompare(b.datum));
 
-    const liste = document.getElementById("gerichte-liste");
+    /* Nach Datum sortieren */
 
-    liste.innerHTML = "<h2>Gespeicherte Gerichte</h2>";
+    data.sort(function(a, b) {
 
-    data.forEach(gericht => {
+        return a.datum.localeCompare(b.datum);
 
-        const eintrag = document.createElement("div");
+    });
 
-        eintrag.style.border = "1px solid #ccc";
-        eintrag.style.padding = "15px";
-        eintrag.style.marginBottom = "10px";
-        eintrag.style.background = "white";
 
-        // Datum in deutsches Format mit Wochentag umwandeln
-        const [jahr, monat, tag] = gerichteDatumTeilen(gericht.datum);
+    const liste =
+        document.getElementById("gerichte-liste");
 
-        const datumObjekt = new Date(jahr, monat - 1, tag);
 
-        const wochentage = [
-            "Sonntag",
-            "Montag",
-            "Dienstag",
-            "Mittwoch",
-            "Donnerstag",
-            "Freitag",
-            "Samstag"
-        ];
+    /* Alte Liste leeren */
+
+    liste.innerHTML =
+        "<h2>Gespeicherte Gerichte</h2>";
+
+
+    /* Keine Gerichte vorhanden */
+
+    if (data.length === 0) {
+
+        liste.innerHTML +=
+            "<p>Noch keine Gerichte gespeichert.</p>";
+
+        return;
+    }
+
+
+    /* Jedes Gericht anzeigen */
+
+    data.forEach(function(gericht) {
+
+
+        const eintrag =
+            document.createElement("div");
+
+
+        eintrag.className =
+            "gericht-eintrag";
+
+
+        /* ---------------------------------
+           DATUM
+        --------------------------------- */
 
         const datumAnzeige =
-            `${wochentage[datumObjekt.getDay()]}, ` +
-            `${tag.toString().padStart(2, "0")}.` +
-            `${monat.toString().padStart(2, "0")}.` +
-            `${jahr}`;
+            datumFormatieren(gericht.datum);
+
+
+        /* ---------------------------------
+           VEGETARISCHES SYMBOL
+        --------------------------------- */
+
+        const vegetarischSymbol =
+            gericht.vegetarisch
+                ? '<span class="vegetarisch-symbol">🥬</span>'
+                : "";
+
+
+        /* ---------------------------------
+           HTML DES EINTRAGS
+        --------------------------------- */
 
         eintrag.innerHTML = `
-            <strong>${datumAnzeige}</strong><br>
-            ${gericht.gerichte}<br>
-            ${gericht.beilage || ""}<br>
-            ${Number(gericht.preis).toFixed(2).replace(".", ",")} €
-            ${gericht.vegetarisch ? " 🥬" : ""}
-            <br><br>
 
-            <button onclick="gerichtLoeschen(${gericht.id}, this)">
+            <div class="gericht-datum">
+                ${datumAnzeige}
+            </div>
+
+            <div class="gericht-name">
+                ${gericht.gerichte}
+                ${vegetarischSymbol}
+            </div>
+
+            <div class="gericht-beilage">
+                ${gericht.beilage || ""}
+            </div>
+
+            <div class="gericht-preis">
+                ${preisFormatieren(gericht.preis)}
+            </div>
+
+            <button
+                class="loeschen-button"
+                onclick="gerichtLoeschen(${gericht.id}, this)"
+            >
                 Löschen
             </button>
+
         `;
 
+
         liste.appendChild(eintrag);
+
     });
+
 }
 
 
-function gerichteDatumTeilen(datum) {
-    const teile = datum.split("-");
 
-    return [
-        Number(teile[0]),
-        Number(teile[1]),
-        Number(teile[2])
+/* =========================================
+   DATUM FORMATIEREN
+   Beispiel:
+   Samstag, 22.08.2026
+========================================= */
+
+function datumFormatieren(datum) {
+
+
+    const teile =
+        datum.split("-");
+
+
+    const jahr =
+        Number(teile[0]);
+
+    const monat =
+        Number(teile[1]);
+
+    const tag =
+        Number(teile[2]);
+
+
+    const datumObjekt =
+        new Date(
+            jahr,
+            monat - 1,
+            tag
+        );
+
+
+    const wochentage = [
+
+        "Sonntag",
+        "Montag",
+        "Dienstag",
+        "Mittwoch",
+        "Donnerstag",
+        "Freitag",
+        "Samstag"
+
     ];
+
+
+    const wochentag =
+        wochentage[
+            datumObjekt.getDay()
+        ];
+
+
+    const tagFormatiert =
+        tag
+            .toString()
+            .padStart(2, "0");
+
+
+    const monatFormatiert =
+        monat
+            .toString()
+            .padStart(2, "0");
+
+
+    return (
+
+        wochentag +
+        ", " +
+        tagFormatiert +
+        "." +
+        monatFormatiert +
+        "." +
+        jahr
+
+    );
+
 }
 
-    const liste = document.getElementById("gerichte-liste");
 
-    liste.innerHTML = "<h2>Gespeicherte Gerichte</h2>";
 
-    data.forEach(gericht => {
+/* =========================================
+   PREIS FORMATIEREN
+   Beispiel:
+   8.9 → 8,90 €
+========================================= */
 
-        const eintrag = document.createElement("div");
+function preisFormatieren(preis) {
 
-        eintrag.style.border = "1px solid #ccc";
-        eintrag.style.padding = "15px";
-        eintrag.style.marginBottom = "10px";
-        eintrag.style.background = "white";
 
-        eintrag.innerHTML = `
-            <strong>${gericht.datum}</strong><br>
-            ${gericht.gerichte}<br>
-            ${gericht.beilage || ""}<br>
-            ${Number(gericht.preis).toFixed(2).replace(".", ",")} €
-            ${gericht.vegetarisch ? " 🥬" : ""}
-            <br><br>
+    return (
 
-            <button onclick="gerichtLoeschen(${gericht.id})">
-                Löschen
-            </button>
-        `;
+        Number(preis)
+            .toFixed(2)
+            .replace(".", ",") +
+        " €"
 
-        liste.appendChild(eintrag);
-    });
+    );
+
 }
 
 
-async function gerichtLoeschen(id) {
 
-    if (!confirm("Dieses Gericht wirklich löschen?")) {
+/* =========================================
+   GERICHT LÖSCHEN
+========================================= */
+
+async function gerichtLoeschen(
+    id,
+    button
+) {
+
+
+    const bestaetigt =
+        confirm(
+            "Dieses Gericht wirklich löschen?"
+        );
+
+
+    if (!bestaetigt) {
+
         return;
+
     }
 
-    const { error } = await supabaseClient
-        .from("Gerichte")
-        .delete()
-        .eq("id", id);
+
+    /* Aus Supabase löschen */
+
+    const { error } =
+        await supabaseClient
+
+            .from("Gerichte")
+
+            .delete()
+
+            .eq("id", id);
+
+
+    /* Fehler */
 
     if (error) {
+
         console.error(error);
+
         document.getElementById("meldung").textContent =
             "Fehler beim Löschen.";
+
         return;
     }
+
+
+    /* Eintrag sofort aus der sichtbaren Liste entfernen */
+
+    const eintrag =
+        button.closest(".gericht-eintrag");
+
+
+    if (eintrag) {
+
+        eintrag.remove();
+
+    }
+
+
+    /* Meldung */
 
     document.getElementById("meldung").textContent =
         "Gericht wurde gelöscht.";
 
-    gerichteLaden();
 }
 
 
+
+/* =========================================
+   BEIM ÖFFNEN DER SEITE LADEN
+========================================= */
+
 gerichteLaden();
+
 </script>
 
 </body>
