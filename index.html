@@ -1044,5 +1044,18 @@ const supabase = window.supabase.createClient(
 );
 </script>
 
+<script>
+async function testeSupabase() {
+    const { data, error } = await supabase
+        .from("Gerichte")
+        .select("*");
+
+    console.log("Gerichte:", data);
+    console.log("Fehler:", error);
+}
+
+testeSupabase();
+</script>
+
 </body>
 </html>
