@@ -713,14 +713,19 @@ footer p {
     transform: translateY(-2px);
     opacity: .9;
 }
-.veggie-icon {
-    width: 22px;
-    height: 22px;
-    object-fit: contain;
-    margin-left: 8px;
-    vertical-align: middle;
+.dish-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
+.veggie-icon {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+  
 </style>
 </head>
 
@@ -1042,14 +1047,14 @@ async function ladeGerichte() {
         const karte = document.createElement("div");
         karte.className = "dish";
 
-        karte.innerHTML = `
-    <div>
-        <h3>
-            ${gericht.gerichte}
-            ${gericht.vegetarisch ? '<img src="vegetarisch.png" class="veggie-icon">' : ''}
-        </h3>
+       karte.innerHTML = `
+    <div class="dish-info">
+        ${gericht.vegetarisch ? '<img src="vegetarisch.png" class="veggie-icon">' : ''}
 
-        <p>${gericht.beilage || ""}</p>
+        <div>
+            <h3>${gericht.gerichte}</h3>
+            <p>${gericht.beilage || ""}</p>
+        </div>
     </div>
 
     <div class="price">
