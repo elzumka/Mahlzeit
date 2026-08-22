@@ -731,6 +731,20 @@ footer p {
     margin-top: -10px;
     margin-bottom: 20px;
 }  
+.feierabend-box {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.feierabend-box img {
+    width: 100%;
+    max-width: 850px;
+    height: auto;
+    display: block;
+}
 </style>
 </head>
 
@@ -1031,6 +1045,19 @@ const supabaseClient = window.supabase.createClient(
 
 <script>
 async function ladeGerichte() {
+      const jetzt = new Date();
+    const stunde = jetzt.getHours();
+
+    const container = document.getElementById("gerichte-container");
+
+    if (stunde >= 14) {
+        container.innerHTML = `
+            <div class="feierabend-box">
+                <img src="feierabend.png" alt="Feierabend">
+            </div>
+        `;
+        return;
+    }
 
     const heute = new Date().toISOString().split("T")[0];
 
