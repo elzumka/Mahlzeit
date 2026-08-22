@@ -813,42 +813,7 @@ footer p {
       <div class="rule"></div>
     </div>
 
-    <div class="menu">
-
-      <div class="dish">
-        <div>
-          <h3>Schnitzel</h3>
-          <p>Bratkartoffeln, Bohnen-Pilzrahm</p>
-        </div>
-        <div class="price">8,90 €</div>
-      </div>
-
-      <div class="dish">
-        <div>
-          <h3>Hähnchenpfanne „Asia Style“</h3>
-          <p>Reis, Rohkost</p>
-        </div>
-        <div class="price">7,90 €</div>
-      </div>
-
-      <div class="dish">
-        <div>
-          <h3>Bolognese</h3>
-          <p>Nudeln, Käse</p>
-        </div>
-        <div class="price">8,00 €</div>
-      </div>
-
-      <div class="dish">
-        <div>
-          <h3>Linsenbolognese</h3>
-          <p>Nudeln, Käse</p>
-        </div>
-        <div class="price">8,00 €</div>
-      </div>
-
-    </div>
-
+<div class="menu" id="gerichte-container"></div>
   </div>
 
 </section>
@@ -1045,16 +1010,46 @@ const supabaseClient = window.supabase.createClient(
 </script>
 
 <script>
-async function testeSupabase() {
-  const { data, error } = await supabaseClient
-        .from("Gerichte")
-        .select("*");
+async function ladeGerichte() {
 
-    console.log("Gerichte:", data);
-    console.log("Fehler:", error);
+    const heute = new Date().toISOString().split("T")[0];
+
+    const { data, error } = await supabase
+        .from("Gerichte")
+        .select("*")
+        .eq("datum", heute)
+        .order("gerichte");
+
+    if (error) {
+        console.error("Fehler beim Laden der Gerichte:", error);
+        return;
+    }
+
+    const container = document.getElementById("gerichte-container");
+
+    container.innerHTML = "";
+
+    data.forEach(gericht => {
+
+        const karte = document.createElement("div");
+        karte.className = "dish";
+
+        karte.innerHTML = `
+            <div>
+                <h3>${gericht.gerichte}</h3>
+                <p>${gericht.beilage || ""}</p>
+            </div>
+
+            <div class="price">
+                ${Number(gericht.preis).toFixed(2).replace(".", ",")} €
+            </div>
+        `;
+
+        container.appendChild(karte);
+    });
 }
 
-testeSupabase();
+ladeGerichte();
 </script>
 
 </body>
