@@ -171,13 +171,77 @@ async function gerichteLaden() {
 
     const { data, error } = await supabaseClient
         .from("Gerichte")
-        .select("*")
-        .order("datum", { ascending: true });
+        .select("*");
 
     if (error) {
         console.error(error);
         return;
     }
+
+    // Nach Datum sortieren
+    data.sort((a, b) => a.datum.localeCompare(b.datum));
+
+    const liste = document.getElementById("gerichte-liste");
+
+    liste.innerHTML = "<h2>Gespeicherte Gerichte</h2>";
+
+    data.forEach(gericht => {
+
+        const eintrag = document.createElement("div");
+
+        eintrag.style.border = "1px solid #ccc";
+        eintrag.style.padding = "15px";
+        eintrag.style.marginBottom = "10px";
+        eintrag.style.background = "white";
+
+        // Datum in deutsches Format mit Wochentag umwandeln
+        const [jahr, monat, tag] = gerichteDatumTeilen(gericht.datum);
+
+        const datumObjekt = new Date(jahr, monat - 1, tag);
+
+        const wochentage = [
+            "Sonntag",
+            "Montag",
+            "Dienstag",
+            "Mittwoch",
+            "Donnerstag",
+            "Freitag",
+            "Samstag"
+        ];
+
+        const datumAnzeige =
+            `${wochentage[datumObjekt.getDay()]}, ` +
+            `${tag.toString().padStart(2, "0")}.` +
+            `${monat.toString().padStart(2, "0")}.` +
+            `${jahr}`;
+
+        eintrag.innerHTML = `
+            <strong>${datumAnzeige}</strong><br>
+            ${gericht.gerichte}<br>
+            ${gericht.beilage || ""}<br>
+            ${Number(gericht.preis).toFixed(2).replace(".", ",")} €
+            ${gericht.vegetarisch ? " 🥬" : ""}
+            <br><br>
+
+            <button onclick="gerichtLoeschen(${gericht.id}, this)">
+                Löschen
+            </button>
+        `;
+
+        liste.appendChild(eintrag);
+    });
+}
+
+
+function gerichteDatumTeilen(datum) {
+    const teile = datum.split("-");
+
+    return [
+        Number(teile[0]),
+        Number(teile[1]),
+        Number(teile[2])
+    ];
+}
 
     const liste = document.getElementById("gerichte-liste");
 
