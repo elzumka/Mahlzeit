@@ -713,6 +713,14 @@ footer p {
     transform: translateY(-2px);
     opacity: .9;
 }
+.veggie-icon {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
 </style>
 </head>
 
@@ -1035,15 +1043,19 @@ async function ladeGerichte() {
         karte.className = "dish";
 
         karte.innerHTML = `
-            <div>
-                <h3>${gericht.gerichte}</h3>
-                <p>${gericht.beilage || ""}</p>
-            </div>
+    <div>
+        <h3>
+            ${gericht.gerichte}
+            ${gericht.vegetarisch ? '<img src="vegetarisch.png" class="veggie-icon">' : ''}
+        </h3>
 
-            <div class="price">
-                ${Number(gericht.preis).toFixed(2).replace(".", ",")} €
-            </div>
-        `;
+        <p>${gericht.beilage || ""}</p>
+    </div>
+
+    <div class="price">
+        ${Number(gericht.preis).toFixed(2).replace(".", ",")} €
+    </div>
+`;
 
         container.appendChild(karte);
     });
