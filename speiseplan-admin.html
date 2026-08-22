@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Speiseplan – Verwaltung</title>
+
+<style>
+    body {
+        margin: 0;
+        padding: 40px 20px;
+        background: #f4efe5;
+        color: #222;
+        font-family: Arial, sans-serif;
+    }
+
+    .container {
+        max-width: 700px;
+        margin: auto;
+    }
+
+    h1 {
+        color: #31583d;
+        font-size: 42px;
+        margin-bottom: 35px;
+    }
+
+    .form {
+        background: white;
+        padding: 30px;
+        border: 1px solid #ccc;
+    }
+
+    label {
+        display: block;
+        margin-top: 18px;
+        margin-bottom: 7px;
+        font-weight: bold;
+    }
+
+    input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 12px;
+        font-size: 16px;
+        border: 1px solid #bbb;
+    }
+
+    .checkbox {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .checkbox input {
+        width: auto;
+    }
+
+    button {
+        margin-top: 30px;
+        padding: 14px 25px;
+        border: none;
+        background: #31583d;
+        color: white;
+        font-size: 17px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        opacity: 0.9;
+    }
+
+    #meldung {
+        margin-top: 20px;
+        font-weight: bold;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Speiseplan verwalten</h1>
+
+    <div class="form">
+
+        <label for="datum">Datum</label>
+        <input type="date" id="datum">
+
+        <label for="gericht">Gericht</label>
+        <input type="text" id="gericht" placeholder="z. B. Schnitzel">
+
+        <label for="beilage">Beilage</label>
+        <input type="text" id="beilage" placeholder="z. B. Bratkartoffeln, Bohnen-Pilzrahm">
+
+        <label for="preis">Preis</label>
+        <input type="number" id="preis" step="0.01" placeholder="z. B. 8.90">
+
+        <label class="checkbox">
+            <input type="checkbox" id="vegetarisch">
+            Vegetarisch
+        </label>
+
+        <button onclick="gerichtSpeichern()">
+            Gericht speichern
+        </button>
+
+        <div id="meldung"></div>
+
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+const SUPABASE_URL = "DEINE_SUPABASE_URL";
+const SUPABASE_KEY = "DEIN_SUPABASE_KEY";
+
+const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+async function gerichtSpeichern() {
+
+    const datum = document.getElementById("datum").value;
+    const gericht = document.getElementById("gericht").value;
+    const beilage = document.getElementById("beilage").value;
+    const preis = document.getElementById("preis").value;
+    const vegetarisch = document.getElementById("vegetarisch").checked;
+
+    if (!datum || !gericht || !preis) {
+        document.getElementById("meldung").textContent =
+            "Bitte Datum, Gericht und Preis ausfüllen.";
+        return;
+    }
+
+    const { error } = await supabaseClient
+        .from("Gerichte")
+        .insert([
+            {
+                datum: datum,
+                gerichte: gericht,
+                beilage: beilage,
+                preis: preis,
+                vegetarisch: vegetarisch
+            }
+        ]);
+
+    if (error) {
+        console.error(error);
+        document.getElementById("meldung").textContent =
+            "Fehler beim Speichern.";
+        return;
+    }
+
+    document.getElementById("meldung").textContent =
+        "Gericht wurde gespeichert.";
+
+    document.getElementById("gericht").value = "";
+    document.getElementById("beilage").value = "";
+    document.getElementById("preis").value = "";
+    document.getElementById("vegetarisch").checked = false;
+}
+
+</script>
+
+</body>
+</html>
