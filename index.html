@@ -822,7 +822,8 @@ footer p {
   <div class="section-inner">
 
     <div class="section-title">
-      <h2>Heute bei uns</h2>
+    <h2>Heute bei uns</h2>
+<div id="heutiges-datum"></div>
       <div class="rule"></div>
     </div>
 
@@ -1068,6 +1069,31 @@ const { data, error } = await supabaseClient
 }
 
 ladeGerichte();
+function zeigeHeutigesDatum() {
+
+    const datumHeute = new Date();
+
+    const wochentage = [
+        "Sonntag",
+        "Montag",
+        "Dienstag",
+        "Mittwoch",
+        "Donnerstag",
+        "Freitag",
+        "Samstag"
+    ];
+
+    const tag = datumHeute.getDate().toString().padStart(2, "0");
+    const monat = (datumHeute.getMonth() + 1).toString().padStart(2, "0");
+    const jahr = datumHeute.getFullYear();
+
+    const datumText =
+        `${wochentage[datumHeute.getDay()]}, ${tag}.${monat}.${jahr}`;
+
+    document.getElementById("heutiges-datum").textContent = datumText;
+}
+
+zeigeHeutigesDatum();
 </script>
 
 </body>
