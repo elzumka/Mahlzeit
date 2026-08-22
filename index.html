@@ -1030,10 +1030,9 @@ async function ladeGerichte() {
 const { data, error } = await supabaseClient
     .from("Gerichte")
     .select("*")
-    .eq("datum", heute)
-    .order("datum", { ascending: true });
-        .eq("datum", heute)
-        .order("gerichte");
+    .gte("datum", heute)
+    .order("datum", { ascending: true })
+    .order("gerichte", { ascending: true });
 
     if (error) {
         console.error("Fehler beim Laden der Gerichte:", error);
