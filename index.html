@@ -1075,8 +1075,6 @@ const { data, error } = await supabaseClient
         return;
     }
 
-    const container = document.getElementById("gerichte-container");
-
     container.innerHTML = "";
 
     data.forEach(gericht => {
