@@ -1053,242 +1053,258 @@ const supabaseClient = window.supabase.createClient(
 
 async function ladeGerichte() {
 
-  const jetzt = new Date();
-  const stunde = jetzt.getHours();
+    const jetzt = new Date();
+    const stunde = jetzt.getHours();
 
-  const container = document.getElementById("gerichte-container");
+    const container = document.getElementById("gerichte-container");
 
-  if (!container) {
-    return;
-  }
+    if (!container) {
+        return;
+    }
 
-  /* --------------------------------
-     AB 14:00 UHR → FEIERABEND
-     -------------------------------- */
 
-  if (stunde >= 14) {
+    /* --------------------------------
+       AB 14:00 UHR → FEIERABEND-BILD
+       -------------------------------- */
 
-    container.innerHTML = `
-      <div class="feierabend-box">
-        <img
-          src="feierabend.png"
-          alt="Feierabend – morgen sind wir wieder für euch da"
-        >
-      </div>
-    `;
+    if (stunde >= 14) {
+
+        container.innerHTML = `
+            <div class="feierabend-box">
+                <img
+                    src="feierabend.png"
+                    alt="Feierabend"
+                >
+            </div>
+        `;
+
+        planeNaechstesUpdate();
+
+        return;
+    }
+
+
+    /* --------------------------------
+       VOR 14:00 UHR → GERICHTE LADEN
+       -------------------------------- */
+
+    const jahr = jetzt.getFullYear();
+
+    const monat = String(
+        jetzt.getMonth() + 1
+    ).padStart(2, "0");
+
+    const tag = String(
+        jetzt.getDate()
+    ).padStart(2, "0");
+
+    const heute =
+        `${jahr}-${monat}-${tag}`;
+
+
+    const { data, error } = await supabaseClient
+        .from("Gerichte")
+        .select("*")
+        .eq("datum", heute)
+        .order("gerichte", { ascending: true });
+
+
+    if (error) {
+
+        console.error(
+            "Fehler beim Laden der Gerichte:",
+            error
+        );
+
+        return;
+    }
+
+
+    container.innerHTML = "";
+
+
+    /* --------------------------------
+       GERICHTE ANZEIGEN
+       -------------------------------- */
+
+    data.forEach(gericht => {
+
+        const karte =
+            document.createElement("div");
+
+        karte.className = "dish";
+
+
+        karte.innerHTML = `
+
+            <div class="dish-info">
+
+                ${
+                    gericht.vegetarisch
+                        ? `
+                            <img
+                                src="vegetarisch.png"
+                                class="veggie-icon"
+                                alt="Vegetarisch"
+                            >
+                          `
+                        : ""
+                }
+
+                <div>
+
+                    <h3>
+                        ${gericht.gerichte}
+                    </h3>
+
+                    <p>
+                        ${gericht.beilage || ""}
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="price">
+
+                ${
+                    Number(gericht.preis)
+                        .toFixed(2)
+                        .replace(".", ",")
+                } €
+
+            </div>
+
+        `;
+
+
+        container.appendChild(karte);
+
+    });
+
 
     planeNaechstesUpdate();
-
-    return;
-  }
-
-  /* --------------------------------
-     VOR 14:00 UHR → GERICHTE LADEN
-     -------------------------------- */
-
-  const jahr = jetzt.getFullYear();
-
-  const monat = String(
-    jetzt.getMonth() + 1
-  ).padStart(2, "0");
-
-  const tag = String(
-    jetzt.getDate()
-  ).padStart(2, "0");
-
-  const heute = `${jahr}-${monat}-${tag}`;
-
-  const { data, error } = await supabaseClient
-    .from("Gerichte")
-    .select("*")
-    .eq("datum", heute)
-    .order("gerichte", { ascending: true });
-
-  if (error) {
-
-    console.error(
-      "Fehler beim Laden der Gerichte:",
-      error
-    );
-
-    return;
-  }
-
-  container.innerHTML = "";
-
-  if (!data || data.length === 0) {
-
-    container.innerHTML = `
-      <div class="dish">
-        <div>
-          <h3>Heute leider kein Gericht eingetragen.</h3>
-          <p>Schaut gerne später noch einmal vorbei.</p>
-        </div>
-      </div>
-    `;
-
-    planeNaechstesUpdate();
-
-    return;
-  }
-
-  data.forEach(gericht => {
-
-    const karte =
-      document.createElement("div");
-
-    karte.className = "dish";
-
-    karte.innerHTML = `
-
-      <div class="dish-info">
-
-        ${
-          gericht.vegetarisch
-            ? `
-              <img
-                src="vegetarisch.png"
-                class="veggie-icon"
-                alt="Vegetarisch"
-              >
-            `
-            : ""
-        }
-
-        <div>
-
-          <h3>
-            ${gericht.gerichte}
-          </h3>
-
-          <p>
-            ${gericht.beilage || ""}
-          </p>
-
-        </div>
-
-      </div>
-
-      <div class="price">
-
-        ${
-          Number(gericht.preis)
-            .toFixed(2)
-            .replace(".", ",")
-        } €
-
-      </div>
-
-    `;
-
-    container.appendChild(karte);
-
-  });
-
-  planeNaechstesUpdate();
 
 }
 
 
 /* --------------------------------
-   AUTOMATISCHES DATUM
+   HEUTIGES DATUM
    -------------------------------- */
 
 function zeigeHeutigesDatum() {
 
-  const datumHeute = new Date();
+    const datumHeute = new Date();
 
-  const wochentage = [
-    "Sonntag",
-    "Montag",
-    "Dienstag",
-    "Mittwoch",
-    "Donnerstag",
-    "Freitag",
-    "Samstag"
-  ];
+    const wochentage = [
+        "Sonntag",
+        "Montag",
+        "Dienstag",
+        "Mittwoch",
+        "Donnerstag",
+        "Freitag",
+        "Samstag"
+    ];
 
-  const tag =
-    datumHeute
-      .getDate()
-      .toString()
-      .padStart(2, "0");
 
-  const monat =
-    (datumHeute.getMonth() + 1)
-      .toString()
-      .padStart(2, "0");
+    const tag =
+        datumHeute
+            .getDate()
+            .toString()
+            .padStart(2, "0");
 
-  const jahr =
-    datumHeute.getFullYear();
 
-  const datumText =
-    `${wochentage[datumHeute.getDay()]}, ${tag}.${monat}.${jahr}`;
+    const monat =
+        (datumHeute.getMonth() + 1)
+            .toString()
+            .padStart(2, "0");
 
-  const datumElement =
-    document.getElementById("heutiges-datum");
 
-  if (datumElement) {
-    datumElement.textContent =
-      datumText;
-  }
+    const jahr =
+        datumHeute.getFullYear();
+
+
+    const datumText =
+        `${wochentage[datumHeute.getDay()]}, ${tag}.${monat}.${jahr}`;
+
+
+    const datumElement =
+        document.getElementById("heutiges-datum");
+
+
+    if (datumElement) {
+
+        datumElement.textContent =
+            datumText;
+
+    }
 
 }
 
 
 /* --------------------------------
-   NÄCHSTES AUTOMATISCHES UPDATE
+   AUTOMATISCHES UPDATE
    -------------------------------- */
 
 function planeNaechstesUpdate() {
 
-  const jetzt = new Date();
+    const jetzt = new Date();
 
-  let naechstesUpdate =
-    new Date(jetzt);
+    let naechstesUpdate =
+        new Date(jetzt);
 
-  /*
-     Vor 14 Uhr:
-     → nächstes Update exakt um 14 Uhr
 
-     Nach 14 Uhr:
-     → nächstes Update kurz nach Mitternacht
-  */
+    /*
+       Vor 14 Uhr:
+       → nächstes Update um 14:00 Uhr
+    */
 
-  if (jetzt.getHours() < 14) {
+    if (jetzt.getHours() < 14) {
 
-    naechstesUpdate.setHours(
-      14,
-      0,
-      0,
-      0
-    );
+        naechstesUpdate.setHours(
+            14,
+            0,
+            0,
+            0
+        );
 
-  } else {
+    }
 
-    naechstesUpdate.setDate(
-      naechstesUpdate.getDate() + 1
-    );
 
-    naechstesUpdate.setHours(
-      0,
-      1,
-      0,
-      0
-    );
+    /*
+       Ab 14 Uhr:
+       → nächstes Update kurz nach Mitternacht
+    */
 
-  }
+    else {
 
-  const zeitBisUpdate =
-    naechstesUpdate.getTime()
-    - jetzt.getTime();
+        naechstesUpdate.setDate(
+            naechstesUpdate.getDate() + 1
+        );
 
-  setTimeout(() => {
+        naechstesUpdate.setHours(
+            0,
+            1,
+            0,
+            0
+        );
 
-    zeigeHeutigesDatum();
-    ladeGerichte();
+    }
 
-  }, Math.max(zeitBisUpdate, 1000));
+
+    const zeitBisUpdate =
+        naechstesUpdate.getTime()
+        - jetzt.getTime();
+
+
+    setTimeout(() => {
+
+        zeigeHeutigesDatum();
+
+        ladeGerichte();
+
+    }, Math.max(zeitBisUpdate, 1000));
 
 }
 
@@ -1303,14 +1319,12 @@ ladeGerichte();
 
 
 /*
-   Datum jede Minute prüfen.
-   So wird auch bei einer dauerhaft
-   geöffneten Seite der neue Tag erkannt.
+   Datum regelmäßig aktualisieren
 */
 
 setInterval(
-  zeigeHeutigesDatum,
-  60 * 1000
+    zeigeHeutigesDatum,
+    60 * 1000
 );
 
 </script>
