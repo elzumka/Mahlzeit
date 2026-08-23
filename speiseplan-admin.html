@@ -287,6 +287,9 @@ async function speiseplanSpeichern(){
 async function speiseplanLoeschen(id){
     if(!confirm('Diesen Speiseplan wirklich löschen?')) return;
 
+    const meldung=document.getElementById('speiseplan-meldung');
+    const eintrag=document.querySelector(`.plan-entry[data-plan-id="${id}"]`);
+
     const { data: plan, error: findError } = await supabaseClient
         .from('Speiseplaene')
         .select('*')
@@ -295,7 +298,7 @@ async function speiseplanLoeschen(id){
 
     if(findError){
         console.error(findError);
-        document.getElementById('speiseplan-meldung').textContent='Speiseplan konnte nicht gefunden werden.';
+        meldung.textContent='Speiseplan konnte nicht gefunden werden.';
         return;
     }
 
@@ -306,26 +309,37 @@ async function speiseplanLoeschen(id){
 
     if(dbError){
         console.error(dbError);
-        document.getElementById('speiseplan-meldung').textContent='Speiseplan konnte nicht gelöscht werden.';
+        meldung.textContent='Speiseplan konnte nicht gelöscht werden.';
         return;
     }
+
+    // Sofort aus der sichtbaren Liste entfernen.
+    if(eintrag) eintrag.remove();
 
     // Zugehöriges Bild ebenfalls aus dem Storage entfernen.
     if(plan && plan.bild_url){
         try{
             const marker='/storage/v1/object/public/speiseplaene/';
             const pos=plan.bild_url.indexOf(marker);
+
             if(pos>=0){
-                const storagePath=decodeURIComponent(plan.bild_url.substring(pos+marker.length));
-                await supabaseClient.storage.from('speiseplaene').remove([storagePath]);
+                const storagePath=decodeURIComponent(
+                    plan.bild_url.substring(pos+marker.length)
+                );
+
+                await supabaseClient.storage
+                    .from('speiseplaene')
+                    .remove([storagePath]);
             }
         }catch(storageError){
             console.warn('Bild konnte nicht aus dem Speicher gelöscht werden:', storageError);
         }
     }
 
-    document.getElementById('speiseplan-meldung').textContent='Speiseplan wurde gelöscht.';
-    speiseplaeneLaden();
+    meldung.textContent='Speiseplan wurde gelöscht.';
+
+    // Liste zusätzlich noch einmal frisch aus Supabase laden.
+    await speiseplaeneLaden();
 }
 
 async function speiseplanBearbeiten(id){
@@ -397,7 +411,7 @@ async function speiseplaeneLaden(){
     }
 
     liste.innerHTML = aktuelleUndZukuenftige.map(p => `
-        <div class="plan-entry">
+        <div class="plan-entry" data-plan-id="${p.id}">
             <div>
                 <strong>KW ${p.kw} · ${p.jahr}</strong>
                 <div>${datumKurz(new Date(p.von + 'T00:00:00'))} – ${datumKurz(new Date(p.bis + 'T00:00:00'))}</div>
@@ -418,5 +432,4 @@ async function speiseplaeneLaden(){
 
 initialisierePlanAuswahl();gerichteLaden();speiseplaeneLaden();
 </script>
-</body>
-</html>
+</body></html>
