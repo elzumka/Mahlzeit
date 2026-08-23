@@ -283,47 +283,102 @@ function sp_render(){
 
   const start=sp_isoStart(spState.year,spState.week);
   let s="";
+
+  // Kopfbereich
   s+=sp_text(122,37.2,"KW "+spState.week,"sp-impact",6,38,"middle");
   s+=sp_text(122,48.0,sp_range(),"sp-round",4,10,"middle");
 
-  const dateY=[116.2,155.2,194.3,235.1,268.3];
-  const firstY=[90.0,136.3,171.3,216.7,251.7];
-  const maxRows=10;
+  // Die ursprünglichen vertikalen Anker bleiben erhalten.
+  // Nur die Gerichte innerhalb der Bereiche werden dynamisch verteilt.
+  const firstY = [90.0,136.3,171.3,216.7,251.7];
+
+  // Ende eines Tagesbereichs: vor dem nächsten Tagesblock.
+  const dayBottom = [128.5,163.5,204.0,244.0,280.0];
+
+  const maxRows = 10;
 
   spState.days.forEach((items,di)=>{
-    const dt=new Date(start);
-    dt.setUTCDate(dt.getUTCDate()+di);
-    s+=sp_text(17.4,dateY[di],sp_fmt(dt),"sp-round",4,10,"middle");
+    const visible=items
+      .filter(item=>item[5]!==false)
+      .slice(0,maxRows);
 
-    const visible=items.filter(item=>item[5]!==false).slice(0,maxRows);
-    const gap=visible.length>4 ? 8.25 : 10.5;
+    if(!visible.length)return;
+
+    /*
+     * Automatische Zeilenhöhe.
+     * Je mehr Gerichte vorhanden sind, desto kompakter wird die Gruppe.
+     * Bei wenigen Gerichten wird der vorhandene Platz harmonisch genutzt.
+     */
+    let rowHeight;
+    if(visible.length <= 2) rowHeight = 11.0;
+    else if(visible.length <= 3) rowHeight = 10.2;
+    else if(visible.length <= 4) rowHeight = 9.2;
+    else if(visible.length <= 5) rowHeight = 8.25;
+    else if(visible.length <= 6) rowHeight = 7.4;
+    else if(visible.length <= 7) rowHeight = 6.7;
+    else if(visible.length <= 8) rowHeight = 6.1;
+    else if(visible.length <= 9) rowHeight = 5.6;
+    else rowHeight = 5.2;
+
+    const titleToDescription = 3.35;
+    const groupHeight = (visible.length - 1) * rowHeight + titleToDescription;
+
+    /*
+     * Gerichtsliste im verfügbaren Tagesbereich vertikal zentrieren.
+     * Der Bereich beginnt beim bisherigen firstY und endet vor der
+     * nächsten Trennlinie / dem nächsten Tag.
+     */
+    const top = firstY[di];
+    const bottom = dayBottom[di];
+    const availableHeight = bottom - top;
+
+    const startY = groupHeight < availableHeight
+      ? top + (availableHeight - groupHeight) / 2
+      : top;
 
     visible.forEach((item,ri)=>{
-      const y=firstY[di]+ri*gap;
+      const y=startY+ri*rowHeight;
+
+      // Vegetarisch-Symbol bleibt unverändert positioniert und skaliert.
       if(item[3]){
-        s+=`<image href="${SP_VEGI}" x="${38.2-1.353}" y="${y-0.2}" width="2.706" height="3.603" preserveAspectRatio="none"/>`;
+        s+=`<image href="${SP_VEGI}"
+          x="${38.2-1.353}"
+          y="${y-0.2}"
+          width="2.706"
+          height="3.603"
+          preserveAspectRatio="none"/>`;
       }else{
         s+=`<circle cx="38.2" cy="${y+1.8}" r=".42" fill="#171714"/>`;
       }
-      s+=sp_text(44.5,y,item[0]||"","sp-round",3.7,3,"start","700");
+
+      // Hauptelemente fett und in Großbuchstaben.
+      s+=sp_text(44.5,y,(item[0]||"").toUpperCase(),"sp-round",3.7,3,"start","700");
+
+      // Beschreibung.
       s+=sp_text(44.5,y+3.35,item[1]||"","sp-source",3.5,100);
+
+      // Preis.
       s+=sp_text(133.5,y,item[2]||"","sp-price",3.7,10,"end","700");
     });
   });
 
-  // Tägliche Klassiker
-  s+=sp_text(148,105.7,"KRÄUTERQUARK","sp-round",3.7,10,"start","700");
-  s+=sp_text(148,113,"Kartoffeln, Leinöl,","sp-source",3.5,100);
-  s+=sp_text(148,117.6,"Zwiebeln","sp-source",3.5,100);
-  s+=sp_text(193,114.2,"6,90 €","sp-price",3.7,10,"end","700");
+  // ===== TÄGLICHE KLASSIKER =====
 
+  // Kräuterquark – Überschrift und Beschreibung ohne unnötige Lücke.
+  s+=sp_text(148,105.7,"KRÄUTERQUARK","sp-round",3.7,10,"start","700");
+  s+=sp_text(148,111.0,"Kartoffeln, Leinöl,","sp-source",3.5,100);
+  s+=sp_text(148,115.2,"Zwiebeln","sp-source",3.5,100);
+  s+=sp_text(193,113.2,"6,90 €","sp-price",3.7,10,"end","700");
+
+  // Nudeln
   s+=sp_text(148,125.7,"NUDELN","sp-round",3.7,10,"start","700");
   s+=sp_text(148,130,"Wurstgulasch","sp-source",3.5,100);
   s+=sp_text(193,130,"7,90 €","sp-price",3.7,10,"end","700");
   s+=sp_text(148,133.6,"mit Käse","sp-source",3.5,100);
   s+=sp_text(193,133.6,"8,20 €","sp-price",3.7,10,"end","700");
 
-  s+=sp_text(148,161.5,"Schnitzel","sp-round",3.5,10,"start","700");
+  // Schnitzel-Menü – Schnitzel wie Kräuterquark, aber in Großbuchstaben.
+  s+=sp_text(148,161.5,"SCHNITZEL","sp-round",3.7,10,"start","700");
   s+=sp_text(148,166.5,"mit Getränk","sp-source",3.5,100);
   s+=sp_text(148,171.5,"und Rohkost","sp-source",3.5,100);
   s+=sp_text(148,176.5,"oder Dessert","sp-source",3.5,100);
