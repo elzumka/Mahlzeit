@@ -1063,25 +1063,53 @@ async function ladeGerichte() {
     }
 
 
-    /* --------------------------------
-       AB 14:00 UHR → FEIERABEND-BILD
-       -------------------------------- */
+   /*
+    WOCHENENDE
+    Freitag ab 14:00 Uhr
+    Samstag komplett
+    Sonntag komplett
+*/
 
-    if (stunde >= 14) {
+const wochentag = jetzt.getDay();
 
-        container.innerHTML = `
-            <div class="feierabend-box">
-                <img
-                    src="./feierabend.png"
-                    alt="Feierabend"
-                >
-            </div>
-        `;
+const istWochenende =
+    (wochentag === 5 && stunde >= 14) ||
+    wochentag === 6 ||
+    wochentag === 0;
 
-        planeNaechstesUpdate();
+if (istWochenende) {
 
-        return;
-    }
+    container.innerHTML = `
+        <div class="feierabend-box">
+            <img
+                src="wochenende.png"
+                alt="Schönes Wochenende"
+            >
+        </div>
+    `;
+
+    return;
+}
+
+
+/*
+    FEIERABEND
+    Montag bis Donnerstag ab 14:00 Uhr
+*/
+
+if (stunde >= 14) {
+
+    container.innerHTML = `
+        <div class="feierabend-box">
+            <img
+                src="feierabend.png"
+                alt="Feierabend"
+            >
+        </div>
+    `;
+
+    return;
+}
 
 
     /* --------------------------------
