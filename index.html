@@ -1533,63 +1533,41 @@ function planeNaechstesUpdate() {
 
     const jetzt = new Date();
 
-    let naechstesUpdate =
-        new Date(jetzt);
+    // Der Speiseplan wechselt immer freitags um 14:00 Uhr.
+    // Bereits vorbereitete Wochen können in Supabase liegen;
+    // ladeSpeiseplan() sucht automatisch den zu diesem Zeitpunkt
+    // bereits aktivierten, neuesten Plan.
 
+    const wochentag = jetzt.getDay(); // So=0 ... Fr=5 ... Sa=6
 
-    /*
-       Vor 14 Uhr:
-       → nächstes Update um 14:00 Uhr
-    */
+    let tageBisFreitag = (5 - wochentag + 7) % 7;
 
-    if (jetzt.getHours() < 14) {
-
-        naechstesUpdate.setHours(
-            14,
-            0,
-            0,
-            0
-        );
-
+    // Wenn heute Freitag und 14:00 bereits vorbei ist,
+    // wird auf den kommenden Freitag gewartet.
+    if (tageBisFreitag === 0 && jetzt.getHours() >= 14) {
+        tageBisFreitag = 7;
     }
 
-
-    /*
-       Ab 14 Uhr:
-       → nächstes Update kurz nach Mitternacht
-    */
-
-    else {
-
-        naechstesUpdate.setDate(
-            naechstesUpdate.getDate() + 1
-        );
-
-        naechstesUpdate.setHours(
-            0,
-            1,
-            0,
-            0
-        );
-
-    }
-
+    const naechstesUpdate = new Date(jetzt);
+    naechstesUpdate.setDate(
+        jetzt.getDate() + tageBisFreitag
+    );
+    naechstesUpdate.setHours(14, 0, 0, 0);
 
     const zeitBisUpdate =
-        naechstesUpdate.getTime()
-        - jetzt.getTime();
+        naechstesUpdate.getTime() - jetzt.getTime();
 
-
-    setTimeout(() => {
+    setTimeout(async () => {
 
         zeigeHeutigesDatum();
 
-        ladeGerichte();
+        await ladeGerichte();
+        await ladeSpeiseplan();
+
+        planeNaechstesUpdate();
 
     }, Math.max(zeitBisUpdate, 1000));
-
 }
-
 
 /* --------------------------------
    SEITE STARTEN
@@ -1598,6 +1576,8 @@ function planeNaechstesUpdate() {
 zeigeHeutigesDatum();
 
 ladeGerichte();
+
+planeNaechstesUpdate();
 
 
 /*
@@ -1613,13 +1593,37 @@ setInterval(
 
 /* ---------------- DYNAMISCHER SPEISEPLAN ---------------- */
 async function ladeSpeiseplan() {
-  const kwElement = document.getElementById("speiseplan-kw");
-  const datumElement = document.getElementById("speiseplan-datum");
-  const container = document.getElementById("speiseplan-container");
-  if (!kwElement || !datumElement || !container) return;
+
+  const kwElement =
+    document.getElementById("speiseplan-kw");
+
+  const datumElement =
+    document.getElementById("speiseplan-datum");
+
+  const container =
+    document.getElementById("speiseplan-container");
+
+  if (!kwElement || !datumElement || !container) {
+    return;
+  }
+
+  /*
+   * Mehrere Wochen können im Voraus angelegt werden.
+   * Die Website zeigt immer den zuletzt aktivierten Plan:
+   *
+   * KW 35 → aktiv_ab = Freitag 14:00
+   * KW 36 → aktiv_ab = darauffolgender Freitag 14:00
+   * KW 37 → aktiv_ab = nächster Freitag 14:00
+   *
+   * Entscheidend ist also ausschließlich aktiv_ab.
+   */
 
   const jetzt = new Date();
-  const { data, error } = await supabaseClient
+
+  const {
+    data,
+    error
+  } = await supabaseClient
     .from("Speiseplaene")
     .select("*")
     .lte("aktiv_ab", jetzt.toISOString())
@@ -1627,28 +1631,84 @@ async function ladeSpeiseplan() {
     .limit(1)
     .maybeSingle();
 
+
   if (error) {
-    console.error("Fehler beim Laden des Speiseplans:", error);
-    kwElement.textContent = "MAHLZEIT · SPEISEPLAN";
-    datumElement.textContent = "Speiseplan konnte nicht geladen werden.";
-    container.innerHTML = '<div class="speiseplan-loading">Speiseplan konnte nicht geladen werden.</div>';
+
+    console.error(
+      "Fehler beim Laden des Speiseplans:",
+      error
+    );
+
+    kwElement.textContent =
+      "MAHLZEIT · SPEISEPLAN";
+
+    datumElement.textContent =
+      "Speiseplan konnte nicht geladen werden.";
+
+    container.innerHTML =
+      '<div class="speiseplan-loading">' +
+      'Speiseplan konnte nicht geladen werden.' +
+      '</div>';
+
     return;
   }
+
 
   if (!data) {
-    kwElement.textContent = "MAHLZEIT · SPEISEPLAN";
-    datumElement.textContent = "Noch kein Speiseplan hinterlegt.";
-    container.innerHTML = '<div class="speiseplan-loading">Der aktuelle Speiseplan wird vorbereitet.</div>';
+
+    kwElement.textContent =
+      "MAHLZEIT · SPEISEPLAN";
+
+    datumElement.textContent =
+      "Noch kein Speiseplan hinterlegt.";
+
+    container.innerHTML =
+      '<div class="speiseplan-loading">' +
+      'Der aktuelle Speiseplan wird vorbereitet.' +
+      '</div>';
+
     return;
   }
 
-  kwElement.textContent = `MAHLZEIT · KW ${data.kw}`;
-  datumElement.textContent = `${datumKurz(data.von)} – ${datumKurz(data.bis)}`;
+
+  kwElement.textContent =
+    `MAHLZEIT · KW ${data.kw}`;
+
+  datumElement.textContent =
+    `${datumKurz(data.von)} – ${datumKurz(data.bis)}`;
+
+
+  /*
+   * Cache-Busting:
+   * Falls eine bereits vorhandene PNG ersetzt wird,
+   * lädt der Browser trotzdem die neue Version.
+   */
+
+  const bildUrl =
+    data.bild_url
+      ? data.bild_url
+        + (data.bild_url.includes("?") ? "&" : "?")
+        + "v=" + Date.now()
+      : "";
+
+
   container.innerHTML = `
-    <img src="${data.bild_url}" alt="Speiseplan Mahlzeit KW ${data.kw}">
-    <a href="${data.bild_url}" target="_blank" rel="noopener" class="speiseplan-drucken">
+
+    <img
+      src="${bildUrl}"
+      alt="Speiseplan Mahlzeit KW ${data.kw}"
+    >
+
+    <a
+      href="${bildUrl}"
+      target="_blank"
+      rel="noopener"
+      class="speiseplan-drucken"
+    >
       SPEISEPLAN ANZEIGEN
-    </a>`;
+    </a>
+
+  `;
 }
 
 function datumKurz(iso) {
