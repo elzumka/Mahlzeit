@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mahlzeit! – Verwaltung · Speiseplan v16</title>
+<title>Mahlzeit! – Verwaltung · Speiseplan v17 · PNG-Fontfix</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
 :root{--green:#285437;--green-dark:#1d4029;--cream:#f5eee4;--beige:#ddd1bf;--black:#20201d;--line:#b8ad9d;}
@@ -444,152 +444,166 @@ async function sp_downloadPNG(){
   canvas.height=height;
   const ctx=canvas.getContext("2d");
 
+  // A4-SVG-Koordinaten (210 x 297) -> PNG-Pixel
+  const scaleX=width/210;
+  const scaleY=height/297;
+
   /*
-   * PNG-EXPORT:
-   * Die Fonts werden als Base64 direkt in das exportierte SVG eingebettet.
-   * Dadurch kann der Browser beim SVG->PNG-Rendering nicht mehr auf eine
-   * Ersatzschrift zurückfallen.
+   * WICHTIG:
+   * Der PNG-Export verwendet hier NICHT mehr SVG -> Image.
+   * Chrome ignoriert eingebettete/relative Webfonts in einem Blob-SVG
+   * teilweise. Deshalb zeichnen wir die vorhandenen SVG-Texte direkt
+   * auf das Canvas. Dadurch werden die Fonts verwendet, die die Seite
+   * bereits über @font-face geladen hat.
    */
-  const baseUrl = new URL("./", window.location.href).href;
-
-  async function fontAsDataUrl(fileName, mimeType){
-    const response = await fetch(new URL(fileName, baseUrl), {
-      cache: "no-store"
-    });
-    if(!response.ok){
-      throw new Error(`Font konnte nicht geladen werden: ${fileName}`);
-    }
-
-    const buffer = await response.arrayBuffer();
-    const bytes = new Uint8Array(buffer);
-
-    // Base64 ohne "Maximum call stack" bei größeren Font-Dateien.
-    let binary = "";
-    const chunkSize = 0x8000;
-    for(let i=0;i<bytes.length;i+=chunkSize){
-      binary += String.fromCharCode(
-        ...bytes.subarray(i, Math.min(i+chunkSize, bytes.length))
-      );
-    }
-
-    return `data:${mimeType};base64,${btoa(binary)}`;
+  try{
+    await Promise.all([
+      document.fonts.load('400 60px "ImpactCustom"'),
+      document.fonts.load('700 60px "ArialRoundedCustom"'),
+      document.fonts.load('400 60px "SourceSansCustom"')
+    ]);
+    await document.fonts.ready;
+  }catch(error){
+    console.warn("Fonts konnten vor dem PNG-Export nicht vollständig geladen werden.",error);
   }
 
-  try{
-    await document.fonts.ready;
+  function pxX(v){return Number(v)*scaleX;}
+  function pxY(v){return Number(v)*scaleY;}
 
-    const [impactFont, roundedFont, sourceFont] = await Promise.all([
-      fontAsDataUrl("impact.ttf","font/ttf"),
-      fontAsDataUrl("ARLRDBD.TTF","font/ttf"),
-      fontAsDataUrl("SourceSansVariable-Roman.otf","font/otf")
-    ]);
+  function fontForClass(cls,weight,size){
+    let family="SourceSansCustom";
+    if(cls.includes("sp-impact")) family="ImpactCustom";
+    else if(cls.includes("sp-round") || cls.includes("sp-price")) family="ArialRoundedCustom";
 
-    const clone=svg.cloneNode(true);
-    clone.setAttribute("width",width);
-    clone.setAttribute("height",height);
-    clone.setAttribute("viewBox","0 0 210 297");
-    clone.setAttribute("xmlns","http://www.w3.org/2000/svg");
+    return `${weight||400} ${Number(size)*scaleY}px "${family}"`;
+  }
 
-    /*
-     * WICHTIG:
-     * Keine externen Font-URLs mehr im SVG.
-     * Die drei echten Dateien werden vollständig eingebettet.
-     */
-    const style=document.createElementNS("http://www.w3.org/2000/svg","style");
-    style.textContent=`
-      @font-face{
-        font-family:"ImpactCustom";
-        src:url("${impactFont}") format("truetype");
-        font-weight:400;
-        font-style:normal;
-      }
+  function drawLetterSpacedText(textValue,x,y,letterSpacingPx,anchor){
+    if(!letterSpacingPx){
+      ctx.fillText(textValue,x,y);
+      return;
+    }
 
-      @font-face{
-        font-family:"ArialRoundedCustom";
-        src:url("${roundedFont}") format("truetype");
-        font-weight:400;
-        font-style:normal;
-      }
+    const chars=[...String(textValue)];
+    const widths=chars.map(ch=>ctx.measureText(ch).width);
+    const total=widths.reduce((a,b)=>a+b,0)+Math.max(0,chars.length-1)*letterSpacingPx;
 
-      @font-face{
-        font-family:"ArialRoundedCustom";
-        src:url("${roundedFont}") format("truetype");
-        font-weight:700;
-        font-style:normal;
-      }
+    let cursor=x;
+    if(anchor==="middle") cursor=x-total/2;
+    if(anchor==="end") cursor=x-total;
 
-      @font-face{
-        font-family:"SourceSansCustom";
-        src:url("${sourceFont}") format("opentype");
-        font-weight:100 900;
-        font-style:normal;
-      }
+    chars.forEach((ch,i)=>{
+      ctx.fillText(ch,cursor,y);
+      cursor+=widths[i]+letterSpacingPx;
+    });
+  }
 
-      .sp-impact{
-        font-family:"ImpactCustom";
-        fill:#15572f;
-      }
+  function drawTextElement(el){
+    const x=pxX(el.getAttribute("x")||0);
+    const y=pxY(el.getAttribute("y")||0);
+    const size=el.getAttribute("font-size")||"16";
+    const weight=el.getAttribute("font-weight")||"400";
+    const cls=el.getAttribute("class")||"";
+    const anchor=el.getAttribute("text-anchor")||"start";
+    const trackingEm=parseFloat(el.getAttribute("letter-spacing")||"0");
+    const letterSpacingPx=trackingEm*Number(size)*scaleY;
+    const fill=
+      el.getAttribute("fill") ||
+      (cls.includes("sp-impact") || cls.includes("sp-price") ? "#15572f" : "#171714");
 
-      .sp-round{
-        font-family:"ArialRoundedCustom";
-        fill:#171714;
-      }
+    ctx.font=fontForClass(cls,weight,size);
+    ctx.fillStyle=fill;
+    ctx.textBaseline="alphabetic";
+    ctx.textAlign="left";
 
-      .sp-source{
-        font-family:"SourceSansCustom";
-        fill:#171714;
-      }
-
-      .sp-price{
-        font-family:"ArialRoundedCustom";
-        fill:#15572f;
-        font-weight:700;
-      }
-    `;
-
-    clone.insertBefore(style,clone.firstChild);
-
-    const xml=new XMLSerializer().serializeToString(clone);
-    const blob=new Blob([xml],{type:"image/svg+xml;charset=utf-8"});
-    const url=URL.createObjectURL(blob);
-    const img=new Image();
-
-    img.onload=()=>{
-      ctx.drawImage(img,0,0,width,height);
-      URL.revokeObjectURL(url);
-
-      canvas.toBlob(file=>{
-        if(!file)return;
-
-        const downloadUrl=URL.createObjectURL(file);
-        const a=document.createElement("a");
-        a.href=downloadUrl;
-        a.download=`Speiseplan-KW-${String(spState.week).padStart(2,"0")}-${spState.year}.png`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-
-        setTimeout(()=>URL.revokeObjectURL(downloadUrl),1000);
-      },"image/png");
-    };
-
-    img.onerror=()=>{
-      URL.revokeObjectURL(url);
-      alert(
-        "PNG konnte nicht erzeugt werden. " +
-        "Bitte prüfe, ob impact.ttf, ARLRDBD.TTF und SourceSansVariable-Roman.otf " +
-        "im selben GitHub-Ordner wie diese HTML-Datei liegen."
-      );
-    };
-
-    img.src=url;
-
-  }catch(error){
-    console.error("Font-Exportfehler:",error);
-    alert(
-      "Die Original-Schriften konnten nicht geladen werden. " +
-      "Bitte prüfe die drei Font-Dateien im GitHub-Ordner."
+    drawLetterSpacedText(
+      el.textContent||"",
+      x,
+      y,
+      letterSpacingPx,
+      anchor
     );
+  }
+
+  async function drawOverlayElements(){
+    const elements=[...svg.children];
+
+    for(const el of elements){
+      const tag=el.tagName.toLowerCase();
+
+      if(tag==="text"){
+        drawTextElement(el);
+        continue;
+      }
+
+      if(tag==="circle"){
+        const cx=pxX(el.getAttribute("cx")||0);
+        const cy=pxY(el.getAttribute("cy")||0);
+        const r=(Number(el.getAttribute("r")||0))*((scaleX+scaleY)/2);
+
+        ctx.beginPath();
+        ctx.arc(cx,cy,r,0,Math.PI*2);
+        ctx.fillStyle=el.getAttribute("fill")||"#171714";
+        ctx.fill();
+        continue;
+      }
+
+      if(tag==="image"){
+        const href=
+          el.getAttribute("href") ||
+          el.getAttributeNS("http://www.w3.org/1999/xlink","href");
+
+        if(!href)continue;
+
+        await new Promise(resolve=>{
+          const image=new Image();
+          image.onload=()=>{
+            const x=pxX(el.getAttribute("x")||0);
+            const y=pxY(el.getAttribute("y")||0);
+            const w=pxX(el.getAttribute("width")||0);
+            const h=pxY(el.getAttribute("height")||0);
+
+            ctx.drawImage(image,x,y,w,h);
+            resolve();
+          };
+          image.onerror=()=>resolve();
+          image.src=href;
+        });
+      }
+    }
+  }
+
+  const drawBackground=async()=>{
+    // Originale Illustrator-Vorlage als Hintergrund.
+    ctx.clearRect(0,0,width,height);
+    ctx.drawImage(bg,0,0,width,height);
+
+    // Dynamische Texte/Symbole darüber – direkt über Canvas.
+    await drawOverlayElements();
+
+    canvas.toBlob(file=>{
+      if(!file)return;
+
+      const downloadUrl=URL.createObjectURL(file);
+      const a=document.createElement("a");
+      a.href=downloadUrl;
+      a.download=`Speiseplan-KW-${String(spState.week).padStart(2,"0")}-${spState.year}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      setTimeout(()=>URL.revokeObjectURL(downloadUrl),1000);
+    },"image/png");
+  };
+
+  if(bg.complete){
+    await drawBackground();
+  }else{
+    await new Promise(resolve=>{
+      bg.onload=()=>resolve();
+      bg.onerror=()=>resolve();
+    });
+    await drawBackground();
   }
 }
 window.addEventListener("DOMContentLoaded",()=>{
