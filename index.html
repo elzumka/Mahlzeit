@@ -377,41 +377,161 @@ h1 {
   align-self: center;
 }
 
-/* ---------------- SPECIALS ---------------- */
+/* ---------------- KLASSIKER / KACHELN ---------------- */
 
 .specials {
   background: var(--beige);
 }
 
+.specials .section-inner {
+  max-width: 1250px;
+}
+
+/* Die große Schnitzel-Kachel */
 .special-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 25px;
+  gap: 22px;
 }
 
 .special {
-  border: 2px solid var(--black);
-  padding: 35px;
   position: relative;
+  border: 1px solid var(--green);
+  padding: 38px 42px;
+  background: rgba(245,238,228,.55);
+  min-height: 255px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+
+.special.featured {
+  grid-column: 1 / -1;
+  min-height: 315px;
+  text-align: left;
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  align-items: center;
+  gap: 45px;
+}
+
+/* Dezente Ecken – passend zum Speiseplan */
+.special::before,
+.special::after {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-color: var(--green);
+  border-style: solid;
+}
+
+.special::before {
+  top: -1px;
+  left: -1px;
+  border-width: 2px 0 0 2px;
+}
+
+.special::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 2px 2px 0;
 }
 
 .special h3 {
-  font-family: "Barlow Condensed";
+  font-family: "Barlow Condensed", sans-serif;
   color: var(--green);
-  font-size: 38px;
+  font-size: clamp(34px, 4vw, 58px);
   text-transform: uppercase;
-  margin: 0 0 25px;
+  letter-spacing: .045em;
+  margin: 0 0 22px;
+  line-height: .9;
+}
+
+.special:not(.featured) h3 {
+  font-size: 40px;
+  margin-bottom: 18px;
 }
 
 .special p {
+  margin: 0;
   font-size: 18px;
-  line-height: 1.5;
+  line-height: 1.65;
+}
+
+.special.featured p {
+  font-size: 20px;
+  line-height: 1.7;
+}
+
+.special-line {
+  width: 150px;
+  height: 1px;
+  background: var(--line);
+  margin: 0 0 20px;
+  position: relative;
+}
+
+.special-line::after {
+  content: "✦";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -52%);
+  background: var(--cream);
+  color: var(--green);
+  padding: 0 9px;
+  font-size: 15px;
 }
 
 .special-price {
   color: var(--green);
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 700;
+  white-space: nowrap;
+}
+
+.special.featured .special-price {
+  font-size: clamp(48px, 5vw, 72px);
+  text-align: center;
+}
+
+.special-price small {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.special-veggie {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 12px;
+}
+
+.wurst-preise {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.wurst-preis {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 18px;
+}
+
+.wurst-preis strong {
+  color: var(--green);
+  font-size: 25px;
 }
 
 /* ---------------- CONTACT ---------------- */
@@ -720,6 +840,32 @@ footer p {
   .week-menu {
     grid-template-columns: 1fr;
   }
+
+  .special-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .special.featured {
+    grid-column: auto;
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 25px;
+    min-height: 0;
+  }
+
+  .special.featured .special-line {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .special.featured .special-price {
+    font-size: 48px;
+  }
+
+  .special {
+    min-height: 230px;
+    padding: 32px 24px;
+  }
 }
 
 .speiseplan-bild {
@@ -910,39 +1056,75 @@ footer p {
 
   <div class="section-inner">
 
-    <div class="section-title">
-      <h2>Unsere Klassiker</h2>
-      <div class="rule"></div>
-    </div>
-
     <div class="special-grid">
 
-      <div class="special">
-        <h3>Tägliche Klassiker</h3>
+      <!-- HAUPTANGEBOT -->
+      <article class="special featured">
+
+        <div>
+          <h3>Schnitzel Menü</h3>
+
+          <div class="special-line"></div>
+
+          <p>
+            Schnitzel<br>
+            <strong>+</strong> Rohkost oder Dessert<br>
+            <strong>+</strong> Getränk
+          </p>
+        </div>
+
+        <div class="special-price">
+          11,50 €
+          <small>inklusive</small>
+        </div>
+
+      </article>
+
+
+      <!-- KRÄUTERQUARK -->
+      <article class="special">
+
+        <img
+          src="vegetarisch.png"
+          class="special-veggie"
+          alt="Vegetarisch"
+        >
+
+        <h3>Kräuterquark</h3>
+
+        <div class="special-line" style="margin-left:auto;margin-right:auto;"></div>
 
         <p>
-          Kräuterquark<br>
           Kartoffeln · Leinöl · Zwiebeln
         </p>
 
         <div class="special-price">
           6,90 €
         </div>
-      </div>
 
-      <div class="special">
-        <h3>Schnitzel Menü</h3>
+      </article>
 
-        <p>
-          Schnitzel<br>
-          mit Getränk<br>
-          und Rohkost oder Dessert
-        </p>
 
-        <div class="special-price">
-          11,50 €
+      <!-- WURSTGULASCH -->
+      <article class="special">
+
+        <h3>Wurstgulasch</h3>
+
+        <div class="special-line" style="margin-left:auto;margin-right:auto;"></div>
+
+        <div class="wurst-preise">
+          <div class="wurst-preis">
+            <span>Nudeln</span>
+            <strong>7,90 €</strong>
+          </div>
+
+          <div class="wurst-preis">
+            <span>mit Käse</span>
+            <strong>8,20 €</strong>
+          </div>
         </div>
-      </div>
+
+      </article>
 
     </div>
 
