@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mahlzeit! – Verwaltung</title>
+<title>Mahlzeit! – Verwaltung · Speiseplan v14</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
 :root{--green:#285437;--green-dark:#1d4029;--cream:#f5eee4;--beige:#ddd1bf;--black:#20201d;--line:#b8ad9d;}
@@ -32,8 +32,7 @@ button.save{margin-top:28px;padding:14px 24px;border:0;background:var(--green);c
 .sp-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
 .sp-toolbar .sp-actions{display:flex;gap:8px;flex-wrap:wrap}
 .sp-generator-layout{display:grid;grid-template-columns:360px minmax(600px,1fr);gap:18px}
-.sp-editor{background:var(--cream);border:1px solid var(--line);padding:18px;max-height:calc(100vh - 160px);overflow:auto}.sp-check{user-select:none}
-.sp-editor h3{font-size:24px;margin:18px 0 8px}
+.sp-editor{background:var(--cream);border:1px solid var(--line);padding:18px;max-height:calc(100vh - 160px);overflow:auto}.sp-editor h3{font-size:24px;margin:18px 0 8px}
 .sp-day{border-top:1px solid var(--line);padding-top:10px;margin-top:12px}
 .sp-day-title{display:flex;justify-content:space-between;align-items:center;color:var(--green);font-family:"Barlow Condensed",sans-serif;font-size:24px}
 .sp-dish{background:#fff;border:1px solid #ccc;padding:9px;margin:7px 0}
@@ -83,6 +82,7 @@ button.save{margin-top:28px;padding:14px 24px;border:0;background:var(--green);c
 <label class="checkbox"><input type="checkbox" id="vegetarisch"> Vegetarisch</label>
 <label class="checkbox"><input type="checkbox" id="website_anzeigen" checked> Auf Website anzeigen</label>
 <label class="checkbox"><input type="checkbox" id="speiseplan_anzeigen" checked> Auf Speiseplan drucken</label>
+<div class="intro" style="font-size:12px;margin-top:8px">Ein Gericht kann auf der Website erscheinen, ohne auf dem Druck-Speiseplan zu stehen – ideal für Gerichte vom Vortag.</div>
 <button class="save" onclick="gerichtSpeichern()">Gericht speichern</button>
 <div id="meldung"></div><div id="gerichte-liste"></div>
 </div>
@@ -175,7 +175,47 @@ const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 function zeigeBereich(id,button){document.querySelectorAll('.admin-bereich').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.admin-tab').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');button.classList.add('active');}
 
-async function gerichtSpeichern(){const datum=document.getElementById('datum').value;const gericht=document.getElementById('gericht').value.trim();const beilage=document.getElementById('beilage').value.trim();const preis=document.getElementById('preis').value;const vegetarisch=document.getElementById('vegetarisch').checked;const meldung=document.getElementById('meldung');if(!datum||!gericht||!preis){meldung.textContent='Bitte Datum, Gericht und Preis ausfüllen.';return;}const {error}=await supabaseClient.from('Gerichte').insert([{datum,gerichte:gericht,beilage,preis,vegetarisch}]);if(error){console.error(error);meldung.textContent='Fehler beim Speichern.';return;}meldung.textContent='Gericht wurde gespeichert.';document.getElementById('datum').value='';document.getElementById('gericht').value='';document.getElementById('beilage').value='';document.getElementById('preis').value='';document.getElementById('vegetarisch').checked=false;gerichteLaden();}
+async function gerichtSpeichern(){
+    const datum = document.getElementById('datum').value;
+    const gericht = document.getElementById('gericht').value.trim();
+    const beilage = document.getElementById('beilage').value.trim();
+    const preis = document.getElementById('preis').value;
+    const vegetarisch = document.getElementById('vegetarisch').checked;
+    const websiteAnzeigen = document.getElementById('website_anzeigen').checked;
+    const speiseplanAnzeigen = document.getElementById('speiseplan_anzeigen').checked;
+    const meldung = document.getElementById('meldung');
+
+    if(!datum || !gericht || !preis){
+        meldung.textContent='Bitte Datum, Gericht und Preis ausfüllen.';
+        return;
+    }
+
+    const {error} = await supabaseClient.from('Gerichte').insert([{
+        datum,
+        gerichte: gericht,
+        beilage,
+        preis,
+        vegetarisch,
+        website_anzeigen: websiteAnzeigen,
+        speiseplan_anzeigen: speiseplanAnzeigen
+    }]);
+
+    if(error){
+        console.error(error);
+        meldung.textContent='Fehler beim Speichern. Prüfe, ob die beiden neuen Supabase-Felder vorhanden sind.';
+        return;
+    }
+
+    meldung.textContent='Gericht wurde gespeichert.';
+    document.getElementById('datum').value='';
+    document.getElementById('gericht').value='';
+    document.getElementById('beilage').value='';
+    document.getElementById('preis').value='';
+    document.getElementById('vegetarisch').checked=false;
+    document.getElementById('website_anzeigen').checked=true;
+    document.getElementById('speiseplan_anzeigen').checked=true;
+    gerichteLaden();
+}
 
 async function gerichteLaden(){
     const liste = document.getElementById('gerichte-liste');
@@ -618,7 +658,7 @@ function sp_render(){
 function sp_init(){
  if(sp_ready)return;
  const y=document.getElementById("sp-year"),w=document.getElementById("sp-week");
- const now=new Date();for(let j=now.getFullYear();j<=2050;j++)y.insertAdjacentHTML("beforeend",`<option value="${j}">${j}</option>`);
+ const now=new Date();for(let j=now.getFullYear();j<=2100;j++)y.insertAdjacentHTML("beforeend",`<option value="${j}">${j}</option>`);
  for(let k=1;k<=53;k++)w.insertAdjacentHTML("beforeend",`<option value="${k}">KW ${k}</option>`);
  const iso=new Date(Date.UTC(now.getFullYear(),now.getMonth(),now.getDate()));const day=iso.getUTCDay()||7;iso.setUTCDate(iso.getUTCDate()+4-day);
  const ys=iso.getUTCFullYear(),ysd=new Date(Date.UTC(ys,0,1));const cur=Math.ceil((((iso-ysd)/86400000)+1)/7);
