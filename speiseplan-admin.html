@@ -15,6 +15,14 @@ label{display:block;margin-top:18px;margin-bottom:7px;font-weight:700}input,sele
 button.save{margin-top:28px;padding:14px 24px;border:0;background:var(--green);color:var(--cream);font-size:16px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.06em}.save:hover{background:var(--green-dark)}
 #meldung,#speiseplan-meldung{margin-top:18px;font-weight:700}.intro{line-height:1.55;color:#555}.plan-info{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}.plan-info>div{background:var(--cream);border:1px solid var(--line);padding:15px}.plan-info span{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:#666;margin-bottom:5px}.plan-info strong{color:var(--green)}
 .file-name{margin-top:8px;font-size:14px;color:#666}.plan-entry,.gericht-eintrag{background:#fff;border:1px solid #ccc;padding:18px;margin-bottom:12px}.plan-entry{display:grid;grid-template-columns:1fr 160px;gap:18px;align-items:center}.plan-entry strong{display:block;color:var(--green);font-size:20px;margin-bottom:5px}.plan-entry small{color:#666}.plan-entry img{width:160px;max-height:150px;object-fit:contain;border:1px solid #ddd;background:var(--cream)}
+.plan-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.plan-actions button{padding:9px 13px;border:0;cursor:pointer;font-weight:700}
+.plan-edit{background:var(--green);color:var(--cream)}
+.plan-delete{background:#b84b3a;color:white}
+.plan-entry.editing{border:2px solid var(--green)}
+#speiseplan-bearbeiten{display:none;background:var(--cream);border:1px solid var(--line);padding:18px;margin-top:18px}
+#speiseplan-bearbeiten.active{display:block}
+
 .gericht-datum{font-weight:700;font-size:18px;margin-bottom:8px}.gericht-name{font-size:20px;font-weight:700}.gericht-beilage{margin-top:4px}.gericht-preis{margin-top:8px;font-weight:700}.loeschen-button{margin-top:18px;padding:10px 16px;border:0;background:var(--green);color:white;cursor:pointer}
 @media(max-width:650px){h1{font-size:48px}.plan-info{grid-template-columns:1fr}.plan-entry{grid-template-columns:1fr}.plan-entry img{width:100%;max-height:240px}.admin-tabs{overflow-x:auto}}
 </style>
@@ -50,7 +58,19 @@ button.save{margin-top:28px;padding:14px 24px;border:0;background:var(--green);c
 <label for="plan-bild">Speiseplan-Bild</label><input type="file" id="plan-bild" accept="image/png,image/jpeg,image/webp"><div id="bild-name" class="file-name">Noch kein Bild ausgewählt.</div>
 <button class="save" onclick="speiseplanSpeichern()">Speiseplan speichern</button><div id="speiseplan-meldung"></div>
 </div>
-<div class="saved-plans"><h2>Gespeicherte Speisepläne</h2><div id="speiseplan-liste">Wird geladen …</div></div>
+<div class="saved-plans"><h2>Gespeicherte Speisepläne</h2><div id="speiseplan-liste">Wird geladen …</div></div><div id="speiseplan-bearbeiten">
+<h2>Speiseplan bearbeiten</h2>
+<p id="bearbeiten-info" class="intro"></p>
+<input type="hidden" id="bearbeiten-id">
+<label for="bearbeiten-bild">Neues Speiseplan-Bild</label>
+<input type="file" id="bearbeiten-bild" accept="image/png,image/jpeg,image/webp">
+<div id="bearbeiten-name" class="file-name">Kein neues Bild ausgewählt.</div>
+<div class="plan-actions">
+<button class="save" type="button" onclick="speiseplanAktualisieren()">Speiseplan aktualisieren</button>
+<button type="button" onclick="bearbeitenAbbrechen()">Abbrechen</button>
+</div>
+<div id="bearbeiten-meldung"></div>
+</div>
 </section>
 </div>
 
@@ -74,10 +94,99 @@ function datumKurz(d){return String(d.getDate()).padStart(2,'0')+'.'+String(d.ge
 function planDaten(jahr,kw){const montag=isoWochenMontag(jahr,kw);const freitag=new Date(montag);freitag.setDate(montag.getDate()+4);const aktiv=new Date(montag);aktiv.setDate(montag.getDate()-3);aktiv.setHours(14,0,0,0);return{montag,freitag,aktiv};}
 function timestampMitLokalemOffset(d){const off=-d.getTimezoneOffset();const sign=off>=0?'+':'-';const a=Math.abs(off);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T14:00:00'+sign+String(Math.floor(a/60)).padStart(2,'0')+':'+String(a%60).padStart(2,'0');}
 function aktualisierePlanInfo(){const jahr=Number(document.getElementById('plan-jahr').value);const kw=Number(document.getElementById('plan-kw').value);if(!jahr||!kw)return;const {montag,freitag,aktiv}=planDaten(jahr,kw);document.getElementById('plan-zeitraum').textContent=datumKurz(montag)+' – '+datumKurz(freitag);document.getElementById('plan-aktiv-ab').textContent=datumKurz(aktiv)+' · 14:00 Uhr';}
-function initialisierePlanAuswahl(){const y=document.getElementById('plan-jahr'),k=document.getElementById('plan-kw'),now=new Date(),year=now.getFullYear();for(let j=year;j<=year+2;j++){const o=document.createElement('option');o.value=j;o.textContent=j;y.appendChild(o);}for(let w=1;w<=53;w++){const o=document.createElement('option');o.value=w;o.textContent='KW '+w;k.appendChild(o);}const d=new Date(Date.UTC(year,now.getMonth(),now.getDate()));const day=d.getUTCDay()||7;d.setUTCDate(d.getUTCDate()+4-day);const start=new Date(Date.UTC(d.getUTCFullYear(),0,1));const current=Math.ceil((((d-start)/86400000)+1)/7);y.value=year;k.value=Math.min(current+1,53);aktualisierePlanInfo();document.getElementById('plan-bild').addEventListener('change',function(){document.getElementById('bild-name').textContent=this.files[0]?this.files[0].name:'Noch kein Bild ausgewählt.';});}
+function initialisierePlanAuswahl(){const y=document.getElementById('plan-jahr'),k=document.getElementById('plan-kw'),now=new Date(),year=now.getFullYear();for(let j=year;j<=year+2;j++){const o=document.createElement('option');o.value=j;o.textContent=j;y.appendChild(o);}for(let w=1;w<=53;w++){const o=document.createElement('option');o.value=w;o.textContent='KW '+w;k.appendChild(o);}const d=new Date(Date.UTC(year,now.getMonth(),now.getDate()));const day=d.getUTCDay()||7;d.setUTCDate(d.getUTCDate()+4-day);const start=new Date(Date.UTC(d.getUTCFullYear(),0,1));const current=Math.ceil((((d-start)/86400000)+1)/7);y.value=year;k.value=Math.min(current+1,53);aktualisierePlanInfo();document.getElementById('plan-bild').addEventListener('change',function(){document.getElementById('bild-name').textContent=this.files[0]?this.files[0].name:'Noch kein Bild ausgewählt.';});document.getElementById('bearbeiten-bild').addEventListener('change',function(){document.getElementById('bearbeiten-name').textContent=this.files[0]?this.files[0].name:'Kein neues Bild ausgewählt.';});}
 
 async function speiseplanSpeichern(){const jahr=Number(document.getElementById('plan-jahr').value),kw=Number(document.getElementById('plan-kw').value),file=document.getElementById('plan-bild').files[0],meldung=document.getElementById('speiseplan-meldung');if(!file){meldung.textContent='Bitte zuerst das Speiseplan-Bild auswählen.';return;}const {montag,freitag,aktiv}=planDaten(jahr,kw);meldung.textContent='Speichere …';const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');const path=jahr+'/KW-'+String(kw).padStart(2,'0')+'-'+Date.now()+'-'+safe;const {error:upErr}=await supabaseClient.storage.from('speiseplaene').upload(path,file,{upsert:false,contentType:file.type});if(upErr){console.error(upErr);meldung.textContent='Upload fehlgeschlagen. Bitte prüfe den Supabase-Speicher „speiseplaene“. ';return;}const {data:pub}=supabaseClient.storage.from('speiseplaene').getPublicUrl(path);const {error:dbErr}=await supabaseClient.from('Speiseplaene').upsert([{jahr,kw,von:montag.toISOString().slice(0,10),bis:freitag.toISOString().slice(0,10),aktiv_ab:timestampMitLokalemOffset(aktiv),bild_url:pub.publicUrl,bild_name:file.name}],{onConflict:'jahr,kw'});if(dbErr){console.error(dbErr);meldung.textContent='Bild hochgeladen, aber der Speiseplan konnte nicht gespeichert werden.';return;}meldung.textContent='Gespeichert. KW '+kw+' wird am Freitag um 14:00 Uhr automatisch aktiv.';document.getElementById('plan-bild').value='';document.getElementById('bild-name').textContent='Noch kein Bild ausgewählt.';speiseplaeneLaden();}
-async function speiseplaeneLaden(){const liste=document.getElementById('speiseplan-liste');const {data,error}=await supabaseClient.from('Speiseplaene').select('*').order('aktiv_ab',{ascending:true});if(error){console.error(error);liste.innerHTML='<p>Speisepläne konnten nicht geladen werden.</p>';return;}if(!data.length){liste.innerHTML='<p>Noch keine Speisepläne gespeichert.</p>';return;}liste.innerHTML=data.map(p=>`<div class="plan-entry"><div><strong>KW ${p.kw} · ${p.jahr}</strong><div>${datumKurz(new Date(p.von+'T00:00:00'))} – ${datumKurz(new Date(p.bis+'T00:00:00'))}</div><small>Aktiv ab ${new Date(p.aktiv_ab).toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'short'})} Uhr</small></div><a href="${p.bild_url}" target="_blank" rel="noopener"><img src="${p.bild_url}" alt="Speiseplan KW ${p.kw}"></a></div>`).join('');}
+async function speiseplaeneLaden(){
+ const liste=document.getElementById('speiseplan-liste');
+ const {data,error}=await supabaseClient.from('Speiseplaene').select('*').order('aktiv_ab',{ascending:true});
+ if(error){console.error(error);liste.innerHTML='<p>Speisepläne konnten nicht geladen werden.</p>';return;}
+ if(!data.length){liste.innerHTML='<p>Noch keine Speisepläne gespeichert.</p>';return;}
+ liste.innerHTML='';
+ data.forEach(p=>{
+   const e=document.createElement('div'); e.className='plan-entry'; e.id='plan-'+p.id;
+   e.innerHTML=`
+     <div>
+       <strong>KW ${p.kw} · ${p.jahr}</strong>
+       <div>${datumKurz(new Date(p.von+'T00:00:00'))} – ${datumKurz(new Date(p.bis+'T00:00:00'))}</div>
+       <small>Aktiv ab ${new Date(p.aktiv_ab).toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'short'})} Uhr</small>
+       <div class="plan-actions">
+         <button class="plan-edit" type="button" onclick='speiseplanBearbeiten(${JSON.stringify(p)})'>Bearbeiten</button>
+         <button class="plan-delete" type="button" onclick="speiseplanLoeschen(${p.id})">Löschen</button>
+       </div>
+     </div>
+     <a href="${p.bild_url}" target="_blank" rel="noopener">
+       <img src="${p.bild_url}" alt="Speiseplan KW ${p.kw}">
+     </a>`;
+   liste.appendChild(e);
+ });
+}
+
+function speiseplanBearbeiten(plan){
+ document.getElementById('speiseplan-bearbeiten').classList.add('active');
+ document.getElementById('bearbeiten-id').value=plan.id;
+ document.getElementById('bearbeiten-info').textContent=`KW ${plan.kw} · ${plan.jahr} · ${datumKurz(new Date(plan.von+'T00:00:00'))} – ${datumKurz(new Date(plan.bis+'T00:00:00'))}`;
+ document.getElementById('bearbeiten-bild').value='';
+ document.getElementById('bearbeiten-name').textContent='Kein neues Bild ausgewählt.';
+ document.getElementById('bearbeiten-meldung').textContent='';
+ document.getElementById('speiseplan-bearbeiten').scrollIntoView({behavior:'smooth',block:'center'});
+ document.querySelectorAll('.plan-entry').forEach(x=>x.classList.remove('editing'));
+ document.getElementById('plan-'+plan.id)?.classList.add('editing');
+}
+
+function bearbeitenAbbrechen(){
+ document.getElementById('speiseplan-bearbeiten').classList.remove('active');
+ document.getElementById('bearbeiten-bild').value='';
+ document.querySelectorAll('.plan-entry').forEach(x=>x.classList.remove('editing'));
+}
+
+async function speiseplanAktualisieren(){
+ const id=document.getElementById('bearbeiten-id').value;
+ const file=document.getElementById('bearbeiten-bild').files[0];
+ const meldung=document.getElementById('bearbeiten-meldung');
+ if(!file){meldung.textContent='Bitte zuerst ein neues Bild auswählen.';return;}
+ meldung.textContent='Neues Bild wird hochgeladen …';
+ const {data:old,error:getErr}=await supabaseClient.from('Speiseplaene').select('*').eq('id',id).single();
+ if(getErr||!old){meldung.textContent='Speiseplan nicht gefunden.';return;}
+ const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+ const path=old.jahr+'/KW-'+String(old.kw).padStart(2,'0')+'-'+Date.now()+'-'+safe;
+ const {error:upErr}=await supabaseClient.storage.from('speiseplaene').upload(path,file,{upsert:false,contentType:file.type});
+ if(upErr){console.error(upErr);meldung.textContent='Upload fehlgeschlagen.';return;}
+ const {data:pub}=supabaseClient.storage.from('speiseplaene').getPublicUrl(path);
+ const {error:dbErr}=await supabaseClient.from('Speiseplaene').update({bild_url:pub.publicUrl,bild_name:file.name}).eq('id',id);
+ if(dbErr){console.error(dbErr);meldung.textContent='Bild wurde hochgeladen, aber der Speiseplan konnte nicht aktualisiert werden.';return;}
+ // altes Bild aus Storage entfernen, sofern der alte Pfad aus unserer URL ermittelbar ist
+ try{
+   const marker='/speiseplaene/';
+   const pos=old.bild_url.indexOf(marker);
+   if(pos!==-1){
+     const oldPath=decodeURIComponent(old.bild_url.substring(pos+marker.length).split('?')[0]);
+     if(oldPath) await supabaseClient.storage.from('speiseplaene').remove([oldPath]);
+   }
+ }catch(e){console.warn('Altes Bild konnte nicht entfernt werden.',e);}
+ meldung.textContent='Speiseplan wurde aktualisiert.';
+ document.getElementById('bearbeiten-bild').value='';
+ document.getElementById('bearbeiten-name').textContent='Kein neues Bild ausgewählt.';
+ await speiseplaeneLaden();
+}
+
+async function speiseplanLoeschen(id){
+ if(!confirm('Diesen Speiseplan wirklich löschen?')) return;
+ const {data:plan,error:getErr}=await supabaseClient.from('Speiseplaene').select('*').eq('id',id).single();
+ if(getErr||!plan){alert('Speiseplan nicht gefunden.');return;}
+ const {error:dbErr}=await supabaseClient.from('Speiseplaene').delete().eq('id',id);
+ if(dbErr){console.error(dbErr);alert('Fehler beim Löschen.');return;}
+ try{
+   const marker='/speiseplaene/';
+   const pos=plan.bild_url.indexOf(marker);
+   if(pos!==-1){
+     const oldPath=decodeURIComponent(plan.bild_url.substring(pos+marker.length).split('?')[0]);
+     if(oldPath) await supabaseClient.storage.from('speiseplaene').remove([oldPath]);
+   }
+ }catch(e){console.warn('Bild konnte nicht aus dem Speicher entfernt werden.',e);}
+ bearbeitenAbbrechen();
+ await speiseplaeneLaden();
+}
 
 initialisierePlanAuswahl();gerichteLaden();speiseplaeneLaden();
 </script>
