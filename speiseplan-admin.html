@@ -85,109 +85,136 @@ function zeigeBereich(id,button){document.querySelectorAll('.admin-bereich').for
 async function gerichtSpeichern(){const datum=document.getElementById('datum').value;const gericht=document.getElementById('gericht').value.trim();const beilage=document.getElementById('beilage').value.trim();const preis=document.getElementById('preis').value;const vegetarisch=document.getElementById('vegetarisch').checked;const meldung=document.getElementById('meldung');if(!datum||!gericht||!preis){meldung.textContent='Bitte Datum, Gericht und Preis ausfüllen.';return;}const {error}=await supabaseClient.from('Gerichte').insert([{datum,gerichte:gericht,beilage,preis,vegetarisch}]);if(error){console.error(error);meldung.textContent='Fehler beim Speichern.';return;}meldung.textContent='Gericht wurde gespeichert.';document.getElementById('datum').value='';document.getElementById('gericht').value='';document.getElementById('beilage').value='';document.getElementById('preis').value='';document.getElementById('vegetarisch').checked=false;gerichteLaden();}
 
 async function gerichteLaden(){
-    const liste=document.getElementById('gerichte-liste');
-    const heute=new Date().toLocaleDateString('en-CA');
+    const liste = document.getElementById('gerichte-liste');
+    const heute = new Date().toLocaleDateString('en-CA');
 
-    const {data,error}=await supabaseClient
+    const { data, error } = await supabaseClient
         .from('Gerichte')
         .select('*')
-        .gte('datum',heute)
-        .order('datum',{ascending:true})
-        .order('gerichte',{ascending:true});
+        .gte('datum', heute)
+        .order('datum', { ascending: true })
+        .order('gerichte', { ascending: true });
 
-    if(error){
+    if (error) {
         console.error(error);
-        liste.innerHTML='<h2>Gespeicherte Gerichte</h2><p>Fehler beim Laden der Gerichte.</p>';
+        liste.innerHTML = '<h2>Gespeicherte Gerichte</h2><p>Fehler beim Laden der Gerichte.</p>';
         return;
     }
 
-    liste.innerHTML='<h2>Gespeicherte Gerichte</h2>';
+    liste.innerHTML = '<h2>Gespeicherte Gerichte</h2>';
 
-    if(!data || !data.length){
-        liste.innerHTML+='<p>Keine aktuellen oder zukünftigen Gerichte gespeichert.</p>';
+    if (!data || !data.length) {
+        liste.innerHTML += '<p>Keine aktuellen oder zukünftigen Gerichte gespeichert.</p>';
         return;
     }
 
-    data.forEach(gericht=>{
-        const e=document.createElement('div');
-        e.className='gericht-eintrag';
-        e.innerHTML=`
+    data.forEach(gericht => {
+        const e = document.createElement('div');
+        e.className = 'gericht-eintrag';
+        e.innerHTML = `
             <div class="gericht-datum">${datumFormatieren(gericht.datum)}</div>
-            <div class="gericht-name">${gericht.gerichte} ${gericht.vegetarisch?'🌱':''}</div>
-            <div class="gericht-beilage">${gericht.beilage||''}</div>
+            <div class="gericht-name">${gericht.gerichte} ${gericht.vegetarisch ? '🌱' : ''}</div>
+            <div class="gericht-beilage">${gericht.beilage || ''}</div>
             <div class="gericht-preis">${preisFormatieren(gericht.preis)}</div>
             <button class="loeschen-button" onclick="gerichtLoeschen(${gericht.id},this)">Löschen</button>
         `;
         liste.appendChild(e);
     });
 }
+function datumFormatieren(datum){const [y,m,d]=datum.split('-').map(Number);const obj=new Date(y,m-1,d);return ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'][obj.getDay()]+', '+String(d).padStart(2,'0')+'.'+String(m).padStart(2,'0')+'.'+y;}
+function preisFormatieren(preis){return Number(preis).toFixed(2).replace('.',',')+' €';}
+async function gerichtLoeschen(id,button){if(!confirm('Dieses Gericht wirklich löschen?'))return;const {error}=await supabaseClient.from('Gerichte').delete().eq('id',id);if(error){console.error(error);document.getElementById('meldung').textContent='Fehler beim Löschen.';return;}button.closest('.gericht-eintrag')?.remove();document.getElementById('meldung').textContent='Gericht wurde gelöscht.';}
 
-function speiseplanBearbeiten(plan){
- document.getElementById('speiseplan-bearbeiten').classList.add('active');
- document.getElementById('bearbeiten-id').value=plan.id;
- document.getElementById('bearbeiten-info').textContent=`KW ${plan.kw} · ${plan.jahr} · ${datumKurz(new Date(plan.von+'T00:00:00'))} – ${datumKurz(new Date(plan.bis+'T00:00:00'))}`;
- document.getElementById('bearbeiten-bild').value='';
- document.getElementById('bearbeiten-name').textContent='Kein neues Bild ausgewählt.';
- document.getElementById('bearbeiten-meldung').textContent='';
- document.getElementById('speiseplan-bearbeiten').scrollIntoView({behavior:'smooth',block:'center'});
- document.querySelectorAll('.plan-entry').forEach(x=>x.classList.remove('editing'));
- document.getElementById('plan-'+plan.id)?.classList.add('editing');
+function isoWochenMontag(jahr,kw){const jan4=new Date(jahr,0,4);const day=jan4.getDay()||7;const montag=new Date(jan4);montag.setDate(jan4.getDate()-day+1+(kw-1)*7);montag.setHours(0,0,0,0);return montag;}
+function datumKurz(d){return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear();}
+function planDaten(jahr,kw){const montag=isoWochenMontag(jahr,kw);const freitag=new Date(montag);freitag.setDate(montag.getDate()+4);const aktiv=new Date(montag);aktiv.setDate(montag.getDate()-3);aktiv.setHours(14,0,0,0);return{montag,freitag,aktiv};}
+function timestampMitLokalemOffset(d){const off=-d.getTimezoneOffset();const sign=off>=0?'+':'-';const a=Math.abs(off);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T14:00:00'+sign+String(Math.floor(a/60)).padStart(2,'0')+':'+String(a%60).padStart(2,'0');}
+function aktualisierePlanInfo(){const jahr=Number(document.getElementById('plan-jahr').value);const kw=Number(document.getElementById('plan-kw').value);if(!jahr||!kw)return;const {montag,freitag,aktiv}=planDaten(jahr,kw);document.getElementById('plan-zeitraum').textContent=datumKurz(montag)+' – '+datumKurz(freitag);document.getElementById('plan-aktiv-ab').textContent=datumKurz(aktiv)+' · 14:00 Uhr';}
+function initialisierePlanAuswahl(){
+    const y = document.getElementById('plan-jahr');
+    const k = document.getElementById('plan-kw');
+    const now = new Date();
+    const currentYear = now.getFullYear();
+
+    // Jahre von diesem Jahr bis 2050.
+    for (let j = currentYear; j <= 2050; j++) {
+        const o = document.createElement('option');
+        o.value = j;
+        o.textContent = j;
+        y.appendChild(o);
+    }
+
+    // Kalenderwochen 1–53.
+    for (let w = 1; w <= 53; w++) {
+        const o = document.createElement('option');
+        o.value = w;
+        o.textContent = 'KW ' + w;
+        k.appendChild(o);
+    }
+
+    // Aktuelle ISO-Kalenderwoche bestimmen.
+    const temp = new Date(Date.UTC(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate()
+    ));
+    const day = temp.getUTCDay() || 7;
+    temp.setUTCDate(temp.getUTCDate() + 4 - day);
+
+    const isoYear = temp.getUTCFullYear();
+    const yearStart = new Date(Date.UTC(isoYear, 0, 1));
+    const currentKW = Math.ceil((((temp - yearStart) / 86400000) + 1) / 7);
+
+    y.value = isoYear;
+    k.value = Math.min(currentKW + 1, 53);
+
+    aktualisierePlanInfo();
+
+    document.getElementById('plan-bild').addEventListener('change', function(){
+        document.getElementById('bild-name').textContent =
+            this.files[0] ? this.files[0].name : 'Noch kein Bild ausgewählt.';
+    });
 }
 
-function bearbeitenAbbrechen(){
- document.getElementById('speiseplan-bearbeiten').classList.remove('active');
- document.getElementById('bearbeiten-bild').value='';
- document.querySelectorAll('.plan-entry').forEach(x=>x.classList.remove('editing'));
+async function speiseplanSpeichern(){const jahr=Number(document.getElementById('plan-jahr').value),kw=Number(document.getElementById('plan-kw').value),file=document.getElementById('plan-bild').files[0],meldung=document.getElementById('speiseplan-meldung');if(!file){meldung.textContent='Bitte zuerst das Speiseplan-Bild auswählen.';return;}const {montag,freitag,aktiv}=planDaten(jahr,kw);meldung.textContent='Speichere …';const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');const path=jahr+'/KW-'+String(kw).padStart(2,'0')+'-'+Date.now()+'-'+safe;const {error:upErr}=await supabaseClient.storage.from('speiseplaene').upload(path,file,{upsert:false,contentType:file.type});if(upErr){console.error(upErr);meldung.textContent='Upload fehlgeschlagen. Bitte prüfe den Supabase-Speicher „speiseplaene“. ';return;}const {data:pub}=supabaseClient.storage.from('speiseplaene').getPublicUrl(path);const {error:dbErr}=await supabaseClient.from('Speiseplaene').upsert([{jahr,kw,von:montag.toISOString().slice(0,10),bis:freitag.toISOString().slice(0,10),aktiv_ab:timestampMitLokalemOffset(aktiv),bild_url:pub.publicUrl,bild_name:file.name}],{onConflict:'jahr,kw'});if(dbErr){console.error(dbErr);meldung.textContent='Bild hochgeladen, aber der Speiseplan konnte nicht gespeichert werden.';return;}meldung.textContent='Gespeichert. KW '+kw+' wird am Freitag um 14:00 Uhr automatisch aktiv.';document.getElementById('plan-bild').value='';document.getElementById('bild-name').textContent='Noch kein Bild ausgewählt.';speiseplaeneLaden();}
+async function speiseplaeneLaden(){
+    const liste = document.getElementById('speiseplan-liste');
+    const jetzt = new Date().toISOString();
+
+    const { data, error } = await supabaseClient
+        .from('Speiseplaene')
+        .select('*')
+        .gte('aktiv_ab', jetzt)
+        .order('aktiv_ab', { ascending: true });
+
+    if (error) {
+        console.error(error);
+        liste.innerHTML = '<p>Speisepläne konnten nicht geladen werden.</p>';
+        return;
+    }
+
+    if (!data || !data.length) {
+        liste.innerHTML = '<p>Keine zukünftigen Speisepläne gespeichert.</p>';
+        return;
+    }
+
+    liste.innerHTML = data.map(p => `
+        <div class="plan-entry">
+            <div>
+                <strong>KW ${p.kw} · ${p.jahr}</strong>
+                <div>${datumKurz(new Date(p.von + 'T00:00:00'))} – ${datumKurz(new Date(p.bis + 'T00:00:00'))}</div>
+                <small>Aktiv ab ${new Date(p.aktiv_ab).toLocaleString('de-DE', {dateStyle:'medium', timeStyle:'short'})} Uhr</small>
+            </div>
+            <a href="${p.bild_url}" target="_blank" rel="noopener">
+                <img src="${p.bild_url}" alt="Speiseplan KW ${p.kw}">
+            </a>
+        </div>
+    `).join('');
 }
 
-async function speiseplanAktualisieren(){
- const id=document.getElementById('bearbeiten-id').value;
- const file=document.getElementById('bearbeiten-bild').files[0];
- const meldung=document.getElementById('bearbeiten-meldung');
- if(!file){meldung.textContent='Bitte zuerst ein neues Bild auswählen.';return;}
- meldung.textContent='Neues Bild wird hochgeladen …';
- const {data:old,error:getErr}=await supabaseClient.from('Speiseplaene').select('*').eq('id',id).single();
- if(getErr||!old){meldung.textContent='Speiseplan nicht gefunden.';return;}
- const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
- const path=old.jahr+'/KW-'+String(old.kw).padStart(2,'0')+'-'+Date.now()+'-'+safe;
- const {error:upErr}=await supabaseClient.storage.from('speiseplaene').upload(path,file,{upsert:false,contentType:file.type});
- if(upErr){console.error(upErr);meldung.textContent='Upload fehlgeschlagen.';return;}
- const {data:pub}=supabaseClient.storage.from('speiseplaene').getPublicUrl(path);
- const {error:dbErr}=await supabaseClient.from('Speiseplaene').update({bild_url:pub.publicUrl,bild_name:file.name}).eq('id',id);
- if(dbErr){console.error(dbErr);meldung.textContent='Bild wurde hochgeladen, aber der Speiseplan konnte nicht aktualisiert werden.';return;}
- // altes Bild aus Storage entfernen, sofern der alte Pfad aus unserer URL ermittelbar ist
- try{
-   const marker='/speiseplaene/';
-   const pos=old.bild_url.indexOf(marker);
-   if(pos!==-1){
-     const oldPath=decodeURIComponent(old.bild_url.substring(pos+marker.length).split('?')[0]);
-     if(oldPath) await supabaseClient.storage.from('speiseplaene').remove([oldPath]);
-   }
- }catch(e){console.warn('Altes Bild konnte nicht entfernt werden.',e);}
- meldung.textContent='Speiseplan wurde aktualisiert.';
- document.getElementById('bearbeiten-bild').value='';
- document.getElementById('bearbeiten-name').textContent='Kein neues Bild ausgewählt.';
- await speiseplaeneLaden();
-}
-
-async function speiseplanLoeschen(id){
- if(!confirm('Diesen Speiseplan wirklich löschen?')) return;
- const {data:plan,error:getErr}=await supabaseClient.from('Speiseplaene').select('*').eq('id',id).single();
- if(getErr||!plan){alert('Speiseplan nicht gefunden.');return;}
- const {error:dbErr}=await supabaseClient.from('Speiseplaene').delete().eq('id',id);
- if(dbErr){console.error(dbErr);alert('Fehler beim Löschen.');return;}
- try{
-   const marker='/speiseplaene/';
-   const pos=plan.bild_url.indexOf(marker);
-   if(pos!==-1){
-     const oldPath=decodeURIComponent(plan.bild_url.substring(pos+marker.length).split('?')[0]);
-     if(oldPath) await supabaseClient.storage.from('speiseplaene').remove([oldPath]);
-   }
- }catch(e){console.warn('Bild konnte nicht aus dem Speicher entfernt werden.',e);}
- bearbeitenAbbrechen();
- await speiseplaeneLaden();
-}
-
+initialisierePlanAuswahl();gerichteLaden();speiseplaeneLaden();
+</script>
+</body></html>
 initialisierePlanAuswahl();gerichteLaden();speiseplaeneLaden();
 </script>
 </body></html>
