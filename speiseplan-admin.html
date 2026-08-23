@@ -179,12 +179,13 @@ function initialisierePlanAuswahl(){
 async function speiseplanSpeichern(){const jahr=Number(document.getElementById('plan-jahr').value),kw=Number(document.getElementById('plan-kw').value),file=document.getElementById('plan-bild').files[0],meldung=document.getElementById('speiseplan-meldung');if(!file){meldung.textContent='Bitte zuerst das Speiseplan-Bild auswählen.';return;}const {montag,freitag,aktiv}=planDaten(jahr,kw);meldung.textContent='Speichere …';const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');const path=jahr+'/KW-'+String(kw).padStart(2,'0')+'-'+Date.now()+'-'+safe;const {error:upErr}=await supabaseClient.storage.from('speiseplaene').upload(path,file,{upsert:false,contentType:file.type});if(upErr){console.error(upErr);meldung.textContent='Upload fehlgeschlagen. Bitte prüfe den Supabase-Speicher „speiseplaene“. ';return;}const {data:pub}=supabaseClient.storage.from('speiseplaene').getPublicUrl(path);const {error:dbErr}=await supabaseClient.from('Speiseplaene').upsert([{jahr,kw,von:montag.toISOString().slice(0,10),bis:freitag.toISOString().slice(0,10),aktiv_ab:timestampMitLokalemOffset(aktiv),bild_url:pub.publicUrl,bild_name:file.name}],{onConflict:'jahr,kw'});if(dbErr){console.error(dbErr);meldung.textContent='Bild hochgeladen, aber der Speiseplan konnte nicht gespeichert werden.';return;}meldung.textContent='Gespeichert. KW '+kw+' wird am Freitag um 14:00 Uhr automatisch aktiv.';document.getElementById('plan-bild').value='';document.getElementById('bild-name').textContent='Noch kein Bild ausgewählt.';speiseplaeneLaden();}
 async function speiseplaeneLaden(){
     const liste = document.getElementById('speiseplan-liste');
-    const jetzt = new Date().toISOString();
 
+    // Alle gespeicherten Pläne laden.
+    // Vergangene Pläne werden nur aus der sichtbaren Liste herausgefiltert.
+    // Dadurch bleiben zukünftige und aktuelle Pläne verfügbar.
     const { data, error } = await supabaseClient
         .from('Speiseplaene')
         .select('*')
-        .gte('aktiv_ab', jetzt)
         .order('aktiv_ab', { ascending: true });
 
     if (error) {
@@ -193,28 +194,43 @@ async function speiseplaeneLaden(){
         return;
     }
 
-    if (!data || !data.length) {
-        liste.innerHTML = '<p>Keine zukünftigen Speisepläne gespeichert.</p>';
+    const jetzt = new Date();
+
+    // Nur Pläne anzeigen, die noch nicht vollständig vorbei sind.
+    // Ein Plan bleibt bis zum Ende seiner Speiseplan-Woche sichtbar.
+    const aktuelleUndZukuenftige = (data || []).filter(p => {
+        if (!p.bis) return true;
+
+        const ende = new Date(p.bis + 'T23:59:59');
+        return ende >= jetzt;
+    });
+
+    if (!aktuelleUndZukuenftige.length) {
+        liste.innerHTML = '<p>Keine aktuellen oder zukünftigen Speisepläne gespeichert.</p>';
         return;
     }
 
-    liste.innerHTML = data.map(p => `
+    liste.innerHTML = aktuelleUndZukuenftige.map(p => `
         <div class="plan-entry">
             <div>
                 <strong>KW ${p.kw} · ${p.jahr}</strong>
                 <div>${datumKurz(new Date(p.von + 'T00:00:00'))} – ${datumKurz(new Date(p.bis + 'T00:00:00'))}</div>
                 <small>Aktiv ab ${new Date(p.aktiv_ab).toLocaleString('de-DE', {dateStyle:'medium', timeStyle:'short'})} Uhr</small>
             </div>
+
             <a href="${p.bild_url}" target="_blank" rel="noopener">
                 <img src="${p.bild_url}" alt="Speiseplan KW ${p.kw}">
             </a>
+
+            <div class="plan-actions">
+                <button class="loeschen-button" onclick="speiseplanBearbeiten(${p.id})">Bearbeiten</button>
+                <button class="loeschen-button" onclick="speiseplanLoeschen(${p.id})">Löschen</button>
+            </div>
         </div>
     `).join('');
 }
 
 initialisierePlanAuswahl();gerichteLaden();speiseplaeneLaden();
 </script>
-</body></html>
-initialisierePlanAuswahl();gerichteLaden();speiseplaeneLaden();
-</script>
-</body></html>
+</body>
+</html>
