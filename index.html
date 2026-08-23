@@ -163,57 +163,110 @@ h1 {
 /* ---------------- ILLUSTRATION ---------------- */
 
 .hero-art {
-  min-height: 390px;
+  min-height: 430px;
   border: 2px solid var(--black);
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
+  background: rgba(255,255,255,.08);
+  overflow: visible;
 }
 
 .hero-art::before {
   content: "FRISCH";
   position: absolute;
-  top: -25px;
-  left: -20px;
+  top: -24px;
+  left: -22px;
   background: var(--green);
   color: var(--cream);
-  padding: 8px 25px;
+  padding: 9px 27px 8px;
   transform: rotate(-5deg);
-  font-family: "Barlow Condensed";
+  font-family: "Barlow Condensed", sans-serif;
   font-size: 25px;
   font-weight: 700;
   letter-spacing: .08em;
+  z-index: 3;
+}
+
+.hero-art::after {
+  content: "✦";
+  position: absolute;
+  right: 28px;
+  top: 22px;
+  color: var(--green);
+  font-size: 25px;
+  transform: rotate(12deg);
+}
+
+.hero-art .art-note {
+  position: absolute;
+  left: 28px;
+  bottom: 24px;
+  color: var(--green);
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
+}
+
+.hero-art .art-lines {
+  position: absolute;
+  width: 70px;
+  height: 50px;
+  right: 28px;
+  bottom: 28px;
+}
+
+.hero-art .art-lines::before,
+.hero-art .art-lines::after {
+  content: "";
+  position: absolute;
+  width: 48px;
+  height: 2px;
+  background: var(--green);
+  transform: rotate(-18deg);
+  right: 0;
+}
+
+.hero-art .art-lines::after {
+  width: 32px;
+  right: 10px;
+  bottom: 10px;
+  transform: rotate(18deg);
 }
 
 .pan {
-  width: 230px;
-  height: 120px;
+  width: 245px;
+  height: 128px;
   border: 7px solid var(--green);
-  border-radius: 0 0 90px 90px;
+  border-radius: 0 0 95px 95px;
   position: relative;
+  margin-top: 18px;
 }
 
 .pan::before {
   content: "";
   position: absolute;
-  width: 150px;
-  height: 65px;
+  width: 160px;
+  height: 70px;
   border: 7px solid var(--black);
   border-radius: 50%;
-  top: -38px;
-  left: 32px;
+  top: -42px;
+  left: 34px;
   background: var(--beige);
 }
 
 .pan::after {
   content: "";
   position: absolute;
-  width: 110px;
-  height: 12px;
+  width: 120px;
+  height: 13px;
   background: var(--green);
-  right: -105px;
-  top: 40px;
+  right: -116px;
+  top: 42px;
   transform: rotate(-8deg);
 }
 
@@ -440,7 +493,19 @@ footer p {
   }
 
   .hero-art {
-    min-height: 280px;
+    min-height: 300px;
+    margin-top: 15px;
+  }
+
+  .hero-art .art-note {
+    font-size: 17px;
+    left: 18px;
+    bottom: 18px;
+  }
+
+  .hero-art .art-lines {
+    right: 18px;
+    bottom: 18px;
   }
 
   .info-grid,
@@ -783,6 +848,8 @@ footer p {
 
   <div class="hero-art">
     <div class="pan"></div>
+    <div class="art-note">ehrliche Küche</div>
+    <div class="art-lines"></div>
   </div>
 
 </section>
@@ -1355,10 +1422,6 @@ setInterval(
     60 * 1000
 );
 
-</script>
-
-</body>
-</html>
 </script>
 
 </body>
