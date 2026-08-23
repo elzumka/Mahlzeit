@@ -444,25 +444,45 @@ async function sp_downloadPNG(){
   canvas.height=height;
   const ctx=canvas.getContext("2d");
 
-  // Die Fonts werden vor dem Export geladen.
-  const baseUrl=new URL("./",window.location.href).href;
-  const fontUrls={
-    impact:new URL("impact.ttf",baseUrl).href,
-    rounded:new URL("ARLRDBD.TTF",baseUrl).href,
-    source:new URL("SourceSansVariable-Roman.otf",baseUrl).href
-  };
+  /*
+   * PNG-EXPORT:
+   * Die Fonts werden als Base64 direkt in das exportierte SVG eingebettet.
+   * Dadurch kann der Browser beim SVG->PNG-Rendering nicht mehr auf eine
+   * Ersatzschrift zurückfallen.
+   */
+  const baseUrl = new URL("./", window.location.href).href;
 
-  try{
-    await document.fonts.load('40px "ImpactCustom"');
-    await document.fonts.load('40px "ArialRoundedCustom"');
-    await document.fonts.load('40px "SourceSansCustom"');
-    await document.fonts.ready;
-  }catch(e){
-    console.warn("Die benutzerdefinierten Fonts konnten nicht vollständig vorab geladen werden.",e);
+  async function fontAsDataUrl(fileName, mimeType){
+    const response = await fetch(new URL(fileName, baseUrl), {
+      cache: "no-store"
+    });
+    if(!response.ok){
+      throw new Error(`Font konnte nicht geladen werden: ${fileName}`);
+    }
+
+    const buffer = await response.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+
+    // Base64 ohne "Maximum call stack" bei größeren Font-Dateien.
+    let binary = "";
+    const chunkSize = 0x8000;
+    for(let i=0;i<bytes.length;i+=chunkSize){
+      binary += String.fromCharCode(
+        ...bytes.subarray(i, Math.min(i+chunkSize, bytes.length))
+      );
+    }
+
+    return `data:${mimeType};base64,${btoa(binary)}`;
   }
 
-  const drawBackground=()=>{
-    ctx.drawImage(bg,0,0,width,height);
+  try{
+    await document.fonts.ready;
+
+    const [impactFont, roundedFont, sourceFont] = await Promise.all([
+      fontAsDataUrl("impact.ttf","font/ttf"),
+      fontAsDataUrl("ARLRDBD.TTF","font/ttf"),
+      fontAsDataUrl("SourceSansVariable-Roman.otf","font/otf")
+    ]);
 
     const clone=svg.cloneNode(true);
     clone.setAttribute("width",width);
@@ -470,17 +490,63 @@ async function sp_downloadPNG(){
     clone.setAttribute("viewBox","0 0 210 297");
     clone.setAttribute("xmlns","http://www.w3.org/2000/svg");
 
-    // Wichtig: Die Font-Regeln werden direkt in das exportierte SVG eingebettet.
+    /*
+     * WICHTIG:
+     * Keine externen Font-URLs mehr im SVG.
+     * Die drei echten Dateien werden vollständig eingebettet.
+     */
     const style=document.createElementNS("http://www.w3.org/2000/svg","style");
     style.textContent=`
-      @font-face{font-family:"ImpactCustom";src:url("${fontUrls.impact}") format("truetype");font-weight:400;font-style:normal;}
-      @font-face{font-family:"ArialRoundedCustom";src:url("${fontUrls.rounded}") format("truetype");font-weight:400;font-style:normal;}
-      @font-face{font-family:"SourceSansCustom";src:url("${fontUrls.source}") format("opentype");font-weight:100 900;font-style:normal;}
-      .sp-impact{font-family:"ImpactCustom";fill:#15572f;}
-      .sp-round{font-family:"ArialRoundedCustom";fill:#171714;}
-      .sp-source{font-family:"SourceSansCustom";fill:#171714;}
-      .sp-price{font-family:"ArialRoundedCustom";fill:#15572f;font-weight:700;}
+      @font-face{
+        font-family:"ImpactCustom";
+        src:url("${impactFont}") format("truetype");
+        font-weight:400;
+        font-style:normal;
+      }
+
+      @font-face{
+        font-family:"ArialRoundedCustom";
+        src:url("${roundedFont}") format("truetype");
+        font-weight:400;
+        font-style:normal;
+      }
+
+      @font-face{
+        font-family:"ArialRoundedCustom";
+        src:url("${roundedFont}") format("truetype");
+        font-weight:700;
+        font-style:normal;
+      }
+
+      @font-face{
+        font-family:"SourceSansCustom";
+        src:url("${sourceFont}") format("opentype");
+        font-weight:100 900;
+        font-style:normal;
+      }
+
+      .sp-impact{
+        font-family:"ImpactCustom";
+        fill:#15572f;
+      }
+
+      .sp-round{
+        font-family:"ArialRoundedCustom";
+        fill:#171714;
+      }
+
+      .sp-source{
+        font-family:"SourceSansCustom";
+        fill:#171714;
+      }
+
+      .sp-price{
+        font-family:"ArialRoundedCustom";
+        fill:#15572f;
+        font-weight:700;
+      }
     `;
+
     clone.insertBefore(style,clone.firstChild);
 
     const xml=new XMLSerializer().serializeToString(clone);
@@ -491,25 +557,40 @@ async function sp_downloadPNG(){
     img.onload=()=>{
       ctx.drawImage(img,0,0,width,height);
       URL.revokeObjectURL(url);
+
       canvas.toBlob(file=>{
         if(!file)return;
+
+        const downloadUrl=URL.createObjectURL(file);
         const a=document.createElement("a");
-        a.href=URL.createObjectURL(file);
+        a.href=downloadUrl;
         a.download=`Speiseplan-KW-${String(spState.week).padStart(2,"0")}-${spState.year}.png`;
+        document.body.appendChild(a);
         a.click();
-        setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+        a.remove();
+
+        setTimeout(()=>URL.revokeObjectURL(downloadUrl),1000);
       },"image/png");
     };
 
     img.onerror=()=>{
       URL.revokeObjectURL(url);
-      alert("PNG konnte nicht erzeugt werden. Bitte prüfe, ob die drei Font-Dateien im GitHub-Ordner liegen.");
+      alert(
+        "PNG konnte nicht erzeugt werden. " +
+        "Bitte prüfe, ob impact.ttf, ARLRDBD.TTF und SourceSansVariable-Roman.otf " +
+        "im selben GitHub-Ordner wie diese HTML-Datei liegen."
+      );
     };
-    img.src=url;
-  };
 
-  if(bg.complete)drawBackground();
-  else bg.onload=drawBackground;
+    img.src=url;
+
+  }catch(error){
+    console.error("Font-Exportfehler:",error);
+    alert(
+      "Die Original-Schriften konnten nicht geladen werden. " +
+      "Bitte prüfe die drei Font-Dateien im GitHub-Ordner."
+    );
+  }
 }
 window.addEventListener("DOMContentLoaded",()=>{
   gerichteLaden();
