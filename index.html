@@ -160,24 +160,108 @@ h1 {
   background: var(--green-dark);
 }
 
-/* ---------------- ILLUSTRATION ---------------- */
+/* ---------------- HERO DESIGN ---------------- */
+
+.hero {
+  max-width: 1250px;
+  margin: auto;
+  padding: 95px 6vw 90px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 75px;
+  align-items: center;
+}
+
+.hero-copy {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-copy .kicker {
+  margin-bottom: 18px;
+}
+
+h1 {
+  font-family: "Barlow Condensed", sans-serif;
+  color: var(--green);
+  font-size: clamp(76px, 9vw, 138px);
+  line-height: .78;
+  margin: 8px 0 30px;
+  text-transform: uppercase;
+  letter-spacing: .075em;
+  font-weight: 700;
+}
+
+.hero-copy p {
+  max-width: 560px;
+  margin: 0 auto;
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+.button {
+  position: relative;
+  display: inline-block;
+  margin-top: 28px;
+  padding: 14px 26px 13px;
+  background: var(--green);
+  color: var(--cream);
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  border: 1px solid var(--green);
+  transition: .2s ease;
+}
+
+.button::before,
+.button::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 28px;
+  height: 1px;
+  background: var(--green);
+}
+
+.button::before {
+  right: 100%;
+  margin-right: 12px;
+}
+
+.button::after {
+  left: 100%;
+  margin-left: 12px;
+}
+
+.button:hover {
+  background: var(--green-dark);
+  transform: translateY(-2px);
+}
+
+/* ---------------- HERO PHOTO ---------------- */
 
 .hero-art {
-  min-height: 430px;
-  border: 2px solid var(--black);
+  min-height: 475px;
+  border: 1px solid var(--black);
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(255,255,255,.08);
+  background: #eee5d8;
   overflow: visible;
+  padding: 28px;
 }
 
 .hero-art::before {
   content: "FRISCH";
   position: absolute;
-  top: -24px;
-  left: -22px;
+  top: -25px;
+  left: -20px;
   background: var(--green);
   color: var(--cream);
   padding: 9px 27px 8px;
@@ -199,75 +283,44 @@ h1 {
   transform: rotate(12deg);
 }
 
-.hero-art .art-note {
+.hero-photo {
+  width: 100%;
+  height: 100%;
+  min-height: 415px;
+  object-fit: cover;
+  display: block;
+  border: 1px solid var(--line);
+}
+
+.hero-photo-placeholder {
+  width: 100%;
+  min-height: 415px;
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(40,84,55,.08), rgba(221,209,191,.28));
+}
+
+.hero-photo-placeholder::before {
+  content: "✦";
   position: absolute;
-  left: 28px;
-  bottom: 24px;
+  top: 24px;
+  right: 28px;
+  color: var(--green);
+  font-size: 24px;
+}
+
+.hero-photo-placeholder::after {
+  content: "EUER GERICHT";
   color: var(--green);
   font-family: "Barlow Condensed", sans-serif;
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: .08em;
-  text-transform: uppercase;
+  font-size: 28px;
+  letter-spacing: .12em;
+  font-weight: 700;
   transform: rotate(-3deg);
-}
-
-.hero-art .art-lines {
-  position: absolute;
-  width: 70px;
-  height: 50px;
-  right: 28px;
-  bottom: 28px;
-}
-
-.hero-art .art-lines::before,
-.hero-art .art-lines::after {
-  content: "";
-  position: absolute;
-  width: 48px;
-  height: 2px;
-  background: var(--green);
-  transform: rotate(-18deg);
-  right: 0;
-}
-
-.hero-art .art-lines::after {
-  width: 32px;
-  right: 10px;
-  bottom: 10px;
-  transform: rotate(18deg);
-}
-
-.pan {
-  width: 245px;
-  height: 128px;
-  border: 7px solid var(--green);
-  border-radius: 0 0 95px 95px;
-  position: relative;
-  margin-top: 18px;
-}
-
-.pan::before {
-  content: "";
-  position: absolute;
-  width: 160px;
-  height: 70px;
-  border: 7px solid var(--black);
-  border-radius: 50%;
-  top: -42px;
-  left: 34px;
-  background: var(--beige);
-}
-
-.pan::after {
-  content: "";
-  position: absolute;
-  width: 120px;
-  height: 13px;
-  background: var(--green);
-  right: -116px;
-  top: 42px;
-  transform: rotate(-8deg);
 }
 
 /* ---------------- INFO ---------------- */
@@ -490,22 +543,29 @@ footer p {
   .hero {
     grid-template-columns: 1fr;
     padding-top: 60px;
+    gap: 55px;
+  }
+
+  .hero-copy {
+    width: 100%;
   }
 
   .hero-art {
-    min-height: 300px;
+    min-height: 330px;
     margin-top: 15px;
+    padding: 18px;
   }
 
-  .hero-art .art-note {
+  .hero-photo-placeholder {
+    min-height: 290px;
+  }
+
+  .hero-photo-placeholder::after {
+    font-size: 23px;
+  }
+
+  .button {
     font-size: 17px;
-    left: 18px;
-    bottom: 18px;
-  }
-
-  .hero-art .art-lines {
-    right: 18px;
-    bottom: 18px;
   }
 
   .info-grid,
@@ -825,10 +885,10 @@ footer p {
 
 <section class="hero">
 
-  <div>
+  <div class="hero-copy">
 
     <div class="kicker">
-      Kantine · Mittagstisch · Frühstück
+      Frühstück · Mittagstisch · Lieferservice
     </div>
 
     <h1>
@@ -840,16 +900,19 @@ footer p {
       mitten in Cottbus.
     </p>
 
-    <a class="button" href="#angebot">
+    <a class="button" href="#mittagstisch">
       Was gibt's heute?
     </a>
 
   </div>
 
   <div class="hero-art">
-    <div class="pan"></div>
-    <div class="art-note">ehrliche Küche</div>
-    <div class="art-lines"></div>
+    <!--
+      HIER KANN SPÄTER EINFACH EUER ESSENSFOTO HIN.
+      Wenn ihr ein Foto habt, ersetzt den Platzhalter durch:
+      <img class="hero-photo" src="euer-bild.png" alt="Unser Gericht">
+    -->
+    <div class="hero-photo-placeholder"></div>
   </div>
 
 </section>
