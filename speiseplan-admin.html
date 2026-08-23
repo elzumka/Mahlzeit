@@ -334,6 +334,30 @@ function sp_render(){
   s+=sp_text(122,48.0,sp_range(),"sp-round",4,10,"middle");
 
   /*
+   * DATUM UNTER DEN WOCHENTAGEN
+   * Die Wochentage selbst stammen aus der Originalvorlage.
+   * Wir setzen nur die automatisch berechneten Datumswerte darunter.
+   * Alle fünf Datumswerte haben dieselbe Mittelachse und denselben
+   * vertikalen Abstand zur jeweiligen Tageszeile.
+   */
+  const dateX = 20.4;
+  const dateY = [120.3,158.6,196.9,235.2,273.5];
+
+  for(let di=0; di<5; di++){
+    const d = new Date(start);
+    d.setUTCDate(d.getUTCDate()+di);
+    s+=sp_text(
+      dateX,
+      dateY[di],
+      sp_fmt(d,false),
+      "sp-round",
+      4,
+      10,
+      "middle"
+    );
+  }
+
+  /*
    * TAGESBEREICHE AUS DER ORIGINAL-ILLUSTRATOR-DATEI
    *
    * Die vier gepunkteten Trennlinien kommen ausschließlich aus der
