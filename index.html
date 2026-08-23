@@ -246,81 +246,22 @@ h1 {
 /* ---------------- HERO PHOTO ---------------- */
 
 .hero-art {
-  min-height: 475px;
-  border: 1px solid var(--black);
-  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #eee5d8;
+  position: relative;
+  background: transparent;
   overflow: visible;
-  padding: 28px;
-}
-
-.hero-art::before {
-  content: "FRISCH";
-  position: absolute;
-  top: -25px;
-  left: -20px;
-  background: var(--green);
-  color: var(--cream);
-  padding: 9px 27px 8px;
-  transform: rotate(-5deg);
-  font-family: "Barlow Condensed", sans-serif;
-  font-size: 25px;
-  font-weight: 700;
-  letter-spacing: .08em;
-  z-index: 3;
-}
-
-.hero-art::after {
-  content: "✦";
-  position: absolute;
-  right: 28px;
-  top: 22px;
-  color: var(--green);
-  font-size: 25px;
-  transform: rotate(12deg);
 }
 
 .hero-photo {
   width: 100%;
-  height: 100%;
-  min-height: 415px;
-  object-fit: cover;
+  max-width: 560px;
+  height: auto;
   display: block;
-  border: 1px solid var(--line);
-}
-
-.hero-photo-placeholder {
-  width: 100%;
-  min-height: 415px;
-  border: 1px solid var(--line);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(135deg, rgba(40,84,55,.08), rgba(221,209,191,.28));
-}
-
-.hero-photo-placeholder::before {
-  content: "✦";
-  position: absolute;
-  top: 24px;
-  right: 28px;
-  color: var(--green);
-  font-size: 24px;
-}
-
-.hero-photo-placeholder::after {
-  content: "EUER GERICHT";
-  color: var(--green);
-  font-family: "Barlow Condensed", sans-serif;
-  font-size: 28px;
-  letter-spacing: .12em;
-  font-weight: 700;
-  transform: rotate(-3deg);
+  object-fit: cover;
+  border: none;
+  box-shadow: none;
 }
 
 /* ---------------- INFO ---------------- */
@@ -551,17 +492,12 @@ footer p {
   }
 
   .hero-art {
-    min-height: 330px;
     margin-top: 15px;
-    padding: 18px;
   }
 
-  .hero-photo-placeholder {
-    min-height: 290px;
-  }
-
-  .hero-photo-placeholder::after {
-    font-size: 23px;
+  .hero-photo {
+    width: 100%;
+    max-width: 520px;
   }
 
   .button {
@@ -907,12 +843,11 @@ footer p {
   </div>
 
   <div class="hero-art">
-    <!--
-      HIER KANN SPÄTER EINFACH EUER ESSENSFOTO HIN.
-      Wenn ihr ein Foto habt, ersetzt den Platzhalter durch:
-      <img class="hero-photo" src="euer-bild.png" alt="Unser Gericht">
-    -->
-    <div class="hero-photo-placeholder"></div>
+    <img
+      class="hero-photo"
+      src="gericht-hero.png"
+      alt="Gericht von Mahlzeit"
+    >
   </div>
 
 </section>
