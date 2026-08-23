@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mahlzeit! – Verwaltung · Speiseplan v15</title>
+<title>Mahlzeit! – Verwaltung · Speiseplan v16</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
 :root{--green:#285437;--green-dark:#1d4029;--cream:#f5eee4;--beige:#ddd1bf;--black:#20201d;--line:#b8ad9d;}
@@ -33,10 +33,13 @@ button.save{margin-top:28px;padding:14px 24px;border:0;background:var(--green);c
 .sp-sheet{position:relative;width:210mm;height:297mm;margin:auto;background:#f7eee4;box-shadow:0 8px 30px #0002;overflow:hidden}
 .sp-sheet-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:fill}
 #sp-overlay{position:absolute;inset:0;width:100%;height:100%}
-.sp-impact{font-family:Impact,Haettenschweiler,"Arial Narrow Bold",sans-serif;fill:#15572f}
-.sp-round{font-family:"Arial Rounded MT Bold",Arial,sans-serif;fill:#171714}
-.sp-source{font-family:"Source Sans 3",Arial,sans-serif;fill:#171714}
-.sp-price{font-family:"Arial Rounded MT Bold",Arial,sans-serif;fill:#15572f;font-weight:700}
+@font-face{font-family:"ImpactCustom";src:url("./impact.ttf") format("truetype");font-weight:400;font-style:normal;font-display:block}
+@font-face{font-family:"ArialRoundedCustom";src:url("./ARLRDBD.TTF") format("truetype");font-weight:400;font-style:normal;font-display:block}
+@font-face{font-family:"SourceSansCustom";src:url("./SourceSansVariable-Roman.otf") format("opentype");font-weight:100 900;font-style:normal;font-display:block}
+.sp-impact{font-family:"ImpactCustom",Impact,Haettenschweiler,"Arial Narrow Bold",sans-serif;fill:#15572f}
+.sp-round{font-family:"ArialRoundedCustom","Arial Rounded MT Bold",Arial,sans-serif;fill:#171714}
+.sp-source{font-family:"SourceSansCustom","Source Sans 3",Arial,sans-serif;fill:#171714}
+.sp-price{font-family:"ArialRoundedCustom","Arial Rounded MT Bold",Arial,sans-serif;fill:#15572f;font-weight:700}
 .sp-status{margin:8px 0 14px;color:var(--green);font-weight:700}
 @media(max-width:650px){h1{font-size:48px}.plan-info{grid-template-columns:1fr}.admin-tabs{overflow-x:auto}.sp-controls{grid-template-columns:1fr}}
 @media print{
@@ -441,17 +444,50 @@ async function sp_downloadPNG(){
   canvas.height=height;
   const ctx=canvas.getContext("2d");
 
+  // Die Fonts werden vor dem Export geladen.
+  const baseUrl=new URL("./",window.location.href).href;
+  const fontUrls={
+    impact:new URL("impact.ttf",baseUrl).href,
+    rounded:new URL("ARLRDBD.TTF",baseUrl).href,
+    source:new URL("SourceSansVariable-Roman.otf",baseUrl).href
+  };
+
+  try{
+    await document.fonts.load('40px "ImpactCustom"');
+    await document.fonts.load('40px "ArialRoundedCustom"');
+    await document.fonts.load('40px "SourceSansCustom"');
+    await document.fonts.ready;
+  }catch(e){
+    console.warn("Die benutzerdefinierten Fonts konnten nicht vollständig vorab geladen werden.",e);
+  }
+
   const drawBackground=()=>{
     ctx.drawImage(bg,0,0,width,height);
+
     const clone=svg.cloneNode(true);
     clone.setAttribute("width",width);
     clone.setAttribute("height",height);
     clone.setAttribute("viewBox","0 0 210 297");
     clone.setAttribute("xmlns","http://www.w3.org/2000/svg");
+
+    // Wichtig: Die Font-Regeln werden direkt in das exportierte SVG eingebettet.
+    const style=document.createElementNS("http://www.w3.org/2000/svg","style");
+    style.textContent=`
+      @font-face{font-family:"ImpactCustom";src:url("${fontUrls.impact}") format("truetype");font-weight:400;font-style:normal;}
+      @font-face{font-family:"ArialRoundedCustom";src:url("${fontUrls.rounded}") format("truetype");font-weight:400;font-style:normal;}
+      @font-face{font-family:"SourceSansCustom";src:url("${fontUrls.source}") format("opentype");font-weight:100 900;font-style:normal;}
+      .sp-impact{font-family:"ImpactCustom";fill:#15572f;}
+      .sp-round{font-family:"ArialRoundedCustom";fill:#171714;}
+      .sp-source{font-family:"SourceSansCustom";fill:#171714;}
+      .sp-price{font-family:"ArialRoundedCustom";fill:#15572f;font-weight:700;}
+    `;
+    clone.insertBefore(style,clone.firstChild);
+
     const xml=new XMLSerializer().serializeToString(clone);
     const blob=new Blob([xml],{type:"image/svg+xml;charset=utf-8"});
     const url=URL.createObjectURL(blob);
     const img=new Image();
+
     img.onload=()=>{
       ctx.drawImage(img,0,0,width,height);
       URL.revokeObjectURL(url);
@@ -464,17 +500,17 @@ async function sp_downloadPNG(){
         setTimeout(()=>URL.revokeObjectURL(a.href),1000);
       },"image/png");
     };
+
     img.onerror=()=>{
       URL.revokeObjectURL(url);
-      alert("PNG konnte nicht erzeugt werden.");
+      alert("PNG konnte nicht erzeugt werden. Bitte prüfe, ob die drei Font-Dateien im GitHub-Ordner liegen.");
     };
     img.src=url;
   };
 
-  if(bg.complete) drawBackground();
+  if(bg.complete)drawBackground();
   else bg.onload=drawBackground;
 }
-
 window.addEventListener("DOMContentLoaded",()=>{
   gerichteLaden();
 });
