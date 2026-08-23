@@ -176,7 +176,193 @@ function initialisierePlanAuswahl(){
     });
 }
 
-async function speiseplanSpeichern(){const jahr=Number(document.getElementById('plan-jahr').value),kw=Number(document.getElementById('plan-kw').value),file=document.getElementById('plan-bild').files[0],meldung=document.getElementById('speiseplan-meldung');if(!file){meldung.textContent='Bitte zuerst das Speiseplan-Bild auswählen.';return;}const {montag,freitag,aktiv}=planDaten(jahr,kw);meldung.textContent='Speichere …';const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');const path=jahr+'/KW-'+String(kw).padStart(2,'0')+'-'+Date.now()+'-'+safe;const {error:upErr}=await supabaseClient.storage.from('speiseplaene').upload(path,file,{upsert:false,contentType:file.type});if(upErr){console.error(upErr);meldung.textContent='Upload fehlgeschlagen. Bitte prüfe den Supabase-Speicher „speiseplaene“. ';return;}const {data:pub}=supabaseClient.storage.from('speiseplaene').getPublicUrl(path);const {error:dbErr}=await supabaseClient.from('Speiseplaene').upsert([{jahr,kw,von:montag.toISOString().slice(0,10),bis:freitag.toISOString().slice(0,10),aktiv_ab:timestampMitLokalemOffset(aktiv),bild_url:pub.publicUrl,bild_name:file.name}],{onConflict:'jahr,kw'});if(dbErr){console.error(dbErr);meldung.textContent='Bild hochgeladen, aber der Speiseplan konnte nicht gespeichert werden.';return;}meldung.textContent='Gespeichert. KW '+kw+' wird am Freitag um 14:00 Uhr automatisch aktiv.';document.getElementById('plan-bild').value='';document.getElementById('bild-name').textContent='Noch kein Bild ausgewählt.';speiseplaeneLaden();}
+async function speiseplanSpeichern(){
+    const jahr=Number(document.getElementById('plan-jahr').value);
+    const kw=Number(document.getElementById('plan-kw').value);
+    const file=document.getElementById('plan-bild').files[0];
+    const meldung=document.getElementById('speiseplan-meldung');
+    const button=document.querySelector('button[onclick="speiseplanSpeichern()"]');
+    const editId=button?.dataset.editId || null;
+
+    if(!file){
+        meldung.textContent='Bitte zuerst das Speiseplan-Bild auswählen.';
+        return;
+    }
+
+    const {montag,freitag,aktiv}=planDaten(jahr,kw);
+    meldung.textContent=editId ? 'Aktualisiere …' : 'Speichere …';
+
+    const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    const path=jahr+'/KW-'+String(kw).padStart(2,'0')+'-'+Date.now()+'-'+safe;
+
+    const {error:upErr}=await supabaseClient.storage
+        .from('speiseplaene')
+        .upload(path,file,{upsert:false,contentType:file.type});
+
+    if(upErr){
+        console.error(upErr);
+        meldung.textContent='Upload fehlgeschlagen. Bitte prüfe den Supabase-Speicher „speiseplaene“.';
+        return;
+    }
+
+    const {data:pub}=supabaseClient.storage.from('speiseplaene').getPublicUrl(path);
+
+    let oldPlan=null;
+
+    if(editId){
+        const {data:existing,error:findError}=await supabaseClient
+            .from('Speiseplaene')
+            .select('*')
+            .eq('id',editId)
+            .single();
+
+        if(findError){
+            console.error(findError);
+            meldung.textContent='Der bisherige Speiseplan konnte nicht gefunden werden.';
+            return;
+        }
+        oldPlan=existing;
+    }
+
+    const planData={
+        jahr,
+        kw,
+        von:montag.toISOString().slice(0,10),
+        bis:freitag.toISOString().slice(0,10),
+        aktiv_ab:timestampMitLokalemOffset(aktiv),
+        bild_url:pub.publicUrl,
+        bild_name:file.name
+    };
+
+    let dbResult;
+
+    if(editId){
+        dbResult=await supabaseClient
+            .from('Speiseplaene')
+            .update(planData)
+            .eq('id',editId);
+    }else{
+        dbResult=await supabaseClient
+            .from('Speiseplaene')
+            .upsert([planData],{onConflict:'jahr,kw'});
+    }
+
+    if(dbResult.error){
+        console.error(dbResult.error);
+        meldung.textContent=editId
+            ? 'Bild hochgeladen, aber der Speiseplan konnte nicht aktualisiert werden.'
+            : 'Bild hochgeladen, aber der Speiseplan konnte nicht gespeichert werden.';
+        return;
+    }
+
+    // Altes Bild nach erfolgreichem Update entfernen.
+    if(editId && oldPlan?.bild_url && oldPlan.bild_url!==pub.publicUrl){
+        try{
+            const marker='/storage/v1/object/public/speiseplaene/';
+            const pos=oldPlan.bild_url.indexOf(marker);
+            if(pos>=0){
+                const oldPath=decodeURIComponent(oldPlan.bild_url.substring(pos+marker.length));
+                await supabaseClient.storage.from('speiseplaene').remove([oldPath]);
+            }
+        }catch(storageError){
+            console.warn('Altes Bild konnte nicht entfernt werden:', storageError);
+        }
+    }
+
+    meldung.textContent=editId
+        ? 'Speiseplan KW '+kw+' wurde aktualisiert.'
+        : 'Gespeichert. KW '+kw+' wird am Freitag um 14:00 Uhr automatisch aktiv.';
+
+    document.getElementById('plan-bild').value='';
+    document.getElementById('bild-name').textContent='Noch kein Bild ausgewählt.';
+
+    if(button){
+        button.textContent='Speiseplan speichern';
+        delete button.dataset.editId;
+    }
+
+    speiseplaeneLaden();
+}
+
+async function speiseplanLoeschen(id){
+    if(!confirm('Diesen Speiseplan wirklich löschen?')) return;
+
+    const { data: plan, error: findError } = await supabaseClient
+        .from('Speiseplaene')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+    if(findError){
+        console.error(findError);
+        document.getElementById('speiseplan-meldung').textContent='Speiseplan konnte nicht gefunden werden.';
+        return;
+    }
+
+    const { error: dbError } = await supabaseClient
+        .from('Speiseplaene')
+        .delete()
+        .eq('id', id);
+
+    if(dbError){
+        console.error(dbError);
+        document.getElementById('speiseplan-meldung').textContent='Speiseplan konnte nicht gelöscht werden.';
+        return;
+    }
+
+    // Zugehöriges Bild ebenfalls aus dem Storage entfernen.
+    if(plan && plan.bild_url){
+        try{
+            const marker='/storage/v1/object/public/speiseplaene/';
+            const pos=plan.bild_url.indexOf(marker);
+            if(pos>=0){
+                const storagePath=decodeURIComponent(plan.bild_url.substring(pos+marker.length));
+                await supabaseClient.storage.from('speiseplaene').remove([storagePath]);
+            }
+        }catch(storageError){
+            console.warn('Bild konnte nicht aus dem Speicher gelöscht werden:', storageError);
+        }
+    }
+
+    document.getElementById('speiseplan-meldung').textContent='Speiseplan wurde gelöscht.';
+    speiseplaeneLaden();
+}
+
+async function speiseplanBearbeiten(id){
+    const { data: plan, error } = await supabaseClient
+        .from('Speiseplaene')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+    if(error || !plan){
+        console.error(error);
+        document.getElementById('speiseplan-meldung').textContent='Speiseplan konnte nicht geladen werden.';
+        return;
+    }
+
+    // Formular mit den Daten der ausgewählten KW füllen.
+    document.getElementById('plan-jahr').value=plan.jahr;
+    document.getElementById('plan-kw').value=plan.kw;
+    aktualisierePlanInfo();
+
+    // Bildauswahl zurücksetzen und Bearbeitungs-ID merken.
+    document.getElementById('plan-bild').value='';
+    document.getElementById('bild-name').textContent=
+        'Neues Bild auswählen (bisher: '+(plan.bild_name || 'vorhandenes Bild')+')';
+
+    const button=document.querySelector('button[onclick="speiseplanSpeichern()"]');
+    if(button){
+        button.textContent='Speiseplan aktualisieren';
+        button.dataset.editId=String(id);
+    }
+
+    document.getElementById('speiseplan-meldung').textContent=
+        'KW '+plan.kw+' wird bearbeitet. Bitte neues Bild auswählen und aktualisieren.';
+
+    window.scrollTo({top:0,behavior:'smooth'});
+}
+
 async function speiseplaeneLaden(){
     const liste = document.getElementById('speiseplan-liste');
 
