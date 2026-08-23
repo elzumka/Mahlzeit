@@ -630,17 +630,5 @@ function sp_init(){
  sp_buildEditors();sp_fillForm();sp_render();sp_ready=true;
 }
 
-<script>
-/* v14 gemeinsame Anzeige-Logik:
-   Neue Gerichte werden standardmäßig auf Website + Druckplan angezeigt.
-   Bestehende Datensätze ohne die neuen Felder bleiben kompatibel.
-*/
-function websiteGerichtSichtbar(g){
-  return g.website_anzeigen !== false;
-}
-function druckGerichtSichtbar(g){
-  return g.speiseplan_anzeigen !== false;
-}
-</script>
 </script>
 </body></html>
