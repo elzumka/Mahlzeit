@@ -3,632 +3,82 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Speiseplan – Verwaltung</title>
-
+<title>Mahlzeit! – Verwaltung</title>
 <style>
-
-    body {
-        margin: 0;
-        padding: 40px 20px;
-        background: #f4efe5;
-        color: #222;
-        font-family: Arial, sans-serif;
-    }
-
-    .container {
-        max-width: 700px;
-        margin: auto;
-    }
-
-    h1 {
-        color: #31583d;
-        font-size: 42px;
-        margin-bottom: 35px;
-    }
-
-    .form {
-        background: white;
-        padding: 30px;
-        border: 1px solid #ccc;
-    }
-
-    label {
-        display: block;
-        margin-top: 18px;
-        margin-bottom: 7px;
-        font-weight: bold;
-    }
-
-    input {
-        width: 100%;
-        box-sizing: border-box;
-        padding: 12px;
-        font-size: 16px;
-        border: 1px solid #bbb;
-    }
-
-    .checkbox {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-top: 20px;
-    }
-
-    .checkbox input {
-        width: auto;
-    }
-
-    button {
-        margin-top: 30px;
-        padding: 14px 25px;
-        border: none;
-        background: #31583d;
-        color: white;
-        font-size: 17px;
-        cursor: pointer;
-    }
-
-    button:hover {
-        opacity: 0.9;
-    }
-
-    #meldung {
-        margin-top: 20px;
-        font-weight: bold;
-    }
-
-    #gerichte-liste {
-        margin-top: 40px;
-    }
-
-    #gerichte-liste h2 {
-        color: #31583d;
-        margin-bottom: 20px;
-    }
-
-    .gericht-eintrag {
-        border: 1px solid #ccc;
-        padding: 20px;
-        margin-bottom: 15px;
-        background: white;
-    }
-
-    .gericht-datum {
-        font-weight: bold;
-        font-size: 18px;
-        margin-bottom: 8px;
-    }
-
-    .gericht-name {
-        font-size: 20px;
-        font-weight: bold;
-    }
-
-    .gericht-beilage {
-        margin-top: 4px;
-    }
-
-    .gericht-preis {
-        margin-top: 8px;
-        font-weight: bold;
-    }
-
-    .vegetarisch-symbol {
-        margin-left: 5px;
-    }
-
-    .loeschen-button {
-        margin-top: 18px;
-        background: #31583d;
-    }
-
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+:root{--green:#285437;--green-dark:#1d4029;--cream:#f5eee4;--beige:#ddd1bf;--black:#20201d;--line:#b8ad9d;}
+*{box-sizing:border-box} body{margin:0;background:var(--cream);color:var(--black);font-family:"DM Sans",Arial,sans-serif;padding:38px 20px}
+.container{max-width:900px;margin:auto} h1,h2{font-family:"Barlow Condensed",sans-serif;color:var(--green);text-transform:uppercase;letter-spacing:.04em} h1{font-size:60px;line-height:.9;margin:0 0 28px} h2{font-size:34px;margin:0 0 20px}
+.admin-tabs{display:flex;gap:8px;margin-bottom:18px;border-bottom:1px solid var(--line);padding-bottom:8px}.admin-tab{margin:0;padding:12px 20px;border:1px solid var(--line);background:transparent;color:var(--green);font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.06em}.admin-tab.active{background:var(--green);color:var(--cream)}
+.admin-bereich{display:none}.admin-bereich.active{display:block}.form,.saved-plans{background:rgba(255,255,255,.55);border:1px solid var(--line);padding:30px;margin-bottom:24px}
+label{display:block;margin-top:18px;margin-bottom:7px;font-weight:700}input,select{width:100%;box-sizing:border-box;padding:13px;font-size:16px;border:1px solid #bbb;background:#fff}input[type=checkbox]{width:auto}.checkbox{display:flex;align-items:center;gap:10px}.checkbox input{margin:0}
+button.save{margin-top:28px;padding:14px 24px;border:0;background:var(--green);color:var(--cream);font-size:16px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.06em}.save:hover{background:var(--green-dark)}
+#meldung,#speiseplan-meldung{margin-top:18px;font-weight:700}.intro{line-height:1.55;color:#555}.plan-info{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}.plan-info>div{background:var(--cream);border:1px solid var(--line);padding:15px}.plan-info span{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:#666;margin-bottom:5px}.plan-info strong{color:var(--green)}
+.file-name{margin-top:8px;font-size:14px;color:#666}.plan-entry,.gericht-eintrag{background:#fff;border:1px solid #ccc;padding:18px;margin-bottom:12px}.plan-entry{display:grid;grid-template-columns:1fr 160px;gap:18px;align-items:center}.plan-entry strong{display:block;color:var(--green);font-size:20px;margin-bottom:5px}.plan-entry small{color:#666}.plan-entry img{width:160px;max-height:150px;object-fit:contain;border:1px solid #ddd;background:var(--cream)}
+.gericht-datum{font-weight:700;font-size:18px;margin-bottom:8px}.gericht-name{font-size:20px;font-weight:700}.gericht-beilage{margin-top:4px}.gericht-preis{margin-top:8px;font-weight:700}.loeschen-button{margin-top:18px;padding:10px 16px;border:0;background:var(--green);color:white;cursor:pointer}
+@media(max-width:650px){h1{font-size:48px}.plan-info{grid-template-columns:1fr}.plan-entry{grid-template-columns:1fr}.plan-entry img{width:100%;max-height:240px}.admin-tabs{overflow-x:auto}}
 </style>
 </head>
-
-
 <body>
-
 <div class="container">
-
-    <h1>Speiseplan verwalten</h1>
-
-
-    <div class="form">
-
-        <label for="datum">
-            Datum
-        </label>
-
-        <input
-            type="date"
-            id="datum"
-        >
-
-
-        <label for="gericht">
-            Gericht
-        </label>
-
-        <input
-            type="text"
-            id="gericht"
-            placeholder="z. B. Schnitzel"
-        >
-
-
-        <label for="beilage">
-            Beilage
-        </label>
-
-        <input
-            type="text"
-            id="beilage"
-            placeholder="z. B. Bratkartoffeln, Bohnen-Pilzrahm"
-        >
-
-
-        <label for="preis">
-            Preis
-        </label>
-
-        <input
-            type="number"
-            id="preis"
-            step="0.01"
-            placeholder="z. B. 8.90"
-        >
-
-
-        <label class="checkbox">
-
-            <input
-                type="checkbox"
-                id="vegetarisch"
-            >
-
-            Vegetarisch
-
-        </label>
-
-
-        <button onclick="gerichtSpeichern()">
-            Gericht speichern
-        </button>
-
-
-        <div id="meldung"></div>
-
-
-        <div id="gerichte-liste"></div>
-
-    </div>
-
+<h1>Mahlzeit! Verwaltung</h1>
+<div class="admin-tabs">
+<button class="admin-tab active" type="button" onclick="zeigeBereich('gerichte-bereich',this)">Gerichte</button>
+<button class="admin-tab" type="button" onclick="zeigeBereich('speiseplan-bereich',this)">Speisepläne</button>
 </div>
 
+<section id="gerichte-bereich" class="admin-bereich active">
+<div class="form">
+<h2>Gericht eintragen</h2>
+<label for="datum">Datum</label><input type="date" id="datum">
+<label for="gericht">Gericht</label><input type="text" id="gericht" placeholder="z. B. Schnitzel">
+<label for="beilage">Beilage</label><input type="text" id="beilage" placeholder="z. B. Bratkartoffeln, Bohnen-Pilzrahm">
+<label for="preis">Preis</label><input type="number" id="preis" step="0.01" placeholder="z. B. 8.90">
+<label class="checkbox"><input type="checkbox" id="vegetarisch"> Vegetarisch</label>
+<button class="save" onclick="gerichtSpeichern()">Gericht speichern</button>
+<div id="meldung"></div><div id="gerichte-liste"></div>
+</div>
+</section>
 
-<!-- Supabase -->
+<section id="speiseplan-bereich" class="admin-bereich">
+<div class="form">
+<h2>Speiseplan vorbereiten</h2>
+<p class="intro">Wähle die Kalenderwoche und lade das fertige Speiseplan-Bild hoch. Das System berechnet automatisch den Zeitraum und schaltet den Plan am Freitag um 14:00 Uhr frei.</p>
+<label for="plan-jahr">Jahr</label><select id="plan-jahr" onchange="aktualisierePlanInfo()"></select>
+<label for="plan-kw">Kalenderwoche</label><select id="plan-kw" onchange="aktualisierePlanInfo()"></select>
+<div class="plan-info"><div><span>Gültig für</span><strong id="plan-zeitraum">–</strong></div><div><span>Automatische Umschaltung</span><strong id="plan-aktiv-ab">–</strong></div></div>
+<label for="plan-bild">Speiseplan-Bild</label><input type="file" id="plan-bild" accept="image/png,image/jpeg,image/webp"><div id="bild-name" class="file-name">Noch kein Bild ausgewählt.</div>
+<button class="save" onclick="speiseplanSpeichern()">Speiseplan speichern</button><div id="speiseplan-meldung"></div>
+</div>
+<div class="saved-plans"><h2>Gespeicherte Speisepläne</h2><div id="speiseplan-liste">Wird geladen …</div></div>
+</section>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-
 <script>
+const SUPABASE_URL="https://kpomtfkngyaojimwaosw.supabase.co";
+const SUPABASE_KEY="sb_publishable_NhBrxE_DK7laWTa3HG1BvQ_JZeBj5NK";
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-/* =========================================
-   SUPABASE
-========================================= */
+function zeigeBereich(id,button){document.querySelectorAll('.admin-bereich').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.admin-tab').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');button.classList.add('active');}
 
-const SUPABASE_URL =
-    "https://kpomtfkngyaojimwaosw.supabase.co";
+async function gerichtSpeichern(){const datum=document.getElementById('datum').value;const gericht=document.getElementById('gericht').value.trim();const beilage=document.getElementById('beilage').value.trim();const preis=document.getElementById('preis').value;const vegetarisch=document.getElementById('vegetarisch').checked;const meldung=document.getElementById('meldung');if(!datum||!gericht||!preis){meldung.textContent='Bitte Datum, Gericht und Preis ausfüllen.';return;}const {error}=await supabaseClient.from('Gerichte').insert([{datum,gerichte:gericht,beilage,preis,vegetarisch}]);if(error){console.error(error);meldung.textContent='Fehler beim Speichern.';return;}meldung.textContent='Gericht wurde gespeichert.';document.getElementById('datum').value='';document.getElementById('gericht').value='';document.getElementById('beilage').value='';document.getElementById('preis').value='';document.getElementById('vegetarisch').checked=false;gerichteLaden();}
 
-const SUPABASE_KEY =
-    "sb_publishable_NhBrxE_DK7laWTa3HG1BvQ_JZeBj5NK";
+async function gerichteLaden(){const {data,error}=await supabaseClient.from('Gerichte').select('*');const liste=document.getElementById('gerichte-liste');if(error){console.error(error);liste.innerHTML='<p>Fehler beim Laden der Gerichte.</p>';return;}data.sort((a,b)=>a.datum.localeCompare(b.datum));liste.innerHTML='<h2>Gespeicherte Gerichte</h2>';if(!data.length){liste.innerHTML+='<p>Noch keine Gerichte gespeichert.</p>';return;}data.forEach(gericht=>{const e=document.createElement('div');e.className='gericht-eintrag';e.innerHTML=`<div class="gericht-datum">${datumFormatieren(gericht.datum)}</div><div class="gericht-name">${gericht.gerichte} ${gericht.vegetarisch?'🌱':''}</div><div class="gericht-beilage">${gericht.beilage||''}</div><div class="gericht-preis">${preisFormatieren(gericht.preis)}</div><button class="loeschen-button" onclick="gerichtLoeschen(${gericht.id},this)">Löschen</button>`;liste.appendChild(e);});}
+function datumFormatieren(datum){const [y,m,d]=datum.split('-').map(Number);const obj=new Date(y,m-1,d);return ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'][obj.getDay()]+', '+String(d).padStart(2,'0')+'.'+String(m).padStart(2,'0')+'.'+y;}
+function preisFormatieren(preis){return Number(preis).toFixed(2).replace('.',',')+' €';}
+async function gerichtLoeschen(id,button){if(!confirm('Dieses Gericht wirklich löschen?'))return;const {error}=await supabaseClient.from('Gerichte').delete().eq('id',id);if(error){console.error(error);document.getElementById('meldung').textContent='Fehler beim Löschen.';return;}button.closest('.gericht-eintrag')?.remove();document.getElementById('meldung').textContent='Gericht wurde gelöscht.';}
 
+function isoWochenMontag(jahr,kw){const jan4=new Date(jahr,0,4);const day=jan4.getDay()||7;const montag=new Date(jan4);montag.setDate(jan4.getDate()-day+1+(kw-1)*7);montag.setHours(0,0,0,0);return montag;}
+function datumKurz(d){return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear();}
+function planDaten(jahr,kw){const montag=isoWochenMontag(jahr,kw);const freitag=new Date(montag);freitag.setDate(montag.getDate()+4);const aktiv=new Date(montag);aktiv.setDate(montag.getDate()-3);aktiv.setHours(14,0,0,0);return{montag,freitag,aktiv};}
+function timestampMitLokalemOffset(d){const off=-d.getTimezoneOffset();const sign=off>=0?'+':'-';const a=Math.abs(off);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T14:00:00'+sign+String(Math.floor(a/60)).padStart(2,'0')+':'+String(a%60).padStart(2,'0');}
+function aktualisierePlanInfo(){const jahr=Number(document.getElementById('plan-jahr').value);const kw=Number(document.getElementById('plan-kw').value);if(!jahr||!kw)return;const {montag,freitag,aktiv}=planDaten(jahr,kw);document.getElementById('plan-zeitraum').textContent=datumKurz(montag)+' – '+datumKurz(freitag);document.getElementById('plan-aktiv-ab').textContent=datumKurz(aktiv)+' · 14:00 Uhr';}
+function initialisierePlanAuswahl(){const y=document.getElementById('plan-jahr'),k=document.getElementById('plan-kw'),now=new Date(),year=now.getFullYear();for(let j=year;j<=year+2;j++){const o=document.createElement('option');o.value=j;o.textContent=j;y.appendChild(o);}for(let w=1;w<=53;w++){const o=document.createElement('option');o.value=w;o.textContent='KW '+w;k.appendChild(o);}const d=new Date(Date.UTC(year,now.getMonth(),now.getDate()));const day=d.getUTCDay()||7;d.setUTCDate(d.getUTCDate()+4-day);const start=new Date(Date.UTC(d.getUTCFullYear(),0,1));const current=Math.ceil((((d-start)/86400000)+1)/7);y.value=year;k.value=Math.min(current+1,53);aktualisierePlanInfo();document.getElementById('plan-bild').addEventListener('change',function(){document.getElementById('bild-name').textContent=this.files[0]?this.files[0].name:'Noch kein Bild ausgewählt.';});}
 
-const supabaseClient =
-    window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY
-    );
+async function speiseplanSpeichern(){const jahr=Number(document.getElementById('plan-jahr').value),kw=Number(document.getElementById('plan-kw').value),file=document.getElementById('plan-bild').files[0],meldung=document.getElementById('speiseplan-meldung');if(!file){meldung.textContent='Bitte zuerst das Speiseplan-Bild auswählen.';return;}const {montag,freitag,aktiv}=planDaten(jahr,kw);meldung.textContent='Speichere …';const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');const path=jahr+'/KW-'+String(kw).padStart(2,'0')+'-'+Date.now()+'-'+safe;const {error:upErr}=await supabaseClient.storage.from('speiseplaene').upload(path,file,{upsert:false,contentType:file.type});if(upErr){console.error(upErr);meldung.textContent='Upload fehlgeschlagen. Bitte prüfe den Supabase-Speicher „speiseplaene“. ';return;}const {data:pub}=supabaseClient.storage.from('speiseplaene').getPublicUrl(path);const {error:dbErr}=await supabaseClient.from('Speiseplaene').upsert([{jahr,kw,von:montag.toISOString().slice(0,10),bis:freitag.toISOString().slice(0,10),aktiv_ab:timestampMitLokalemOffset(aktiv),bild_url:pub.publicUrl,bild_name:file.name}],{onConflict:'jahr,kw'});if(dbErr){console.error(dbErr);meldung.textContent='Bild hochgeladen, aber der Speiseplan konnte nicht gespeichert werden.';return;}meldung.textContent='Gespeichert. KW '+kw+' wird am Freitag um 14:00 Uhr automatisch aktiv.';document.getElementById('plan-bild').value='';document.getElementById('bild-name').textContent='Noch kein Bild ausgewählt.';speiseplaeneLaden();}
+async function speiseplaeneLaden(){const liste=document.getElementById('speiseplan-liste');const {data,error}=await supabaseClient.from('Speiseplaene').select('*').order('aktiv_ab',{ascending:true});if(error){console.error(error);liste.innerHTML='<p>Speisepläne konnten nicht geladen werden.</p>';return;}if(!data.length){liste.innerHTML='<p>Noch keine Speisepläne gespeichert.</p>';return;}liste.innerHTML=data.map(p=>`<div class="plan-entry"><div><strong>KW ${p.kw} · ${p.jahr}</strong><div>${datumKurz(new Date(p.von+'T00:00:00'))} – ${datumKurz(new Date(p.bis+'T00:00:00'))}</div><small>Aktiv ab ${new Date(p.aktiv_ab).toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'short'})} Uhr</small></div><a href="${p.bild_url}" target="_blank" rel="noopener"><img src="${p.bild_url}" alt="Speiseplan KW ${p.kw}"></a></div>`).join('');}
 
-
-
-/* =========================================
-   GERICHT SPEICHERN
-========================================= */
-
-async function gerichtSpeichern() {
-
-    const datum =
-        document.getElementById("datum").value;
-
-    const gericht =
-        document.getElementById("gericht").value.trim();
-
-    const beilage =
-        document.getElementById("beilage").value.trim();
-
-    const preis =
-        document.getElementById("preis").value;
-
-    const vegetarisch =
-        document.getElementById("vegetarisch").checked;
-
-
-    /* Pflichtfelder prüfen */
-
-    if (!datum || !gericht || !preis) {
-
-        document.getElementById("meldung").textContent =
-            "Bitte Datum, Gericht und Preis ausfüllen.";
-
-        return;
-    }
-
-
-    /* In Supabase speichern */
-
-    const { error } = await supabaseClient
-
-        .from("Gerichte")
-
-        .insert([
-            {
-                datum: datum,
-                gerichte: gericht,
-                beilage: beilage,
-                preis: preis,
-                vegetarisch: vegetarisch
-            }
-        ]);
-
-
-    /* Fehler */
-
-    if (error) {
-
-        console.error(error);
-
-        document.getElementById("meldung").textContent =
-            "Fehler beim Speichern.";
-
-        return;
-    }
-
-
-    /* Erfolgsmeldung */
-
-    document.getElementById("meldung").textContent =
-        "Gericht wurde gespeichert.";
-
-
-    /* Eingabefelder leeren */
-
-    document.getElementById("datum").value = "";
-
-    document.getElementById("gericht").value = "";
-
-    document.getElementById("beilage").value = "";
-
-    document.getElementById("preis").value = "";
-
-    document.getElementById("vegetarisch").checked = false;
-
-
-    /* Liste aktualisieren */
-
-    gerichteLaden();
-
-}
-
-
-
-/* =========================================
-   GERICHTE LADEN
-========================================= */
-
-async function gerichteLaden() {
-
-
-    const { data, error } = await supabaseClient
-
-        .from("Gerichte")
-
-        .select("*");
-
-
-    /* Fehler */
-
-    if (error) {
-
-        console.error(error);
-
-        document.getElementById("meldung").textContent =
-            "Fehler beim Laden der Gerichte.";
-
-        return;
-    }
-
-
-    /* Nach Datum sortieren */
-
-    data.sort(function(a, b) {
-
-        return a.datum.localeCompare(b.datum);
-
-    });
-
-
-    const liste =
-        document.getElementById("gerichte-liste");
-
-
-    /* Alte Liste leeren */
-
-    liste.innerHTML =
-        "<h2>Gespeicherte Gerichte</h2>";
-
-
-    /* Keine Gerichte vorhanden */
-
-    if (data.length === 0) {
-
-        liste.innerHTML +=
-            "<p>Noch keine Gerichte gespeichert.</p>";
-
-        return;
-    }
-
-
-    /* Jedes Gericht anzeigen */
-
-    data.forEach(function(gericht) {
-
-
-        const eintrag =
-            document.createElement("div");
-
-
-        eintrag.className =
-            "gericht-eintrag";
-
-
-        /* ---------------------------------
-           DATUM
-        --------------------------------- */
-
-        const datumAnzeige =
-            datumFormatieren(gericht.datum);
-
-
-        /* ---------------------------------
-           VEGETARISCHES SYMBOL
-        --------------------------------- */
-
-        const vegetarischSymbol =
-            gericht.vegetarisch
-                ? '<span class="vegetarisch-symbol">🥬</span>'
-                : "";
-
-
-        /* ---------------------------------
-           HTML DES EINTRAGS
-        --------------------------------- */
-
-        eintrag.innerHTML = `
-
-            <div class="gericht-datum">
-                ${datumAnzeige}
-            </div>
-
-            <div class="gericht-name">
-                ${gericht.gerichte}
-                ${vegetarischSymbol}
-            </div>
-
-            <div class="gericht-beilage">
-                ${gericht.beilage || ""}
-            </div>
-
-            <div class="gericht-preis">
-                ${preisFormatieren(gericht.preis)}
-            </div>
-
-            <button
-                class="loeschen-button"
-                onclick="gerichtLoeschen(${gericht.id}, this)"
-            >
-                Löschen
-            </button>
-
-        `;
-
-
-        liste.appendChild(eintrag);
-
-    });
-
-}
-
-
-
-/* =========================================
-   DATUM FORMATIEREN
-   Beispiel:
-   Samstag, 22.08.2026
-========================================= */
-
-function datumFormatieren(datum) {
-
-
-    const teile =
-        datum.split("-");
-
-
-    const jahr =
-        Number(teile[0]);
-
-    const monat =
-        Number(teile[1]);
-
-    const tag =
-        Number(teile[2]);
-
-
-    const datumObjekt =
-        new Date(
-            jahr,
-            monat - 1,
-            tag
-        );
-
-
-    const wochentage = [
-
-        "Sonntag",
-        "Montag",
-        "Dienstag",
-        "Mittwoch",
-        "Donnerstag",
-        "Freitag",
-        "Samstag"
-
-    ];
-
-
-    const wochentag =
-        wochentage[
-            datumObjekt.getDay()
-        ];
-
-
-    const tagFormatiert =
-        tag
-            .toString()
-            .padStart(2, "0");
-
-
-    const monatFormatiert =
-        monat
-            .toString()
-            .padStart(2, "0");
-
-
-    return (
-
-        wochentag +
-        ", " +
-        tagFormatiert +
-        "." +
-        monatFormatiert +
-        "." +
-        jahr
-
-    );
-
-}
-
-
-
-/* =========================================
-   PREIS FORMATIEREN
-   Beispiel:
-   8.9 → 8,90 €
-========================================= */
-
-function preisFormatieren(preis) {
-
-
-    return (
-
-        Number(preis)
-            .toFixed(2)
-            .replace(".", ",") +
-        " €"
-
-    );
-
-}
-
-
-
-/* =========================================
-   GERICHT LÖSCHEN
-========================================= */
-
-async function gerichtLoeschen(
-    id,
-    button
-) {
-
-
-    const bestaetigt =
-        confirm(
-            "Dieses Gericht wirklich löschen?"
-        );
-
-
-    if (!bestaetigt) {
-
-        return;
-
-    }
-
-
-    /* Aus Supabase löschen */
-
-    const { error } =
-        await supabaseClient
-
-            .from("Gerichte")
-
-            .delete()
-
-            .eq("id", id);
-
-
-    /* Fehler */
-
-    if (error) {
-
-        console.error(error);
-
-        document.getElementById("meldung").textContent =
-            "Fehler beim Löschen.";
-
-        return;
-    }
-
-
-    /* Eintrag sofort aus der sichtbaren Liste entfernen */
-
-    const eintrag =
-        button.closest(".gericht-eintrag");
-
-
-    if (eintrag) {
-
-        eintrag.remove();
-
-    }
-
-
-    /* Meldung */
-
-    document.getElementById("meldung").textContent =
-        "Gericht wurde gelöscht.";
-
-}
-
-
-
-/* =========================================
-   BEIM ÖFFNEN DER SEITE LADEN
-========================================= */
-
-gerichteLaden();
-
+initialisierePlanAuswahl();gerichteLaden();speiseplaeneLaden();
 </script>
-
-</body>
-</html>
+</body></html>
