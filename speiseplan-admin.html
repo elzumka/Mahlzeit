@@ -3693,24 +3693,36 @@ async function sp_pruefeVerfentlichung(){
   const to =
     end.toISOString().slice(0,10);
 
+  const checks = [];
 
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("Gerichte")
-      .select("*")
-      .gte("datum",from)
-      .lte("datum",to)
-      .order("datum",{ascending:true})
-      .order("gerichte",{ascending:true});
+  /*
+   * Gerichte und Sondertage zuerst laden.
+   * Dadurch ist "specialDays" definiert, bevor es weiter unten
+   * ausgewertet wird.
+   */
+  const [
+    {data:gerichte,error:gerichteError},
+    {data:specialDays,error:specialError}
+  ] =
+    await Promise.all([
+      supabaseClient
+        .from("Gerichte")
+        .select("*")
+        .gte("datum",from)
+        .lte("datum",to)
+        .order("datum",{ascending:true})
+        .order("reihenfolge",{ascending:true,nullsFirst:false})
+        .order("id",{ascending:true}),
 
+      supabaseClient
+        .from("Sonderoeffnungszeiten")
+        .select("*")
+        .gte("datum",from)
+        .lte("datum",to)
+        .order("datum",{ascending:true})
+    ]);
 
-  const checks=[];
-
-
-  if(error){
+  if(gerichteError){
 
     return {
       ok:false,
@@ -3721,6 +3733,14 @@ async function sp_pruefeVerfentlichung(){
 
   }
 
+  if(specialError){
+
+    console.warn(
+      "Sondertage konnten für die Qualitätsprüfung nicht geladen werden:",
+      specialError
+    );
+
+  }
 
   const days = {
     1:"Montag",
@@ -3730,8 +3750,7 @@ async function sp_pruefeVerfentlichung(){
     5:"Freitag"
   };
 
-
-  const byDay={
+  const byDay = {
     1:[],
     2:[],
     3:[],
@@ -3739,33 +3758,80 @@ async function sp_pruefeVerfentlichung(){
     5:[]
   };
 
+  (gerichte || []).forEach(
+    gericht => {
 
-  (data||[]).forEach(g=>{
-    const d =
-      new Date(
-        g.datum+"T00:00:00"
-      );
+      const d =
+        new Date(
+          gericht.datum + "T00:00:00"
+        );
 
-    const day =
-      d.getDay();
+      const day =
+        d.getDay();
 
-    if(byDay[day]){
-      byDay[day].push(g);
+      if(byDay[day]){
+        byDay[day].push(
+          gericht
+        );
+      }
+
     }
+  );
 
-  });
+  /*
+   * Sondertage nach Datum schnell auffindbar machen.
+   */
+  const specialByDate = {};
+
+  (specialDays || []).forEach(
+    day => {
+      specialByDate[day.datum] = day;
+    }
+  );
 
 
-  for(const day of [1,2,3,4,5]){
+  for(
+    const day of [1,2,3,4,5]
+  ){
 
     const items =
       byDay[day];
 
-    const specialToday =
-      (specialDays || []).find(
-        item => item.datum ===
-          `${from.slice(0,4)}-${String(new Date(from+"T00:00:00").getUTCMonth()+1).padStart(2,"0")}-${String(new Date(from+"T00:00:00").getUTCDate()+1).padStart(2,"0")}`
+    /*
+     * Datum des jeweiligen Wochentags bestimmen.
+     */
+    const dayDate =
+      new Date(start);
+
+    dayDate.setUTCDate(
+      dayDate.getUTCDate() + (day-1)
+    );
+
+    const isoDay =
+      dayDate
+        .toISOString()
+        .slice(0,10);
+
+    const special =
+      specialByDate[isoDay];
+
+
+    /*
+     * Wenn ein Sondertag "geschlossen" ist,
+     * sind dort keine Gerichte erforderlich.
+     */
+    if(
+      special?.geschlossen
+    ){
+
+      checks.push(
+        `✓ ${days[day]}: Sondertag „geschlossen“ ist hinterlegt.`
       );
+
+      continue;
+
+    }
+
 
     if(!items.length){
 
@@ -3778,7 +3844,9 @@ async function sp_pruefeVerfentlichung(){
     }
 
 
-    if(items.length>10){
+    if(
+      items.length > 10
+    ){
 
       checks.push(
         `⚠ ${days[day]}: mehr als 10 Gerichte eingetragen.`
@@ -3787,66 +3855,39 @@ async function sp_pruefeVerfentlichung(){
     }
 
 
-    items.forEach(item=>{
+    items.forEach(
+      item => {
 
-      if(
-        item.preis === null ||
-        item.preis === "" ||
-        Number.isNaN(Number(item.preis))
-      ){
+        if(
+          item.preis === null ||
+          item.preis === "" ||
+          Number.isNaN(
+            Number(item.preis)
+          )
+        ){
 
-        checks.push(
-          `⚠ ${days[day]}: Preis fehlt bei „${item.gerichte || "Gericht"}“.`
-        );
+          checks.push(
+            `⚠ ${days[day]}: Preis fehlt bei „${
+              item.gerichte || "Gericht"
+            }“.`
+          );
 
-      }
-
-    });
-
-  }
-
-
-  const {
-    data:specialDays,
-    error:specialError
-  } =
-    await supabaseClient
-      .from("Sonderoeffnungszeiten")
-      .select("*")
-      .gte("datum",from)
-      .lte("datum",to)
-      .order("datum",{ascending:true});
-
-
-  if(!specialError){
-
-    (specialDays||[]).forEach(day=>{
-
-      const d =
-        new Date(
-          day.datum+"T00:00:00"
-        );
-
-      const dayName =
-        days[d.getDay()] ||
-        day.datum;
-
-
-      if(day.geschlossen){
-
-        checks.push(
-          `✓ ${dayName}: Sondertag „geschlossen“ ist hinterlegt.`
-        );
-
-      }else{
-
-        checks.push(
-          `✓ ${dayName}: Sonderöffnungszeit ist hinterlegt.`
-        );
+        }
 
       }
+    );
 
-    });
+
+    if(
+      special &&
+      !special.geschlossen
+    ){
+
+      checks.push(
+        `✓ ${days[day]}: Sonderöffnungszeit ist hinterlegt.`
+      );
+
+    }
 
   }
 
@@ -3854,7 +3895,8 @@ async function sp_pruefeVerfentlichung(){
   return {
     ok:
       !checks.some(
-        item => item.startsWith("⚠")
+        item =>
+          item.startsWith("⚠")
       ),
     checks
   };
@@ -4186,4 +4228,5 @@ document.addEventListener("keydown",(event)=>{
   </div>
 </div>
 
+</body></html>
 </body></html>
