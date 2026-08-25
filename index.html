@@ -828,6 +828,19 @@ footer {
   font-weight:700;
 }
 
+.special-today-message{
+  max-width:520px;
+  margin:18px auto 0;
+  padding:12px 18px;
+  border-radius:10px;
+  background:rgba(40,84,55,.07);
+  border:1px solid rgba(40,84,55,.18);
+  color:var(--green);
+  text-align:center;
+  font-weight:700;
+  line-height:1.5;
+}
+
 .special-hours-note.show{
   display:block;
 }
@@ -1656,6 +1669,8 @@ async function downloadSpeiseplanPDF(){
 
     <div id="naechste-woche-hinweis" class="next-week-note"></div>
 
+    <div id="sondertage-hinweis" class="special-hours-note"></div>
+
   </div>
 
 </section>
@@ -1754,6 +1769,8 @@ async function downloadSpeiseplanPDF(){
       </div>
       <p>Frisch gekocht. Jeden Tag neu.</p>
     </div>
+
+    <div id="speiseplan-sondertage" class="special-hours-note"></div>
 
     <div class="speiseplan-bild" id="speiseplan-container">
       <div class="speiseplan-loading">Speiseplan wird geladen …</div>
@@ -2078,6 +2095,9 @@ async function ladeGerichte(){
   const nextWeekNote =
     document.getElementById("naechste-woche-hinweis");
 
+  const specialNote =
+    document.getElementById("sondertage-hinweis");
+
   if(!container)return;
 
   if(nextWeekNote){
@@ -2085,39 +2105,111 @@ async function ladeGerichte(){
     nextWeekNote.textContent="";
   }
 
+  if(specialNote){
+    specialNote.classList.remove("show");
+    specialNote.textContent="";
+  }
+
+  const isoHeute =
+    jetzt.toISOString().slice(0,10);
 
   /*
-   * Sonderöffnungszeiten zuerst prüfen.
+   * Kommende Sondertage ab heute für die nächsten 7 Tage laden.
    */
-  const jahr =
-    jetzt.getFullYear();
+  const plus7 = new Date(jetzt);
+  plus7.setDate(plus7.getDate()+7);
 
-  const monat =
-    String(jetzt.getMonth()+1).padStart(2,"0");
-
-  const tag =
-    String(jetzt.getDate()).padStart(2,"0");
-
-  const heute =
-    `${jahr}-${monat}-${tag}`;
-
+  const isoBis =
+    plus7.toISOString().slice(0,10);
 
   const {
-    data:specialDay
+    data:specialDays,
+    error:specialError
   } =
     await supabaseClient
       .from("Sonderoeffnungszeiten")
       .select("*")
-      .eq("datum",heute)
-      .maybeSingle();
+      .gte("datum",isoHeute)
+      .lte("datum",isoBis)
+      .order("datum",{ascending:true});
+
+  if(specialError){
+    console.warn(
+      "Sondertage konnten nicht geladen werden:",
+      specialError
+    );
+  }
 
 
-  if(specialDay){
+  const specialToday =
+    (specialDays || []).find(
+      item => item.datum === isoHeute
+    );
 
-    const geschlossen =
-      specialDay.geschlossen !== false;
 
-    if(geschlossen){
+  /*
+   * Sondertage einige Tage im Voraus ankündigen.
+   */
+  const upcoming =
+    (specialDays || []).filter(
+      item => item.datum !== isoHeute
+    );
+
+
+  if(
+    specialNote &&
+    upcoming.length
+  ){
+
+    const first =
+      upcoming[0];
+
+    const d =
+      new Date(
+        first.datum + "T00:00:00"
+      );
+
+    const datumText =
+      d.toLocaleDateString(
+        "de-DE",
+        {
+          weekday:"long",
+          day:"2-digit",
+          month:"2-digit"
+        }
+      );
+
+    let text =
+      `Hinweis für ${datumText}: `;
+
+    if(first.geschlossen){
+      text +=
+        first.hinweis ||
+        "Wir haben an diesem Tag geschlossen.";
+    }else{
+      text +=
+        first.hinweis ||
+        `Geänderte Öffnungszeit ${first.von || "11:00"}–${first.bis || "14:00"} Uhr.`;
+    }
+
+    if(upcoming.length > 1){
+      text +=
+        ` Weitere Sondertage folgen in den nächsten Tagen.`;
+    }
+
+    specialNote.textContent =
+      text;
+
+    specialNote.classList.add("show");
+  }
+
+
+  /*
+   * Sondertag HEUTE.
+   */
+  if(specialToday){
+
+    if(specialToday.geschlossen){
 
       container.innerHTML = `
         <div class="feierabend-box">
@@ -2125,29 +2217,27 @@ async function ladeGerichte(){
             src="feierabend.png"
             alt="Heute geschlossen"
           >
+          <div class="special-today-message">
+            ${
+              specialToday.hinweis
+                || "Heute bleibt unsere Kantine geschlossen."
+            }
+          </div>
         </div>
       `;
 
       return;
-
     }
-
-    const specialVon =
-      specialDay.von || "11:00";
-
-    const specialBis =
-      specialDay.bis || "14:00";
 
     if(
-      nextWeekNote &&
-      specialDay.hinweis
+      specialToday.hinweis &&
+      specialNote
     ){
-      nextWeekNote.textContent =
-        specialDay.hinweis;
+      specialNote.textContent =
+        `Heute: ${specialToday.hinweis}`;
 
-      nextWeekNote.classList.add("show");
+      specialNote.classList.add("show");
     }
-
   }
 
 
@@ -2163,7 +2253,7 @@ async function ladeGerichte(){
 
   if(
     istWochenende &&
-    !specialDay
+    !specialToday
   ){
 
     container.innerHTML = `
@@ -2179,13 +2269,9 @@ async function ladeGerichte(){
   }
 
 
-  /*
-   * Montag–Donnerstag ab 14:00 Uhr Feierabend.
-   */
-
   if(
     stunde>=14 &&
-    !specialDay
+    !specialToday
   ){
 
     container.innerHTML = `
@@ -2202,10 +2288,8 @@ async function ladeGerichte(){
 
 
   /*
-   * Freitag vor 14:00 Uhr:
-   * Hinweis auf den kommenden Speiseplan.
+   * Freitag vor 14:00 Uhr.
    */
-
   if(
     wochentag===5 &&
     stunde<14 &&
@@ -2226,7 +2310,7 @@ async function ladeGerichte(){
     await supabaseClient
       .from("Gerichte")
       .select("*")
-      .eq("datum",heute)
+      .eq("datum",isoHeute)
       .eq("website_anzeigen",true)
       .order(
         "gerichte",
@@ -2277,26 +2361,15 @@ async function ladeGerichte(){
         );
 
 
-      const safeName =
-        String(
-          gericht.gerichte || ""
-        )
-        .replace(/"/g,'&quot;');
-
-
-      const safeBeilage =
-        String(
-          gericht.beilage || ""
-        )
-        .replace(/"/g,'&quot;');
-
-
       const preis =
         Number(
           gericht.preis
         )
         .toFixed(2)
-        .replace(".",",");
+        .replace(
+          ".",
+          ","
+        );
 
 
       karte.innerHTML = `
@@ -2317,13 +2390,9 @@ async function ladeGerichte(){
 
           <div>
 
-            <h3>
-              ${gericht.gerichte || ""}
-            </h3>
+            <h3>${gericht.gerichte || ""}</h3>
 
-            <p>
-              ${gericht.beilage || ""}
-            </p>
+            <p>${gericht.beilage || ""}</p>
 
             ${
               gericht.ausverkauft
@@ -2338,7 +2407,6 @@ async function ladeGerichte(){
           </div>
 
         </div>
-
 
         <div class="price">
 
@@ -2365,115 +2433,12 @@ async function ladeGerichte(){
         </div>
       `;
 
-
-      container.appendChild(
-        karte
-      );
+      container.appendChild(karte);
 
     }
   );
 
 }
-
-
-/* --------------------------------
-   GERICHT TEILEN
-   -------------------------------- */
-
-async function teileGericht(gericht){
-
-  const text =
-    `Heute bei Mahlzeit!\n\n` +
-    `${gericht.name}` +
-    (
-      gericht.beilage
-        ? ` – ${gericht.beilage}`
-        : ""
-    ) +
-    ` – ${gericht.preis} €\n\n` +
-    `Heute von 11:00–14:00 Uhr.`;
-
-
-  const shareData = {
-    title:"Mahlzeit! · Heute bei uns",
-    text
-  };
-
-
-  if(
-    navigator.share
-  ){
-
-    try{
-      await navigator.share(
-        shareData
-      );
-
-      return;
-
-    }catch(error){
-
-      if(
-        error?.name === "AbortError"
-      ){
-        return;
-      }
-
-    }
-
-  }
-
-
-  /*
-   * Desktop-/Fallback:
-   * WhatsApp öffnen.
-   */
-
-  const whatsapp =
-    "https://wa.me/?text="
-    +
-    encodeURIComponent(
-      text
-      + "\n\n"
-      + window.location.href
-    );
-
-  window.open(
-    whatsapp,
-    "_blank",
-    "noopener,noreferrer"
-  );
-
-}
-
-
-/* --------------------------------
-   NÄCHSTE WOCHE / SONDERTAG
-   -------------------------------- */
-
-async function planeNaechstesUpdate(){
-
-  const jetzt =
-    new Date();
-
-  /*
-   * Jede Minute neu prüfen.
-   * Dadurch wird Freitag 14:00 Uhr zuverlässig sichtbar,
-   * auch wenn die Seite seit Freitagmorgen geöffnet war.
-   */
-
-  await ladeGerichte();
-  await ladeSpeiseplan();
-}
-
-
-setInterval(
-  ()=>{
-    ladeGerichte();
-  },
-  60 * 1000
-);
-
 
 /* --------------------------------
    HEUTIGES DATUM
@@ -2562,9 +2527,6 @@ const container =
   if(
     !kwElement ||
     !datumElement ||
-    !weekKwElement ||
-    !weekRangeElement ||
-    !weekImage ||
     !container
   ){
     return;
@@ -2638,7 +2600,49 @@ return;
 
   datumElement.textContent =
     datumsbereich;
-container.innerHTML = `
+
+  const sondertageElement =
+    document.getElementById("speiseplan-sondertage");
+
+  if(sondertageElement){
+    const {data:sondertage} =
+      await supabaseClient
+        .from("Sonderoeffnungszeiten")
+        .select("*")
+        .gte("datum", data.von)
+        .lte("datum", data.bis)
+        .order("datum",{ascending:true});
+
+    if(sondertage?.length){
+      sondertageElement.innerHTML =
+        sondertage.map(item => {
+          const d = new Date(item.datum + "T00:00:00");
+          const datumText = d.toLocaleDateString("de-DE", {
+            weekday:"long",
+            day:"2-digit",
+            month:"2-digit"
+          });
+
+          if(item.geschlossen){
+            return `<strong>${datumText}</strong> · ${
+              item.hinweis || "geschlossen"
+            }`;
+          }
+
+          return `<strong>${datumText}</strong> · ${
+            item.hinweis ||
+            `geänderte Öffnungszeit ${item.von || "11:00"}–${item.bis || "14:00"} Uhr`
+          }`;
+        }).join("<br>");
+
+      sondertageElement.classList.add("show");
+    }else{
+      sondertageElement.classList.remove("show");
+      sondertageElement.textContent="";
+    }
+  }
+
+  container.innerHTML = `
     <img
       src="${bildUrl}"
       alt="Speiseplan Mahlzeit KW ${data.kw}"
