@@ -620,6 +620,34 @@ button.save{margin-top:28px;padding:14px 24px;border:0;background:var(--green);c
 button{
   border-radius:10px;
 }
+
+.plan-status-badge{
+  display:inline-block;
+  margin-top:10px;
+  padding:6px 10px;
+  border-radius:8px;
+  background:#8a8a8a;
+  color:#fff;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+.plan-status-badge.published{
+  background:var(--green);
+}
+
+.plan-status-badge.draft{
+  background:#b67a24;
+}
+
+.preview-box > .plan-status-badge{
+  position:sticky;
+  top:0;
+  z-index:4;
+  margin:0 0 14px;
+}
 </style>
 </head>
 <body>
@@ -811,6 +839,7 @@ button{
     <div class="sp-actions">
       <button type="button" class="save" onclick="window.print()">PDF / Drucken</button>
       <button type="button" class="save" onclick="sp_downloadPNG()">PNG herunterladen</button>
+       <button type="button" class="save" onclick="sp_saveDraft()">Entwurf speichern</button>
        <button type="button" class="save" onclick="sp_publishPlan()">Speiseplan veröffentlichen</button>
     </div>
   </div>
@@ -827,6 +856,7 @@ button{
   </div>
   <div id="sp-status" class="sp-status"></div>
    <div id="sp-publish-status" class="sp-status"></div>
+  <div id="sp-status-badge" class="plan-status-badge">ENTWURF</div>
   <div id="sp-qr-status" class="sp-status"></div>
 
   <main class="sp-preview">
@@ -2035,6 +2065,183 @@ function sp_aktivierungsZeitpunkt(year,week){
   return aktiv.toISOString();
 }
 
+
+async function sp_saveDraft(){
+
+  const status =
+    document.getElementById(
+      "sp-publish-status"
+    );
+
+  const badge =
+    document.getElementById(
+      "sp-status-badge"
+    );
+
+  const year =
+    Number(spState.year);
+
+  const week =
+    Number(spState.week);
+
+  if(status){
+    status.textContent =
+      `KW ${week} wird als Entwurf gespeichert …`;
+  }
+
+
+  try{
+
+    await sp_loadFromSupabase();
+
+
+    const montag =
+      sp_isoStart(
+        year,
+        week
+      );
+
+    const freitag =
+      new Date(montag);
+
+    freitag.setUTCDate(
+      freitag.getUTCDate()+4
+    );
+
+
+    /*
+     * Für einen Entwurf wird die bestehende PNG-Datei nicht ersetzt.
+     * Wir speichern nur Metadaten, damit die Woche als geplant/Entwurf
+     * im Dashboard erkennbar bleibt.
+     */
+    const {
+      data:existing,
+      error:findError
+    } =
+      await supabaseClient
+        .from("Speiseplaene")
+        .select("*")
+        .eq("jahr",year)
+        .eq("kw",week)
+        .maybeSingle();
+
+
+    if(findError){
+      throw findError;
+    }
+
+
+    const planData = {
+      jahr:year,
+      kw:week,
+      von:
+        montag
+          .toISOString()
+          .slice(0,10),
+      bis:
+        freitag
+          .toISOString()
+          .slice(0,10),
+      aktiv_ab:
+        existing?.aktiv_ab ||
+        sp_aktivierungsZeitpunkt(
+          year,
+          week
+        ),
+      bild_url:
+        existing?.bild_url ||
+        null,
+      bild_name:
+        existing?.bild_name ||
+        null,
+      status:
+        "entwurf"
+    };
+
+
+    let dbError;
+
+
+    if(existing){
+
+      const result =
+        await supabaseClient
+          .from("Speiseplaene")
+          .update(
+            planData
+          )
+          .eq(
+            "id",
+            existing.id
+          );
+
+      dbError =
+        result.error;
+
+    }else{
+
+      const result =
+        await supabaseClient
+          .from("Speiseplaene")
+          .insert([
+            planData
+          ]);
+
+      dbError =
+        result.error;
+
+    }
+
+
+    if(dbError){
+      throw dbError;
+    }
+
+
+    if(badge){
+
+      badge.textContent =
+        "ENTWURF";
+
+      badge.classList.remove(
+        "published"
+      );
+
+      badge.classList.add(
+        "draft"
+      );
+
+    }
+
+
+    if(status){
+
+      status.textContent =
+        `KW ${week} als Entwurf gespeichert.`;
+
+    }
+
+
+  }catch(error){
+
+    console.error(
+      "Entwurf speichern:",
+      error
+    );
+
+    if(status){
+
+      status.textContent =
+        error?.message ||
+        "Entwurf konnte nicht gespeichert werden.";
+
+    }
+
+  }
+
+}
+
+
 async function sp_publishPlan(){
 
   const status =
@@ -2165,7 +2372,8 @@ async function sp_publishPlanOriginal(){
       bis:freitag.toISOString().slice(0,10),
       aktiv_ab:sp_aktivierungsZeitpunkt(year,week),
       bild_url:publicData.publicUrl,
-      bild_name:filename
+      bild_name:filename,
+      status:"veröffentlicht"
     };
 
     /*
@@ -2267,6 +2475,26 @@ async function sp_publishPlanOriginal(){
 
     status.textContent=
       `KW ${week} gespeichert. Automatisch aktiv ab ${aktivText}.`;
+
+    const badge =
+      document.getElementById(
+        "sp-status-badge"
+      );
+
+    if(badge){
+
+      badge.textContent =
+        "ONLINE";
+
+      badge.classList.remove(
+        "draft"
+      );
+
+      badge.classList.add(
+        "published"
+      );
+
+    }
 
   }catch(error){
 
@@ -3653,6 +3881,12 @@ async function sp_vorschau(){
       "sp-overlay"
     );
 
+  const statusBadge =
+    document.getElementById(
+      "sp-preview-status"
+    );
+
+
   if(
     !modal ||
     !overlay ||
@@ -3666,6 +3900,86 @@ async function sp_vorschau(){
     source.innerHTML;
 
 
+  /*
+   * Prüfen, ob diese Woche bereits als Entwurf oder online
+   * gespeichert wurde.
+   */
+  let statusText =
+    "ENTWURF";
+
+  let statusClass =
+    "draft";
+
+
+  try{
+
+    const {
+      data:plan
+    } =
+      await supabaseClient
+        .from("Speiseplaene")
+        .select("status,aktiv_ab")
+        .eq(
+          "jahr",
+          Number(spState.year)
+        )
+        .eq(
+          "kw",
+          Number(spState.week)
+        )
+        .maybeSingle();
+
+
+    if(
+      plan?.status === "veröffentlicht" ||
+      plan?.status === "online"
+    ){
+
+      statusText =
+        "ONLINE";
+
+      statusClass =
+        "published";
+
+    }else if(
+      plan
+    ){
+
+      statusText =
+        "ENTWURF";
+
+      statusClass =
+        "draft";
+
+    }
+
+  }catch(error){
+
+    console.warn(
+      "Planstatus für Vorschau konnte nicht geladen werden:",
+      error
+    );
+
+  }
+
+
+  if(statusBadge){
+
+    statusBadge.textContent =
+      statusText;
+
+    statusBadge.classList.remove(
+      "draft",
+      "published"
+    );
+
+    statusBadge.classList.add(
+      statusClass
+    );
+
+  }
+
+
   modal.classList.add(
     "open"
   );
@@ -3676,7 +3990,6 @@ async function sp_vorschau(){
   );
 
 }
-
 
 function sp_vorschauSchliessen(){
 
@@ -3825,6 +4138,11 @@ function dashboardOeffnungText(){
 }
 
 
+document.addEventListener("keydown",(event)=>{
+  if(event.key==="Escape"){
+    sp_vorschauSchliessen();
+  }
+});
 </script>
 
 <div
@@ -3840,6 +4158,10 @@ function dashboardOeffnungText(){
   ></div>
 
   <div class="preview-box">
+    <div id="sp-preview-status" class="plan-status-badge draft">
+      ENTWURF
+    </div>
+
     <button
       type="button"
       class="preview-close"
