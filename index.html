@@ -416,6 +416,12 @@ h1 {
   justify-content:center;
 }
 
+#gerichte-container img{
+  display:block;
+  margin-left:auto;
+  margin-right:auto;
+}
+
 #gerichte-container .feierabend-box{
   width:100%;
   display:flex;
@@ -606,7 +612,21 @@ h1 {
 /* ---------------- KLASSIKER MOBILE ---------------- */
 
 
-  @media (max-width: 800px) {
+  
+@media (max-width: 800px){
+  .hero-art,
+  .feierabend-box{
+    justify-content:center;
+    align-items:center;
+  }
+
+  .feierabend-box img{
+    width:100%;
+    max-width:850px;
+  }
+}
+
+@media (max-width: 800px) {
 
   .special-grid {
     grid-template-columns: 1fr;
@@ -890,8 +910,9 @@ footer {
 
 .speiseplan-actions .speiseplan-drucken{
   width:auto;
-  min-width:220px;
+  min-width:280px;
   margin:0;
+  border-radius:10px;
 }
 
 @media(max-width:700px){
@@ -1360,16 +1381,19 @@ footer p {
 .feierabend-box {
   width: 100%;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  margin-top: 10px;
+  margin: 10px auto 0;
+  text-align: center;
 }
 
 .feierabend-box img {
-  width: 100%;
+  display: block;
+  width: min(850px, 100%);
   max-width: 850px;
   height: auto;
-  display: block;
+  margin: 0 auto;
 }
 
 
@@ -1448,7 +1472,8 @@ footer p {
 }
 body.legal-modal-open{overflow:hidden;}
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
 async function downloadSpeiseplanPDF(){
 
   try{
@@ -1471,65 +1496,60 @@ async function downloadSpeiseplanPDF(){
         .limit(1)
         .maybeSingle();
 
-
     if(error || !data || !data.bild_url){
-
       throw new Error(
         "Der aktuelle Speiseplan ist noch nicht verfügbar."
       );
-
     }
-
 
     if(
       !window.jspdf ||
       !window.jspdf.jsPDF
     ){
-
       window.open(
         data.bild_url,
         "_blank",
         "noopener,noreferrer"
       );
-
       return;
     }
 
-
     const response =
       await fetch(
-        data.bild_url
+        data.bild_url,
+        {cache:"no-store"}
       );
+
+    if(!response.ok){
+      throw new Error(
+        "Die Speiseplan-Datei konnte nicht geladen werden."
+      );
+    }
 
     const blob =
       await response.blob();
 
-
     const dataUrl =
       await new Promise(
-        resolve => {
-
+        (resolve,reject)=>{
           const reader =
             new FileReader();
 
           reader.onloadend =
-            () => resolve(
-              reader.result
+            ()=>resolve(reader.result);
+
+          reader.onerror =
+            ()=>reject(
+              new Error("Bild konnte nicht gelesen werden.")
             );
 
-          reader.readAsDataURL(
-            blob
-          );
-
+          reader.readAsDataURL(blob);
         }
       );
 
-
     const {
       jsPDF
-    } =
-      window.jspdf;
-
+    } = window.jspdf;
 
     const pdf =
       new jsPDF({
@@ -1537,7 +1557,6 @@ async function downloadSpeiseplanPDF(){
         unit:"mm",
         format:"a4"
       });
-
 
     pdf.addImage(
       dataUrl,
@@ -1547,7 +1566,6 @@ async function downloadSpeiseplanPDF(){
       210,
       297
     );
-
 
     pdf.save(
       `Speiseplan-KW-${data.kw}-${data.jahr}.pdf`
@@ -1561,14 +1579,12 @@ async function downloadSpeiseplanPDF(){
     );
 
     alert(
-      "Der PDF-Download konnte nicht gestartet werden. " +
-      "Bitte den Speiseplan öffnen und dort drucken."
+      error?.message ||
+      "Der PDF-Download konnte nicht gestartet werden."
     );
 
   }
-
 }
-
 
 </script>
 </head>
@@ -1791,17 +1807,21 @@ async function downloadSpeiseplanPDF(){
 
     <div class="speiseplan-actions">
       <a
-        href="#diese-woche"
+        id="speiseplan-anzeigen-button"
+        href="#"
+        target="_blank"
+        rel="noopener"
         class="speiseplan-drucken"
       >
-        SPEISEPLAN ANSEHEN
+        SPEISEPLAN ANZEIGEN
       </a>
+
       <button
         type="button"
         class="speiseplan-drucken"
         onclick="downloadSpeiseplanPDF()"
       >
-        PDF HERUNTERLADEN
+        PDF DRUCKEN
       </button>
     </div>
 
@@ -2767,6 +2787,13 @@ const container =
     return;
   }
 
+  const anzeigenButton =
+    document.getElementById("speiseplan-anzeigen-button");
+
+  if(anzeigenButton){
+    anzeigenButton.removeAttribute("href");
+  }
+
 
   if(!data){
 
@@ -2848,16 +2875,14 @@ return;
       src="${bildUrl}"
       alt="Speiseplan Mahlzeit KW ${data.kw}"
     >
-
-    <a
-      href="${data.bild_url}"
-      target="_blank"
-      rel="noopener"
-      class="speiseplan-drucken"
-    >
-      SPEISEPLAN ANZEIGEN
-    </a>
   `;
+
+  const anzeigenButton =
+    document.getElementById("speiseplan-anzeigen-button");
+
+  if(anzeigenButton){
+    anzeigenButton.href = data.bild_url;
+  }
 }
 
 
@@ -2870,6 +2895,10 @@ function datumKurz(iso) {
 ladeSpeiseplan();
 </script>
 
+</body>
+</html>
+</body>
+</html>
 </body>
 </html>
 </body>
