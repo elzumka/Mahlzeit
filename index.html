@@ -1851,7 +1851,10 @@ async function downloadSpeiseplanPDF(){
 
   </div>
 
-  <p style="margin:18px 0 0;color:var(--green);font-weight:700;letter-spacing:.05em;text-transform:uppercase;">
+  <p
+    id="top-banner-text"
+    style="margin:18px 0 0;color:var(--green);font-weight:700;letter-spacing:.05em;text-transform:uppercase;"
+  >
     Aktuell ausschließlich Mittagstisch · BALD AUCH FRÜHSTÜCK UND LIEFERSERVICE FÜR EUCH
   </p>
 
@@ -3413,6 +3416,17 @@ async function ladeWebsiteEinstellungen(){
       `https://www.instagram.com/${handle}/`;
   }
 
+  const topBannerText =
+    document.getElementById(
+      "top-banner-text"
+    );
+
+  if(topBannerText){
+    topBannerText.textContent =
+      data.top_banner_text ||
+      "Aktuell ausschließlich Mittagstisch · BALD AUCH FRÜHSTÜCK UND LIEFERSERVICE FÜR EUCH";
+  }
+
 }
 
 
@@ -3703,6 +3717,426 @@ document.addEventListener(
   }
 );
 
+
+const WEBSITE_TEXTE_SITE_DEFAULTS = {
+  nav_mittag:"Mittagstisch Heute",
+  nav_klassiker:"Klassiker",
+  nav_speiseplan:"Speiseplan",
+  nav_fruehstueck:"Frühstück",
+  nav_kontakt:"Kontakt",
+
+  hero_kicker:"Aktuell nur Mittagstisch · Frühstück & Lieferservice ab November",
+  hero_titel:"Mahlzeit!",
+  hero_text:"Frisches Essen, ehrliche Küche und eine gute Mahlzeit mitten in Cottbus.",
+  hero_button:"Was gibt's heute?",
+
+  info_mittag:"MITTAGSTISCH",
+  info_mittag_tage:"MO – FR",
+  info_fruehstueck:"FRÜHSTÜCK",
+  info_fruehstueck_bald:"BALD AUCH FRÜHSTÜCK",
+  info_lieferung:"LIEFERSERVICE",
+  info_lieferung_bald:"BALD AUCH LIEFERSERVICE",
+  top_hinweis:"Aktuell ausschließlich Mittagstisch · BALD AUCH FRÜHSTÜCK UND LIEFERSERVICE FÜR EUCH",
+
+  heute:"Heute bei uns",
+  ausverkauft:"AUSVERKAUFT",
+
+  klassiker_heading:"Unsere täglichen Klassiker",
+
+  speiseplan_heading:"Speiseplan",
+  speiseplan_kicker:"MAHLZEIT · SPEISEPLAN",
+  speiseplan_subline:"Frisch gekocht. Jeden Tag neu.",
+  speiseplan_loading:"Speiseplan wird geladen …",
+  speiseplan_button:"SPEISEPLAN ANZEIGEN",
+  speiseplan_pdf:"PDF DRUCKEN",
+  speiseplan_note:"Vegetarische Gerichte sind entsprechend gekennzeichnet.",
+
+  kontakt_heading:"Kommt vorbei!",
+  label_adresse:"ADRESSE",
+  label_telefon:"TELEFON",
+  label_instagram:"INSTAGRAM",
+  offer_mittag:"MITTAGSTISCH",
+  offer_mittag_text:"Montag–Freitag · 11:00–14:00 Uhr",
+  offer_fruehstueck:"FRÜHSTÜCK",
+  offer_fruehstueck_text:"Bald auch für euch",
+  offer_lieferung:"LIEFERSERVICE",
+  offer_lieferung_text:"Bald auch für euch · über Lieferando",
+
+  standort_kicker:"HIER FINDET IHR UNS",
+  standort_button:"ROUTE ÖFFNEN",
+
+  footer_impressum:"Impressum",
+  footer_datenschutz:"Datenschutzerklärung",
+  footer_jahr:"© 2026 Mahlzeit! Kantine & Mittagstisch",
+
+  impressum_heading:"Impressum",
+  impressum_inhaberin:"Inhaberin",
+  impressum_firma:"Mahlzeit! Kantine & Mittagstisch",
+  impressum_telefon:"Telefon",
+  impressum_placeholder:"Die vollständigen gesetzlich erforderlichen Angaben können hier ergänzt werden.",
+
+  datenschutz_heading:"Datenschutzerklärung",
+  datenschutz_placeholder:"Hier wird später die vollständige Datenschutzerklärung der Website hinterlegt.",
+
+  footer_slogan:"FRISCH. LECKER. FÜR EUCH."
+};
+
+
+async function ladeWebsiteTexte(){
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("WebsiteTexte")
+      .select("*")
+      .eq("id",1)
+      .maybeSingle();
+
+  if(error){
+    console.warn(
+      "Website-Texte konnten nicht geladen werden:",
+      error
+    );
+  }
+
+  const values={
+    ...WEBSITE_TEXTE_SITE_DEFAULTS,
+    ...(data || {})
+  };
+
+  const setText =
+    (selector,key)=>{
+      const el =
+        document.querySelector(selector);
+
+      if(
+        el &&
+        values[key] !== undefined
+      ){
+        el.textContent =
+          values[key];
+      }
+    };
+
+  const setAll =
+    (selector,key)=>{
+      document.querySelectorAll(
+        selector
+      ).forEach(
+        el=>{
+          if(values[key] !== undefined){
+            el.textContent =
+              values[key];
+          }
+        }
+      );
+    };
+
+  setAll(
+    'nav a[href="#mittagstisch"]',
+    "nav_mittag"
+  );
+
+  setAll(
+    'nav a[href="#klassiker"]',
+    "nav_klassiker"
+  );
+
+  setAll(
+    'nav a[href="#speiseplan"]',
+    "nav_speiseplan"
+  );
+
+  setAll(
+    'nav a[href="#fruehstueck"]',
+    "nav_fruehstueck"
+  );
+
+  setAll(
+    'nav a[href="#kontakt"]',
+    "nav_kontakt"
+  );
+
+  setText(
+    ".hero-kicker,.kicker",
+    "hero_kicker"
+  );
+
+  setText(
+    ".hero-copy h1",
+    "hero_titel"
+  );
+
+  setText(
+    ".hero-copy > p:not(.kicker):not(.hero-kicker)",
+    "hero_text"
+  );
+
+  setText(
+    ".hero-copy .button",
+    "hero_button"
+  );
+
+  const infoCards =
+    document.querySelectorAll(
+      ".info-card"
+    );
+
+  if(infoCards[0]){
+    setTextWithin(
+      infoCards[0],
+      "h3",
+      values.info_mittag
+    );
+    setTextWithin(
+      infoCards[0],
+      ".info-days",
+      values.info_mittag_tage
+    );
+  }
+
+  if(infoCards[1]){
+    setTextWithin(
+      infoCards[1],
+      "h3",
+      values.info_fruehstueck
+    );
+    setTextWithin(
+      infoCards[1],
+      ".info-days",
+      values.info_fruehstueck_bald
+    );
+  }
+
+  if(infoCards[2]){
+    setTextWithin(
+      infoCards[2],
+      "h3",
+      values.info_lieferung
+    );
+    setTextWithin(
+      infoCards[2],
+      ".info-days",
+      values.info_lieferung_bald
+    );
+  }
+
+  setText(
+    "#top-banner-text",
+    "top_hinweis"
+  );
+
+  setText(
+    "#mittagstisch .section-title h2",
+    "heute"
+  );
+
+  setText(
+    "#klassiker .specials-heading h2",
+    "klassiker_heading"
+  );
+
+  setText(
+    "#speiseplan .section-title h2",
+    "speiseplan_heading"
+  );
+
+  setText(
+    "#speiseplan-kw",
+    "speiseplan_kicker"
+  );
+
+  setText(
+    "#speiseplan .week-header > p",
+    "speiseplan_subline"
+  );
+
+  setText(
+    "#speiseplan-anzeigen-button",
+    "speiseplan_button"
+  );
+
+  document.querySelectorAll(
+    "#speiseplan button.speiseplan-drucken"
+  ).forEach(
+    el=>{
+      if(values.speiseplan_pdf !== undefined){
+        el.textContent=
+          values.speiseplan_pdf;
+      }
+    }
+  );
+
+  setText(
+    ".menu-note",
+    "speiseplan_note"
+  );
+
+  setText(
+    "#kontakt h2",
+    "kontakt_heading"
+  );
+
+  const labels =
+    document.querySelectorAll(
+      "#kontakt .contact-label"
+    );
+
+  if(labels[0])labels[0].textContent=values.label_adresse;
+  if(labels[1])labels[1].textContent=values.label_telefon;
+  if(labels[2])labels[2].textContent=values.label_instagram;
+
+  const offers =
+    document.querySelectorAll(
+      "#kontakt .contact-offer"
+    );
+
+  if(offers[0]){
+    setTextWithin(
+      offers[0],
+      "strong",
+      values.offer_mittag
+    );
+    setTextWithin(
+      offers[0],
+      "span",
+      values.offer_mittag_text
+    );
+  }
+
+  if(offers[1]){
+    setTextWithin(
+      offers[1],
+      "strong",
+      values.offer_fruehstueck
+    );
+    setTextWithin(
+      offers[1],
+      "span",
+      values.offer_fruehstueck_text
+    );
+  }
+
+  if(offers[2]){
+    setTextWithin(
+      offers[2],
+      "strong",
+      values.offer_lieferung
+    );
+    setTextWithin(
+      offers[2],
+      "span",
+      values.offer_lieferung_text
+    );
+  }
+
+  setText(
+    "#standort .eyebrow",
+    "standort_kicker"
+  );
+
+  setText(
+    ".location-button",
+    "standort_button"
+  );
+
+  const legalLinks =
+    document.querySelectorAll(
+      ".legal-links a"
+    );
+
+  if(legalLinks[0]){
+    legalLinks[0].textContent=
+      values.footer_impressum;
+  }
+
+  if(legalLinks[1]){
+    legalLinks[1].textContent=
+      values.footer_datenschutz;
+  }
+
+  setText(
+    ".legal-year",
+    "footer_jahr"
+  );
+
+  setText(
+    "#impressum-modal-title",
+    "impressum_heading"
+  );
+
+  const impressumStrong =
+    document.querySelectorAll(
+      "#impressum-modal strong"
+    );
+
+  if(impressumStrong[0]){
+    impressumStrong[0].textContent=
+      values.impressum_inhaberin;
+  }
+
+  if(impressumStrong[1]){
+    impressumStrong[1].textContent=
+      values.impressum_firma;
+  }
+
+  if(impressumStrong[2]){
+    impressumStrong[2].textContent=
+      values.impressum_telefon;
+  }
+
+  const impressumPlaceholder =
+    document.querySelector(
+      "#impressum-modal .legal-placeholder"
+    );
+
+  if(impressumPlaceholder){
+    impressumPlaceholder.textContent=
+      values.impressum_placeholder;
+  }
+
+  setText(
+    "#datenschutz-modal-title",
+    "datenschutz_heading"
+  );
+
+  const datenschutzText =
+    document.querySelector(
+      "#datenschutz-modal .legal-placeholder"
+    );
+
+  if(datenschutzText){
+    datenschutzText.textContent=
+      values.datenschutz_placeholder;
+  }
+
+  setText(
+    "footer .footer-slogan",
+    "footer_slogan"
+  );
+}
+
+
+function setTextWithin(
+  parent,
+  selector,
+  value
+){
+
+  const el =
+    parent.querySelector(
+      selector
+    );
+
+  if(el){
+    el.textContent =
+      value;
+  }
+
+}
+document.addEventListener("DOMContentLoaded",()=>{ ladeWebsiteTexte(); });
 </script>
 
 </body>
