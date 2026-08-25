@@ -39,73 +39,80 @@ a {
 
 /* ---------------- HEADER ---------------- */
 
-header {
-  padding: 28px 6vw 20px;
-  border-bottom: 1px solid var(--line);
-  position: sticky;
-  top: 0;
-  background: rgba(245,238,228,.96);
-  backdrop-filter: blur(8px);
-  z-index: 20;
+header{
+  padding:9px 5vw;
+  border-bottom:1px solid var(--line);
+  position:sticky;
+  top:0;
+  background:rgba(245,238,228,.97);
+  backdrop-filter:blur(8px);
+  z-index:20;
 }
 
-.nav {
-  position: relative;
-  z-index: 1;
-  background: rgba(245,238,228,.96);
-  padding: 15px 0;
-  max-width: 1250px;
-  margin: auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 30px;
+.nav{
+  position:relative;
+  z-index:1;
+  max-width:1250px;
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:22px;
+  min-height:52px;
 }
 
-.logo {
-  font-family: "Barlow Condensed", sans-serif;
-  font-weight: 700;
-  font-size: 42px;
-  line-height: .75;
-  letter-spacing: -1px;
-  color: var(--green);
+.logo img{
+  width:78px;
+  height:auto;
+  display:block;
 }
 
-.logo img {
-  width: 150px;
-  height: auto;
-  display: block;
+header.scrolled{
+  box-shadow:0 3px 14px rgba(0,0,0,.07);
 }
 
-header.scrolled {
-  padding-top: 10px;
-  padding-bottom: 10px;
+.header-logo-slot{
+  display:flex;
+  align-items:center;
+  min-height:40px;
 }
 
-header.scrolled .logo img {
-  width: 55px;
-}
-
-header.scrolled .nav {
-  padding-top: 5px;
-  padding-bottom: 5px;
+header,
+.nav{
+  transition:box-shadow .2s ease;
 }
 
 .logo span {
   display: block;
 }
 
-nav {
-  display: flex;
-  gap: 28px;
-  font-size: 14px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: .08em;
+nav{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:12px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.06em;
 }
 
-nav a:hover {
-  color: var(--green);
+nav a{
+  display:inline-flex;
+  align-items:center;
+  min-height:34px;
+  padding:7px 10px;
+  border-radius:10px;
+  transition:background-color .18s ease,color .18s ease;
+}
+
+nav a:hover{
+  color:var(--green);
+  background:rgba(40,84,55,.08);
+}
+
+nav a.active{
+  color:var(--cream);
+  background:var(--green);
 }
 
 /* ---------------- HERO ---------------- */
@@ -204,6 +211,7 @@ h1 {
 
 .button {
   position: relative;
+  border-radius: 10px;
   display: inline-block;
   margin-top: 28px;
   padding: 14px 26px 13px;
@@ -352,31 +360,47 @@ h1 {
 }
 
 .section-title {
-  display: flex;
-  align-items: center;
-  gap: 25px;
-  margin-bottom: 45px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:22px;
+  margin-bottom:28px;
+  text-align:center;
 }
 
 .section-title h2 {
-  font-family: "Barlow Condensed";
-  color: var(--green);
-  font-size: clamp(45px, 6vw, 80px);
-  line-height: .8;
-  margin: 0;
-  text-transform: uppercase;
+  font-family:"Barlow Condensed";
+  color:var(--green);
+  font-size:clamp(45px,6vw,80px);
+  line-height:.8;
+  margin:0;
+  text-transform:uppercase;
+  text-align:center;
 }
 
-.rule {
-  height: 1px;
-  background: var(--line);
-  flex: 1;
+.section-title .rule {
+  display:none;
+}
+
+#heutiges-datum{
+  text-align:center;
+  font-size:18px;
+  font-weight:600;
+  margin-top:0;
+  margin-bottom:32px;
+  color:#31583d;
+}
+
+#gerichte-container{
+  max-width:980px;
+  margin:0 auto;
+  justify-content:center;
 }
 
 .menu {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:18px;
 }
 
 .dish {
@@ -546,6 +570,15 @@ h1 {
 
 /* ---------------- KLASSIKER MOBILE ---------------- */
 
+
+  .week-preview-card{
+    padding:18px;
+  }
+
+  .week-preview-head h3{
+    font-size:30px;
+  }
+
 @media (max-width: 800px) {
 
   .special-grid {
@@ -596,6 +629,64 @@ h1 {
 }
 
 /* ---------------- FOOTER ---------------- */
+
+.contact-line{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:4px;
+  margin:0 0 22px;
+}
+
+.contact-label{
+  color:var(--green);
+  font-size:12px;
+  letter-spacing:.1em;
+  font-weight:700;
+  text-transform:uppercase;
+}
+
+.contact-line a{
+  color:inherit;
+  text-decoration:none;
+}
+
+.contact-line a:hover{
+  color:var(--green);
+  text-decoration:underline;
+}
+
+.contact-offers{
+  margin-top:28px;
+  padding-top:22px;
+  border-top:1px solid var(--line);
+}
+
+.contact-offer{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  margin-bottom:18px;
+}
+
+.contact-offer:last-child{
+  margin-bottom:0;
+}
+
+.contact-offer strong{
+  color:var(--green);
+  font-size:18px;
+  letter-spacing:.06em;
+}
+
+.contact-offer span{
+  color:#555;
+  line-height:1.5;
+}
+
+.contact-offer.coming-soon strong{
+  font-size:17px;
+}
 
 footer {
   background: var(--beige);
@@ -652,6 +743,7 @@ footer {
 
 .location-button{
   display:inline-block;
+  border-radius:10px;
   align-self:flex-start;
   padding:13px 20px;
   background:var(--green);
@@ -775,7 +867,14 @@ footer p {
 
   nav {
     flex-wrap: wrap;
-    gap: 15px;
+    gap: 5px;
+    width:100%;
+  }
+
+  nav a{
+    min-height:32px;
+    padding:6px 9px;
+    font-size:11px;
   }
 
   .hero {
@@ -814,11 +913,17 @@ footer p {
   }
 
   .section-title {
-    align-items: flex-start;
+    justify-content:center;
+    text-align:center;
   }
 
   .rule {
-    display: none;
+    display:none;
+  }
+
+  #gerichte-container{
+    grid-template-columns:1fr;
+    max-width:620px;
   }
 
   .dish {
@@ -944,6 +1049,68 @@ footer p {
   font-style: italic;
 }
 
+
+.week-preview-section{
+  padding-top:35px;
+}
+
+.week-preview-card{
+  max-width:900px;
+  margin:0 auto;
+  padding:28px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.25);
+  border-radius:12px;
+}
+
+.week-preview-head{
+  text-align:center;
+  margin-bottom:18px;
+}
+
+.week-preview-head .eyebrow{
+  margin:0 0 7px;
+  color:var(--green);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+
+.week-preview-head h3{
+  margin:0;
+  color:var(--green);
+  font-family:"Barlow Condensed",sans-serif;
+  font-size:34px;
+  line-height:.95;
+  text-transform:uppercase;
+}
+
+.week-preview-image{
+  width:min(560px,100%);
+  margin:0 auto;
+}
+
+.week-preview-image img{
+  display:block;
+  width:100%;
+  height:auto;
+  border:1px solid var(--line);
+  border-radius:10px;
+}
+
+.week-preview-button{
+  max-width:360px;
+  margin:24px auto 0;
+}
+
+.week-dish-title{
+  margin:0 0 4px;
+  font-size:17px;
+  font-weight:700;
+  text-transform:uppercase;
+}
+
 .week-menu {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -962,6 +1129,7 @@ footer p {
   padding: 7px 14px;
   background: var(--green);
   color: var(--cream);
+  border-radius:10px;
   font-family: "Barlow Condensed", sans-serif;
   font-size: 22px;
   font-weight: 600;
@@ -1074,6 +1242,7 @@ footer p {
   font-size: 17px;
   letter-spacing: .1em;
   text-transform: uppercase;
+  border-radius: 10px;
   transition: .2s ease;
 }
 
@@ -1331,6 +1500,40 @@ body.legal-modal-open{overflow:hidden;}
 
 </section>
 
+
+<section class="section week-preview-section" id="diese-woche">
+  <div class="section-inner">
+
+    <div class="section-title">
+      <h2>Diese Woche</h2>
+    </div>
+
+    <div class="week-preview-card">
+
+      <div class="week-preview-head">
+        <p class="eyebrow" id="week-preview-kw">SPEISEPLAN</p>
+        <h3 id="week-preview-range">Speiseplan wird geladen …</h3>
+      </div>
+
+      <div class="week-preview-image" id="week-preview-image">
+        <div class="speiseplan-loading">
+          Speiseplan wird geladen …
+        </div>
+      </div>
+
+      <a
+        href="#speiseplan"
+        class="speiseplan-drucken week-preview-button"
+      >
+        SPEISEPLAN ANSEHEN &amp; AUSDRUCKEN
+      </a>
+
+    </div>
+
+  </div>
+</section>
+
+
 <section class="section specials" id="klassiker">
 
   <div class="section-inner">
@@ -1412,19 +1615,23 @@ body.legal-modal-open{overflow:hidden;}
 
 </section>
 
+
 <section class="section" id="speiseplan">
 
   <div class="section-inner">
 
     <div class="section-title">
-      <h2>Speiseplan</h2>
-      <div class="rule"></div>
+      <h2>Wochenübersicht</h2>
     </div>
 
     <div class="week-header">
       <div>
-        <p class="eyebrow" id="speiseplan-kw">MAHLZEIT · SPEISEPLAN</p>
-        <h3 id="speiseplan-datum">Speiseplan wird geladen …</h3>
+        <p class="eyebrow" id="speiseplan-kw">
+          MAHLZEIT · SPEISEPLAN
+        </p>
+        <h3 id="speiseplan-datum">
+          Speiseplan wird geladen …
+        </h3>
       </div>
 
       <p>
@@ -1432,8 +1639,13 @@ body.legal-modal-open{overflow:hidden;}
       </p>
     </div>
 
-    <div class="speiseplan-bild" id="speiseplan-container">
-      <div class="speiseplan-loading">Speiseplan wird geladen …</div>
+    <div
+      class="week-menu"
+      id="wochenuebersicht-container"
+    >
+      <div class="speiseplan-loading">
+        Wochenübersicht wird geladen …
+      </div>
     </div>
 
     <div class="menu-note">
@@ -1443,6 +1655,7 @@ body.legal-modal-open{overflow:hidden;}
   </div>
 
 </section>
+
 
 <section class="breakfast-section" id="fruehstueck">
   <!-- Frühstücksbereich bleibt vorerst leer. -->
@@ -1455,24 +1668,21 @@ body.legal-modal-open{overflow:hidden;}
 
   <div class="contact-box">
 
-    <p>
-      <strong>Adresse</strong><br>
-      Mönchsgasse 2–3<br>
-      03046 Cottbus
+    <p class="contact-line">
+      <strong class="contact-label">ADRESSE</strong>
+      <span>
+        Mönchsgasse 2–3<br>
+        03046 Cottbus
+      </span>
     </p>
 
-    <p>
-      <strong>Inhaberin</strong><br>
-      Charlene Schubert
+    <p class="contact-line">
+      <strong class="contact-label">TELEFON</strong>
+      <a href="tel:+4935525057">0355 25057</a>
     </p>
 
-    <p>
-      <strong>Telefon</strong><br>
-      0355 25057
-    </p>
-
-    <p>
-      <strong>Instagram</strong><br>
+    <p class="contact-line">
+      <strong class="contact-label">INSTAGRAM</strong>
       <a
         href="https://www.instagram.com/mahlzeit_cottbus/"
         target="_blank"
@@ -1482,16 +1692,22 @@ body.legal-modal-open{overflow:hidden;}
       </a>
     </p>
 
-    <p>
-      <strong>Lieferservice</strong><br>
-      Bald auch für euch · wird über Lieferando angeboten
-    </p>
+    <div class="contact-offers">
+      <div class="contact-offer">
+        <strong>MITTAGSTISCH</strong>
+        <span>Montag–Freitag · 11:00–14:00 Uhr</span>
+      </div>
 
-    <p>
-      <strong>Öffnungszeiten</strong><br>
-      Mittagstisch · Montag–Freitag · 11:00–14:00<br>
-      Frühstück · bald auch für euch
-    </p>
+      <div class="contact-offer coming-soon">
+        <strong>FRÜHSTÜCK</strong>
+        <span>Bald auch für euch</span>
+      </div>
+
+      <div class="contact-offer coming-soon">
+        <strong>LIEFERSERVICE</strong>
+        <span>Bald auch für euch · über Lieferando</span>
+      </div>
+    </div>
 
   </div>
 </section> 
@@ -1504,7 +1720,6 @@ body.legal-modal-open{overflow:hidden;}
 
     <div class="location-copy">
       <p class="eyebrow">HIER FINDET IHR UNS</p>
-      <h2>Kommt vorbei!</h2>
       <p>
         Mönchsgasse 2–3<br>
         03046 Cottbus
@@ -1547,9 +1762,12 @@ body.legal-modal-open{overflow:hidden;}
   <div class="legal-modal-box">
     <button type="button" class="legal-modal-close" onclick="schliesseRechtsfenster('impressum')" aria-label="Fenster schließen">×</button>
     <h2 id="impressum-modal-title">Impressum</h2>
+    <p>
+      <strong>Inhaberin</strong><br>
+      Charlene Schubert
+    </p>
     <p><strong>Mahlzeit! Kantine &amp; Mittagstisch</strong><br>Mönchsgasse 2–3<br>03046 Cottbus</p>
-    <p><strong>Inhaberin</strong><br>Charlene Schubert</p>
-    <p><strong>Telefon</strong><br>0355 25057</p>
+<p><strong>Telefon</strong><br>0355 25057</p>
     <p class="legal-placeholder">Die vollständigen gesetzlich erforderlichen Angaben können hier ergänzt werden.</p>
   </div>
 </div>
@@ -1654,17 +1872,57 @@ document.addEventListener("keydown",event=>{
 </script>
 
 <script>
-window.addEventListener("scroll", function() {
+(function(){
 
   const header = document.querySelector("header");
+  const navLinks = Array.from(
+    document.querySelectorAll("nav a[href^='#']")
+  );
 
-  if (window.scrollY > 80) {
-    header.classList.add("scrolled");
-  } else {
-    header.classList.remove("scrolled");
+  function updateHeader(){
+    if(window.scrollY > 40){
+      header?.classList.add("scrolled");
+    }else{
+      header?.classList.remove("scrolled");
+    }
   }
 
-});
+  updateHeader();
+  window.addEventListener("scroll",updateHeader,{passive:true});
+
+  const sections = navLinks
+    .map(link => {
+      const id=link.getAttribute("href");
+      const section=id ? document.querySelector(id) : null;
+      return section ? {link,section} : null;
+    })
+    .filter(Boolean);
+
+  const observer = new IntersectionObserver(entries=>{
+    const visible = entries
+      .filter(entry=>entry.isIntersecting)
+      .sort((a,b)=>b.intersectionRatio-a.intersectionRatio);
+
+    if(!visible.length) return;
+
+    navLinks.forEach(link=>link.classList.remove("active"));
+
+    const match = sections.find(
+      item => item.section === visible[0].target
+    );
+
+    if(match){
+      match.link.classList.add("active");
+    }
+  },{
+    root:null,
+    rootMargin:"-25% 0px -55% 0px",
+    threshold:[0,0.1,0.25,0.5]
+  });
+
+  sections.forEach(item=>observer.observe(item.section));
+
+})();
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1979,36 +2237,61 @@ async function ladeSpeiseplan() {
   const datumElement =
     document.getElementById("speiseplan-datum");
 
-  const container =
-    document.getElementById("speiseplan-container");
+  const weekKwElement =
+    document.getElementById("week-preview-kw");
 
-  if (!kwElement || !datumElement || !container) {
+  const weekRangeElement =
+    document.getElementById("week-preview-range");
+
+  const weekImage =
+    document.getElementById("week-preview-image");
+
+  const weekContainer =
+    document.getElementById("wochenuebersicht-container");
+
+  if (
+    !kwElement ||
+    !datumElement ||
+    !weekKwElement ||
+    !weekRangeElement ||
+    !weekImage ||
+    !weekContainer
+  ) {
     return;
   }
 
+
   /*
-   * Mehrere Wochen können im Voraus angelegt werden.
-   * Die Website zeigt immer den zuletzt aktivierten Plan:
+   * Dieselbe Logik wie beim aktuellen Druck-Speiseplan:
    *
-   * KW 35 → aktiv_ab = Freitag 14:00
-   * KW 36 → aktiv_ab = darauffolgender Freitag 14:00
-   * KW 37 → aktiv_ab = nächster Freitag 14:00
+   * Es wird immer der neueste Datensatz ausgewählt, dessen
+   * aktiv_ab bereits erreicht ist.
    *
-   * Entscheidend ist also ausschließlich aktiv_ab.
+   * Dadurch wechseln Vorschau und Wochenübersicht automatisch
+   * zusammen mit dem druckbaren Speiseplan.
    */
 
-  const jetzt = new Date();
+  const jetzt =
+    new Date();
+
 
   const {
     data,
     error
-  } = await supabaseClient
-    .from("Speiseplaene")
-    .select("*")
-    .lte("aktiv_ab", jetzt.toISOString())
-    .order("aktiv_ab", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  } =
+    await supabaseClient
+      .from("Speiseplaene")
+      .select("*")
+      .lte(
+        "aktiv_ab",
+        jetzt.toISOString()
+      )
+      .order(
+        "aktiv_ab",
+        {ascending:false}
+      )
+      .limit(1)
+      .maybeSingle();
 
 
   if (error) {
@@ -2018,16 +2301,28 @@ async function ladeSpeiseplan() {
       error
     );
 
+    const fehler =
+      '<div class="speiseplan-loading">' +
+      'Speiseplan konnte nicht geladen werden.' +
+      '</div>';
+
     kwElement.textContent =
       "MAHLZEIT · SPEISEPLAN";
 
     datumElement.textContent =
       "Speiseplan konnte nicht geladen werden.";
 
-    container.innerHTML =
-      '<div class="speiseplan-loading">' +
-      'Speiseplan konnte nicht geladen werden.' +
-      '</div>';
+    weekKwElement.textContent =
+      "SPEISEPLAN";
+
+    weekRangeElement.textContent =
+      "Speiseplan konnte nicht geladen werden.";
+
+    weekImage.innerHTML =
+      fehler;
+
+    weekContainer.innerHTML =
+      fehler;
 
     return;
   }
@@ -2035,61 +2330,251 @@ async function ladeSpeiseplan() {
 
   if (!data) {
 
+    const vorbereitet =
+      '<div class="speiseplan-loading">' +
+      'Der aktuelle Speiseplan wird vorbereitet.' +
+      '</div>';
+
     kwElement.textContent =
       "MAHLZEIT · SPEISEPLAN";
 
     datumElement.textContent =
       "Noch kein Speiseplan hinterlegt.";
 
-    container.innerHTML =
+    weekKwElement.textContent =
+      "SPEISEPLAN";
+
+    weekRangeElement.textContent =
+      "Noch kein Speiseplan hinterlegt.";
+
+    weekImage.innerHTML =
+      vorbereitet;
+
+    weekContainer.innerHTML =
+      vorbereitet;
+
+    return;
+  }
+
+
+  const bildUrl =
+    data.bild_url
+      ? data.bild_url
+        + (data.bild_url.includes("?") ? "&" : "?")
+        + "v="
+        + Date.now()
+      : "";
+
+
+  const datumsbereich =
+    `${datumKurz(data.von)} – ${datumKurz(data.bis)}`;
+
+
+  // Daten für beide Website-Bereiche setzen.
+  kwElement.textContent =
+    `MAHLZEIT · KW ${data.kw}`;
+
+  datumElement.textContent =
+    datumsbereich;
+
+  weekKwElement.textContent =
+    `MAHLZEIT · KW ${data.kw}`;
+
+  weekRangeElement.textContent =
+    datumsbereich;
+
+
+  // Kleine Vorschau des originalen Druck-Speiseplans.
+  weekImage.innerHTML = `
+    <img
+      src="${bildUrl}"
+      alt="Speiseplan Mahlzeit KW ${data.kw}"
+    >
+  `;
+
+
+  /*
+   * Digitale Wochenübersicht:
+   * Die Daten kommen aus derselben Gerichte-Tabelle wie
+   * "Heute bei uns". Dadurch bleibt auch diese Ansicht
+   * automatisch synchron.
+   */
+
+  const {
+    data:gerichte,
+    error:gerichteError
+  } =
+    await supabaseClient
+      .from("Gerichte")
+      .select("*")
+      .gte("datum",data.von)
+      .lte("datum",data.bis)
+      .eq("website_anzeigen",true)
+      .order(
+        "datum",
+        {ascending:true}
+      )
+      .order(
+        "gerichte",
+        {ascending:true}
+      );
+
+
+  if (gerichteError) {
+
+    console.error(
+      "Fehler beim Laden der Wochenübersicht:",
+      gerichteError
+    );
+
+    weekContainer.innerHTML =
       '<div class="speiseplan-loading">' +
-      'Der aktuelle Speiseplan wird vorbereitet.' +
+      'Wochenübersicht konnte nicht geladen werden.' +
       '</div>';
 
     return;
   }
 
 
-  kwElement.textContent =
-    `MAHLZEIT · KW ${data.kw}`;
-
-  datumElement.textContent =
-    `${datumKurz(data.von)} – ${datumKurz(data.bis)}`;
-
-
-  /*
-   * Cache-Busting:
-   * Falls eine bereits vorhandene PNG ersetzt wird,
-   * lädt der Browser trotzdem die neue Version.
-   */
-
-  const bildUrl =
-    data.bild_url
-      ? data.bild_url
-        + (data.bild_url.includes("?") ? "&" : "?")
-        + "v=" + Date.now()
-      : "";
+  const tage = {
+    1:"Montag",
+    2:"Dienstag",
+    3:"Mittwoch",
+    4:"Donnerstag",
+    5:"Freitag"
+  };
 
 
-  container.innerHTML = `
+  const gruppen = {
+    1:[],
+    2:[],
+    3:[],
+    4:[],
+    5:[]
+  };
 
-    <img
-      src="${bildUrl}"
-      alt="Speiseplan Mahlzeit KW ${data.kw}"
-    >
 
-    <a
-      href="${bildUrl}"
-      target="_blank"
-      rel="noopener"
-      class="speiseplan-drucken"
-    >
-      SPEISEPLAN ANZEIGEN
-    </a>
+  (gerichte || []).forEach(
+    gericht => {
 
-  `;
+      const datum =
+        new Date(
+          gericht.datum
+          + "T00:00:00"
+        );
+
+      const wochentag =
+        datum.getDay();
+
+
+      if (
+        gruppen[wochentag]
+      ) {
+
+        gruppen[wochentag].push(
+          gericht
+        );
+
+      }
+
+    }
+  );
+
+
+  weekContainer.innerHTML =
+    "";
+
+
+  Object.entries(
+    gruppen
+  ).forEach(
+    ([tagIndex,items]) => {
+
+      const card =
+        document.createElement(
+          "div"
+        );
+
+      card.className =
+        "day-card";
+
+
+      let html = `
+        <div class="day-name">
+          ${tage[tagIndex]}
+        </div>
+      `;
+
+
+      if (!items.length) {
+
+        html += `
+          <div class="day-dish">
+            <div>
+              <p>Kein Gericht eingetragen.</p>
+            </div>
+          </div>
+        `;
+
+      } else {
+
+        items.forEach(
+          gericht => {
+
+            const preis =
+              Number(
+                gericht.preis
+              )
+              .toFixed(2)
+              .replace(
+                ".",
+                ","
+              );
+
+
+            html += `
+              <div class="day-dish ${
+                gericht.vegetarisch
+                  ? "veggie"
+                  : ""
+              }">
+
+                <div>
+
+                  <div class="week-dish-title">
+                    ${gericht.gerichte || ""}
+                  </div>
+
+                  <p>
+                    ${gericht.beilage || ""}
+                  </p>
+
+                </div>
+
+                <strong>
+                  ${preis} €
+                </strong>
+
+              </div>
+            `;
+
+          }
+        );
+
+      }
+
+
+      card.innerHTML =
+        html;
+
+      weekContainer.appendChild(
+        card
+      );
+
+    }
+  );
+
 }
-
 function datumKurz(iso) {
   const d = new Date(iso + "T00:00:00");
   return String(d.getDate()).padStart(2,"0") + "." +
