@@ -336,6 +336,273 @@ button.save{margin-top:28px;padding:14px 24px;border:0;background:var(--green);c
   }
 }
 
+
+.dashboard-opening{
+  padding:14px 16px;
+  border-radius:10px;
+  background:rgba(40,84,55,.07);
+  border:1px solid rgba(40,84,55,.16);
+  color:var(--green);
+  font-weight:700;
+  line-height:1.5;
+}
+
+.publish-check-box{
+  margin-top:16px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:16px 18px;
+  background:rgba(255,255,255,.18);
+}
+
+.publish-check-box.ok{
+  border-color:rgba(40,84,55,.2);
+  background:rgba(40,84,55,.06);
+}
+
+.publish-check-box.warn{
+  border-color:rgba(182,122,36,.35);
+  background:rgba(182,122,36,.08);
+}
+
+.publish-check-item{
+  display:flex;
+  gap:9px;
+  align-items:flex-start;
+  padding:7px 0;
+  border-bottom:1px solid var(--line);
+}
+
+.publish-check-item:last-child{
+  border-bottom:0;
+}
+
+.publish-check-icon{
+  font-weight:800;
+  flex:0 0 18px;
+}
+
+.preview-modal{
+  position:fixed;
+  inset:0;
+  z-index:1100;
+  display:none;
+}
+
+.preview-modal.open{
+  display:block;
+}
+
+.preview-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.6);
+}
+
+.preview-box{
+  position:relative;
+  width:min(1100px,calc(100vw - 28px));
+  height:min(92vh,1100px);
+  margin:4vh auto;
+  background:var(--cream);
+  border-radius:12px;
+  overflow:auto;
+  padding:24px;
+  box-shadow:0 20px 70px rgba(0,0,0,.25);
+}
+
+.preview-box .sp-sheet{
+  margin:0 auto;
+}
+
+.preview-close{
+  position:absolute;
+  top:10px;
+  right:12px;
+  z-index:5;
+  width:38px;
+  height:38px;
+  border:0;
+  border-radius:10px;
+  background:var(--green);
+  color:var(--cream);
+  font-size:28px;
+  cursor:pointer;
+}
+
+.qr-wrap{
+  display:flex;
+  justify-content:center;
+  margin-top:14px;
+}
+
+.qr-wrap canvas,
+.qr-wrap img{
+  width:180px;
+  height:180px;
+}
+
+
+
+.gerichte-tag-gruppe{
+  margin-top:24px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  overflow:hidden;
+  background:rgba(255,255,255,.16);
+}
+
+.gerichte-tag-kopf{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+  padding:14px 18px;
+  background:rgba(40,84,55,.08);
+  border-bottom:1px solid var(--line);
+}
+
+.gerichte-tag-kopf strong{
+  color:var(--green);
+  font-family:"Barlow Condensed",sans-serif;
+  font-size:28px;
+  line-height:.95;
+  text-transform:uppercase;
+}
+
+.gerichte-tag-kopf span{
+  color:#666;
+  font-size:12px;
+}
+
+.gericht-eintrag{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:14px;
+  padding:16px 18px;
+  border-bottom:1px solid var(--line);
+  background:rgba(255,255,255,.08);
+}
+
+.gericht-eintrag:last-child{
+  border-bottom:0;
+}
+
+.gericht-eintrag.sold{
+  background:rgba(184,75,58,.06);
+}
+
+.gericht-haupt{
+  min-width:0;
+}
+
+.gericht-name{
+  color:var(--green);
+  font-weight:800;
+  font-size:18px;
+  text-transform:uppercase;
+}
+
+.gericht-beilage{
+  margin-top:5px;
+  color:#555;
+  line-height:1.45;
+}
+
+.gericht-meta{
+  margin-top:8px;
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+
+.gericht-badge{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:7px;
+  background:var(--green);
+  color:var(--cream);
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+}
+
+.gericht-badge.sold{
+  background:#b84b3a;
+}
+
+.gericht-badge.veg{
+  background:#4f805d;
+}
+
+.gericht-preis{
+  color:var(--green);
+  font-weight:800;
+  font-size:17px;
+  white-space:nowrap;
+}
+
+.gericht-aktionen{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.gericht-aktionen button{
+  margin:0;
+  border-radius:10px;
+  padding:9px 11px;
+  font-size:11px;
+}
+
+.gericht-edit{
+  display:grid;
+  grid-template-columns:1fr 1fr 120px;
+  gap:8px;
+  margin-top:12px;
+}
+
+.gericht-edit input{
+  margin:0;
+}
+
+.gericht-edit-actions{
+  display:flex;
+  gap:8px;
+  margin-top:8px;
+}
+
+.gericht-edit-actions button{
+  margin:0;
+}
+
+@media(max-width:700px){
+  .gerichte-tag-kopf{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .gericht-eintrag{
+    grid-template-columns:1fr;
+  }
+
+  .gericht-aktionen{
+    justify-content:flex-start;
+  }
+
+  .gericht-edit{
+    grid-template-columns:1fr;
+  }
+}
+
+
+button{
+  border-radius:10px;
+}
 </style>
 </head>
 <body>
@@ -409,6 +676,9 @@ button.save{margin-top:28px;padding:14px 24px;border:0;background:var(--green);c
 <label class="checkbox"><input type="checkbox" id="speiseplan_anzeigen" checked> Auf Speiseplan drucken</label>
 <label class="checkbox"><input type="checkbox" id="ausverkauft"> Ausverkauft</label>
 <div class="intro" style="font-size:12px;margin-top:8px">Ein Gericht kann auf der Website erscheinen, ohne auf dem Druck-Speiseplan zu stehen – ideal für Gerichte vom Vortag.</div>
+<div class="intro" style="font-size:12px;margin-top:6px;color:var(--green)">
+  Die Gerichte werden innerhalb eines Tages in der Reihenfolge angezeigt, in der sie eingetragen wurden.
+</div>
 <button class="save" onclick="gerichtSpeichern()">Gericht speichern</button>
 <button class="save" type="button" onclick="whatsappTextKopieren()">WhatsApp-Text für heute kopieren</button>
 <div id="meldung"></div><div id="gerichte-liste"></div>
@@ -540,6 +810,7 @@ button.save{margin-top:28px;padding:14px 24px;border:0;background:var(--green);c
   </div>
   <div id="sp-status" class="sp-status"></div>
    <div id="sp-publish-status" class="sp-status"></div>
+  <div id="sp-qr-status" class="sp-status"></div>
 
   <main class="sp-preview">
     <div class="sp-sheet">
@@ -573,6 +844,12 @@ async function gerichtSpeichern(){
         return;
     }
 
+    /*
+     * Die Reihenfolge entspricht der Reihenfolge, in der die Gerichte
+     * eingetragen werden.
+     */
+    const reihenfolge = Date.now();
+
     const {error} = await supabaseClient.from('Gerichte').insert([{
         datum,
         gerichte: gericht,
@@ -581,7 +858,8 @@ async function gerichtSpeichern(){
         vegetarisch,
         website_anzeigen: websiteAnzeigen,
         speiseplan_anzeigen: speiseplanAnzeigen,
-        ausverkauft: document.getElementById('ausverkauft').checked
+        ausverkauft: document.getElementById('ausverkauft').checked,
+        reihenfolge
     }]);
 
     if(error){
@@ -603,42 +881,485 @@ async function gerichtSpeichern(){
 }
 
 async function gerichteLaden(){
-    const liste = document.getElementById('gerichte-liste');
-    const heute = new Date().toLocaleDateString('en-CA');
 
-    const { data, error } = await supabaseClient
-        .from('Gerichte')
-        .select('*')
-        .gte('datum', heute)
-        .order('datum', { ascending: true })
-        .order('gerichte', { ascending: true });
+    const liste =
+        document.getElementById(
+            'gerichte-liste'
+        );
 
-    if (error) {
+    const heute =
+        new Date().toLocaleDateString(
+            'en-CA'
+        );
+
+    if(!liste)return;
+
+    liste.innerHTML =
+        '<h2>Gespeicherte Gerichte</h2><p>Wird geladen …</p>';
+
+    const {
+        data,
+        error
+    } =
+        await supabaseClient
+            .from('Gerichte')
+            .select('*')
+            .gte(
+                'datum',
+                heute
+            )
+            .order('datum',{ascending:true})
+            .order('reihenfolge',{ascending:true,nullsFirst:false})
+            .order('created_at',{ascending:true,nullsFirst:false})
+            .order('id',{ascending:true});
+
+    if(error){
+
         console.error(error);
-        liste.innerHTML = '<h2>Gespeicherte Gerichte</h2><p>Fehler beim Laden der Gerichte.</p>';
+
+        liste.innerHTML =
+            '<h2>Gespeicherte Gerichte</h2>' +
+            '<p>Fehler beim Laden der Gerichte.</p>';
+
         return;
     }
 
-    liste.innerHTML = '<h2>Gespeicherte Gerichte</h2>';
+    liste.innerHTML =
+        '<h2>Gespeicherte Gerichte</h2>';
 
-    if (!data || !data.length) {
-        liste.innerHTML += '<p>Keine aktuellen oder zukünftigen Gerichte gespeichert.</p>';
+    if(!data || !data.length){
+
+        liste.innerHTML +=
+            '<p>Keine aktuellen oder zukünftigen Gerichte gespeichert.</p>';
+
         return;
     }
 
-    data.forEach(gericht => {
-        const e = document.createElement('div');
-        e.className = 'gericht-eintrag';
-        e.innerHTML = `
-            <div class="gericht-datum">${datumFormatieren(gericht.datum)}</div>
-            <div class="gericht-name">${gericht.gerichte} ${gericht.vegetarisch ? '🌱' : ''}</div>
-            <div class="gericht-beilage">${gericht.beilage || ''}</div>
-            <div class="gericht-preis">${preisFormatieren(gericht.preis)} ${gericht.ausverkauft ? " · AUSVERKAUFT" : ""}</div>
-            <button class="loeschen-button" onclick="gerichtLoeschen(${gericht.id},this)">Löschen</button>
-        `;
-        liste.appendChild(e);
-    });
+
+    /*
+     * Nach Datum bündeln.
+     */
+    const gruppen = {};
+
+    data.forEach(
+        gericht => {
+
+            if(!gruppen[gericht.datum]){
+                gruppen[gericht.datum] = [];
+            }
+
+            gruppen[gericht.datum].push(
+                gericht
+            );
+
+        }
+    );
+
+
+    Object.keys(gruppen).forEach(
+        datum => {
+
+            const gruppe =
+                document.createElement(
+                    'div'
+                );
+
+            gruppe.className =
+                'gerichte-tag-gruppe';
+
+
+            const tagKopf =
+                document.createElement(
+                    'div'
+                );
+
+            tagKopf.className =
+                'gerichte-tag-kopf';
+
+
+            const datumObj =
+                new Date(
+                    datum+"T00:00:00"
+                );
+
+            const wochenTag =
+                [
+                    'Sonntag',
+                    'Montag',
+                    'Dienstag',
+                    'Mittwoch',
+                    'Donnerstag',
+                    'Freitag',
+                    'Samstag'
+                ][
+                    datumObj.getDay()
+                ];
+
+            const datumText =
+                `${String(
+                    datumObj.getDate()
+                ).padStart(2,'0')}.${String(
+                    datumObj.getMonth()+1
+                ).padStart(2,'0')}.${datumObj.getFullYear()}`;
+
+
+            tagKopf.innerHTML = `
+                <strong>${wochenTag}</strong>
+                <span>${datumText} · ${gruppen[datum].length} Gericht(e)</span>
+            `;
+
+            gruppe.appendChild(
+                tagKopf
+            );
+
+
+            gruppen[datum].forEach(
+                gericht => {
+
+                    gruppe.appendChild(
+                        gerichtKarteErstellen(
+                            gericht
+                        )
+                    );
+
+                }
+            );
+
+
+            liste.appendChild(
+                gruppe
+            );
+
+        }
+    );
 }
+
+
+function gerichtKarteErstellen(
+    gericht
+){
+
+    const e =
+        document.createElement(
+            'div'
+        );
+
+    e.className =
+        'gericht-eintrag'
+        + (
+            gericht.ausverkauft
+                ? ' sold'
+                : ''
+        );
+
+    e.dataset.id =
+        gericht.id;
+
+
+    const preisText =
+        preisFormatieren(
+            gericht.preis
+        );
+
+
+    e.innerHTML = `
+
+        <div class="gericht-haupt">
+
+            <div class="gericht-name">
+                ${gericht.gerichte || ''}
+            </div>
+
+            <div class="gericht-beilage">
+                ${gericht.beilage || ''}
+            </div>
+
+            <div class="gericht-meta">
+
+                <span class="gericht-preis">
+                    ${preisText}
+                </span>
+
+                ${
+                    gericht.vegetarisch
+                        ? '<span class="gericht-badge veg">Vegetarisch</span>'
+                        : ''
+                }
+
+                ${
+                    gericht.ausverkauft
+                        ? '<span class="gericht-badge sold">Ausverkauft</span>'
+                        : ''
+                }
+
+                ${
+                    gericht.website_anzeigen
+                        ? '<span class="gericht-badge">Website</span>'
+                        : ''
+                }
+
+                ${
+                    gericht.speiseplan_anzeigen
+                        ? '<span class="gericht-badge">Speiseplan</span>'
+                        : ''
+                }
+
+            </div>
+
+            <div
+                class="gericht-edit"
+                id="gericht-edit-${gericht.id}"
+                style="display:none"
+            >
+                <input
+                    type="text"
+                    id="edit-name-${gericht.id}"
+                    value="${htmlAttr(gericht.gerichte || '')}"
+                    placeholder="Gericht"
+                >
+
+                <input
+                    type="text"
+                    id="edit-beilage-${gericht.id}"
+                    value="${htmlAttr(gericht.beilage || '')}"
+                    placeholder="Beilage"
+                >
+
+                <input
+                    type="number"
+                    step="0.01"
+                    id="edit-preis-${gericht.id}"
+                    value="${gericht.preis ?? ''}"
+                    placeholder="Preis"
+                >
+            </div>
+
+            <div
+                class="gericht-edit-actions"
+                id="gericht-edit-actions-${gericht.id}"
+                style="display:none"
+            >
+                <button
+                    type="button"
+                    class="save"
+                    onclick="gerichtAenderungSpeichern(${gericht.id})"
+                >
+                    Speichern
+                </button>
+
+                <button
+                    type="button"
+                    onclick="gerichtBearbeitenAbbrechen(${gericht.id})"
+                >
+                    Abbrechen
+                </button>
+            </div>
+
+        </div>
+
+        <div class="gericht-aktionen">
+
+            <button
+                type="button"
+                onclick="gerichtBearbeiten(${gericht.id})"
+            >
+                Bearbeiten
+            </button>
+
+            <button
+                type="button"
+                class="save"
+                onclick="gerichtAusverkauftUmschalten(${gericht.id},${!gericht.ausverkauft})"
+            >
+                ${
+                    gericht.ausverkauft
+                        ? 'Wieder verfügbar'
+                        : 'Ausverkauft'
+                }
+            </button>
+
+            <button
+                type="button"
+                class="loeschen-button"
+                onclick="gerichtLoeschen(${gericht.id},this)"
+            >
+                Löschen
+            </button>
+
+        </div>
+    `;
+
+    return e;
+}
+
+
+function htmlAttr(value){
+
+    return String(
+        value ?? ""
+    )
+    .replace(/&/g,"&amp;")
+    .replace(/"/g,"&quot;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;");
+
+}
+
+
+function gerichtBearbeiten(
+    id
+){
+
+    document.getElementById(
+        `gericht-edit-${id}`
+    ).style.display =
+        'grid';
+
+    document.getElementById(
+        `gericht-edit-actions-${id}`
+    ).style.display =
+        'flex';
+
+}
+
+
+function gerichtBearbeitenAbbrechen(
+    id
+){
+
+    document.getElementById(
+        `gericht-edit-${id}`
+    ).style.display =
+        'none';
+
+    document.getElementById(
+        `gericht-edit-actions-${id}`
+    ).style.display =
+        'none';
+
+}
+
+
+async function gerichtAenderungSpeichern(
+    id
+){
+
+    const gericht =
+        document.getElementById(
+            `edit-name-${id}`
+        ).value.trim();
+
+    const beilage =
+        document.getElementById(
+            `edit-beilage-${id}`
+        ).value.trim();
+
+    const preis =
+        document.getElementById(
+            `edit-preis-${id}`
+        ).value;
+
+
+    if(
+        !gericht ||
+        preis === ""
+    ){
+
+        document.getElementById(
+            'meldung'
+        ).textContent =
+            'Bitte Gericht und Preis ausfüllen.';
+
+        return;
+
+    }
+
+
+    const {
+        error
+    } =
+        await supabaseClient
+            .from('Gerichte')
+            .update({
+                gerichte:gericht,
+                beilage:beilage,
+                preis:preis
+            })
+            .eq(
+                'id',
+                id
+            );
+
+
+    if(error){
+
+        console.error(error);
+
+        document.getElementById(
+            'meldung'
+        ).textContent =
+            'Fehler beim Bearbeiten des Gerichts.';
+
+        return;
+
+    }
+
+
+    document.getElementById(
+        'meldung'
+    ).textContent =
+        'Gericht wurde aktualisiert.';
+
+    await gerichteLaden();
+
+}
+
+
+async function gerichtAusverkauftUmschalten(
+    id,
+    ausverkauft
+){
+
+    const {
+        error
+    } =
+        await supabaseClient
+            .from('Gerichte')
+            .update({
+                ausverkauft
+            })
+            .eq(
+                'id',
+                id
+            );
+
+
+    if(error){
+
+        console.error(error);
+
+        document.getElementById(
+            'meldung'
+        ).textContent =
+            'Status konnte nicht geändert werden.';
+
+        return;
+
+    }
+
+
+    document.getElementById(
+        'meldung'
+    ).textContent =
+        ausverkauft
+            ? 'Gericht als ausverkauft markiert.'
+            : 'Gericht ist wieder verfügbar.';
+
+    await gerichteLaden();
+
+}
+
+
 function datumFormatieren(datum){const [y,m,d]=datum.split('-').map(Number);const obj=new Date(y,m-1,d);return ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'][obj.getDay()]+', '+String(d).padStart(2,'0')+'.'+String(m).padStart(2,'0')+'.'+y;}
 function preisFormatieren(preis){return Number(preis).toFixed(2).replace('.',',')+' €';}
 async function gerichtLoeschen(id,button){if(!confirm('Dieses Gericht wirklich löschen?'))return;const {error}=await supabaseClient.from('Gerichte').delete().eq('id',id);if(error){console.error(error);document.getElementById('meldung').textContent='Fehler beim Löschen.';return;}button.closest('.gericht-eintrag')?.remove();document.getElementById('meldung').textContent='Gericht wurde gelöscht.';}
@@ -693,7 +1414,9 @@ async function sp_loadFromSupabase(){
     .lte("datum",to)
     .eq("speiseplan_anzeigen",true)
     .order("datum",{ascending:true})
-    .order("gerichte",{ascending:true});
+    .order("reihenfolge",{ascending:true,nullsFirst:false})
+    .order("created_at",{ascending:true,nullsFirst:false})
+    .order("id",{ascending:true});
 
   const {data:specialData,error:specialError} =
     await supabaseClient
@@ -1197,6 +1920,77 @@ function sp_aktivierungsZeitpunkt(year,week){
 }
 
 async function sp_publishPlan(){
+
+  const status =
+    document.getElementById(
+      "sp-publish-status"
+    );
+
+
+  if(status){
+    status.textContent =
+      "Speiseplan wird geprüft …";
+  }
+
+
+  const check =
+    await sp_pruefeVerfentlichung();
+
+
+  if(!check.ok){
+
+    if(status){
+
+      status.innerHTML = `
+        <div class="publish-check-box warn">
+          <strong>
+            Speiseplan kann noch nicht veröffentlicht werden.
+          </strong>
+
+          ${
+            check.checks.map(
+              item =>
+                `<div class="publish-check-item">
+                  <span class="publish-check-icon">!</span>
+                  <span>${item}</span>
+                </div>`
+            ).join("")
+          }
+        </div>
+      `;
+
+    }
+
+    return;
+
+  }
+
+
+  if(status){
+
+    status.innerHTML = `
+      <div class="publish-check-box ok">
+        <strong>✓ Qualitätsprüfung erfolgreich.</strong>
+        <div style="margin-top:6px">
+          Der Speiseplan wird jetzt veröffentlicht.
+        </div>
+      </div>
+    `;
+
+  }
+
+
+  /*
+   * Ab hier den bisherigen Veröffentlichungsablauf ausführen.
+   * Den vorhandenen Code unter diesem Punkt wiederverwenden.
+   */
+
+  await sp_publishPlanOriginal();
+
+}
+
+
+async function sp_publishPlanOriginal(){
 
   const status=document.getElementById("sp-publish-status");
   if(!status)return;
@@ -2137,6 +2931,8 @@ function dashboardWeekRange(year,week){
 
 async function dashboardLaden(){
 
+  dashboardOeffnungText();
+
   const summary = document.getElementById("dashboard-summary");
   const currentBox = document.getElementById("dashboard-current");
   const upcomingBox = document.getElementById("dashboard-upcoming");
@@ -2247,10 +3043,40 @@ async function dashboardLaden(){
           )
       }));
 
+    /*
+     * QUALITÄTSPRÜFUNG:
+     * Geprüft wird bewusst nur die kommende Woche.
+     * Die Köchin plant eine Woche im Voraus, daher ist genau dieser
+     * Zeitraum für die tägliche Kontrolle relevant.
+     */
+    const nextMonday =
+      new Date(now);
+
+    nextMonday.setHours(12,0,0,0);
+    nextMonday.setDate(
+      nextMonday.getDate()
+      - ((nextMonday.getDay()+6)%7)
+      + 7
+    );
+
+    const nextWeekIso =
+      dashboardIsoWeek(nextMonday);
+
+    const nextWeekRange =
+      dashboardWeekRange(
+        nextWeekIso.year,
+        nextWeekIso.week
+      );
+
+    const qualityRanges = [{
+      ...nextWeekIso,
+      ...nextWeekRange
+    }];
+
     const missing = [];
     const qualityByWeek = [];
 
-    for(const r of ranges){
+    for(const r of qualityRanges){
 
       const weekGerichte =
         (gerichte||[]).filter(
@@ -2417,7 +3243,7 @@ async function dashboardLaden(){
           <div>
             <strong>Alles vollständig</strong>
             <div class="dashboard-muted">
-              In den nächsten vier Wochen fehlen keine Gerichte oder Preise.
+              Für die kommende Woche fehlen keine Gerichte oder Preise.
             </div>
           </div>
         </div>
@@ -2437,7 +3263,7 @@ async function dashboardLaden(){
     }
 
     // Additional plan checks.
-    qualityByWeek.slice(0,3).forEach(item=>{
+    qualityByWeek.forEach(item=>{
 
       if(!item.plan){
 
@@ -2459,7 +3285,7 @@ async function dashboardLaden(){
 
     const hasProblems =
       missing.length>0 ||
-      qualityByWeek.slice(0,3).some(
+      qualityByWeek.some(
         item => !item.plan
       );
 
@@ -2471,8 +3297,8 @@ async function dashboardLaden(){
 
     summary.textContent =
       hasProblems
-        ? "⚠️ Es gibt noch Punkte zu prüfen."
-        : "✓ Alles bereit – die kommenden Wochen sind vollständig.";
+        ? "⚠️ ⚠️ In der kommenden Woche gibt es noch Punkte zu prüfen."
+        : "✓ Die kommende Woche ist vollständig vorbereitet.";
 
   }catch(error){
 
@@ -2497,5 +3323,429 @@ async function dashboardLaden(){
 }
 
 
+
+/* ==========================================================
+   VERÖFFENTLICHUNGS-CHECK / VORSCHAU / QR
+   ========================================================== */
+
+async function sp_pruefeVerfentlichung(){
+
+  const start =
+    sp_isoStart(
+      spState.year,
+      spState.week
+    );
+
+  const end =
+    new Date(start);
+
+  end.setUTCDate(
+    end.getUTCDate()+4
+  );
+
+  const from =
+    start.toISOString().slice(0,10);
+
+  const to =
+    end.toISOString().slice(0,10);
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("Gerichte")
+      .select("*")
+      .gte("datum",from)
+      .lte("datum",to)
+      .order("datum",{ascending:true})
+      .order("gerichte",{ascending:true});
+
+
+  const checks=[];
+
+
+  if(error){
+
+    return {
+      ok:false,
+      checks:[
+        "Gerichte konnten nicht geprüft werden."
+      ]
+    };
+
+  }
+
+
+  const days = {
+    1:"Montag",
+    2:"Dienstag",
+    3:"Mittwoch",
+    4:"Donnerstag",
+    5:"Freitag"
+  };
+
+
+  const byDay={
+    1:[],
+    2:[],
+    3:[],
+    4:[],
+    5:[]
+  };
+
+
+  (data||[]).forEach(g=>{
+    const d =
+      new Date(
+        g.datum+"T00:00:00"
+      );
+
+    const day =
+      d.getDay();
+
+    if(byDay[day]){
+      byDay[day].push(g);
+    }
+
+  });
+
+
+  for(const day of [1,2,3,4,5]){
+
+    const items =
+      byDay[day];
+
+    const specialToday =
+      (specialDays || []).find(
+        item => item.datum ===
+          `${from.slice(0,4)}-${String(new Date(from+"T00:00:00").getUTCMonth()+1).padStart(2,"0")}-${String(new Date(from+"T00:00:00").getUTCDate()+1).padStart(2,"0")}`
+      );
+
+    if(!items.length){
+
+      checks.push(
+        `⚠ ${days[day]}: kein Gericht eingetragen.`
+      );
+
+      continue;
+
+    }
+
+
+    if(items.length>10){
+
+      checks.push(
+        `⚠ ${days[day]}: mehr als 10 Gerichte eingetragen.`
+      );
+
+    }
+
+
+    items.forEach(item=>{
+
+      if(
+        item.preis === null ||
+        item.preis === "" ||
+        Number.isNaN(Number(item.preis))
+      ){
+
+        checks.push(
+          `⚠ ${days[day]}: Preis fehlt bei „${item.gerichte || "Gericht"}“.`
+        );
+
+      }
+
+    });
+
+  }
+
+
+  const {
+    data:specialDays,
+    error:specialError
+  } =
+    await supabaseClient
+      .from("Sonderoeffnungszeiten")
+      .select("*")
+      .gte("datum",from)
+      .lte("datum",to)
+      .order("datum",{ascending:true});
+
+
+  if(!specialError){
+
+    (specialDays||[]).forEach(day=>{
+
+      const d =
+        new Date(
+          day.datum+"T00:00:00"
+        );
+
+      const dayName =
+        days[d.getDay()] ||
+        day.datum;
+
+
+      if(day.geschlossen){
+
+        checks.push(
+          `✓ ${dayName}: Sondertag „geschlossen“ ist hinterlegt.`
+        );
+
+      }else{
+
+        checks.push(
+          `✓ ${dayName}: Sonderöffnungszeit ist hinterlegt.`
+        );
+
+      }
+
+    });
+
+  }
+
+
+  return {
+    ok:
+      !checks.some(
+        item => item.startsWith("⚠")
+      ),
+    checks
+  };
+
+}
+
+
+async function sp_vorschau(){
+
+  sp_render();
+
+  const modal =
+    document.getElementById(
+      "speiseplan-preview-modal"
+    );
+
+  const overlay =
+    document.getElementById(
+      "sp-preview-overlay"
+    );
+
+  const source =
+    document.getElementById(
+      "sp-overlay"
+    );
+
+  if(
+    !modal ||
+    !overlay ||
+    !source
+  ){
+    return;
+  }
+
+
+  overlay.innerHTML =
+    source.innerHTML;
+
+
+  modal.classList.add(
+    "open"
+  );
+
+  modal.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
+}
+
+
+function sp_vorschauSchliessen(){
+
+  const modal =
+    document.getElementById(
+      "speiseplan-preview-modal"
+    );
+
+  if(!modal)return;
+
+  modal.classList.remove(
+    "open"
+  );
+
+  modal.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+}
+
+
+async function sp_generiereQR(){
+
+  const status =
+    document.getElementById(
+      "sp-qr-status"
+    );
+
+  const plan =
+    await supabaseClient
+      .from("Speiseplaene")
+      .select("bild_url,kw,jahr")
+      .lte(
+        "aktiv_ab",
+        new Date().toISOString()
+      )
+      .order(
+        "aktiv_ab",
+        {ascending:false}
+      )
+      .limit(1)
+      .maybeSingle();
+
+
+  if(plan.error || !plan.data){
+
+    if(status){
+      status.textContent =
+        "Kein aktueller Speiseplan für QR-Code gefunden.";
+    }
+
+    return;
+
+  }
+
+
+  const url =
+    plan.data.bild_url;
+
+
+  /*
+   * Externer QR-Dienst nur als Komfortfunktion.
+   * Der Button öffnet den QR-Code in einem neuen Tab.
+   */
+  const qrUrl =
+    "https://api.qrserver.com/v1/create-qr-code/?" +
+    "size=300x300&data=" +
+    encodeURIComponent(url);
+
+
+  if(status){
+
+    status.innerHTML =
+      `<div class="qr-wrap">
+        <img
+          src="${qrUrl}"
+          alt="QR-Code Speiseplan KW ${plan.data.kw}"
+        >
+      </div>
+      <div>
+        QR-Code für KW ${plan.data.kw} erstellt.
+      </div>`;
+
+  }
+
+}
+
+
+
+
+function dashboardOeffnungText(){
+
+  const box =
+    document.getElementById(
+      "dashboard-opening"
+    );
+
+  if(!box)return;
+
+  const now =
+    new Date();
+
+  const day =
+    now.getDay();
+
+  const hour =
+    now.getHours();
+
+  if(day===0 || day===6){
+
+    box.innerHTML =
+      "<strong>Wochenende</strong><br>Heute geschlossen.";
+
+    return;
+
+  }
+
+  if(
+    day===5 &&
+    hour>=14
+  ){
+
+    box.innerHTML =
+      "<strong>Feierabend</strong><br>Der nächste Mittagstisch ist am Montag.";
+
+    return;
+
+  }
+
+  if(
+    hour>=11 &&
+    hour<14
+  ){
+
+    box.innerHTML =
+      "<strong>Heute geöffnet</strong><br>Mittagstisch · 11:00–14:00 Uhr.";
+
+    return;
+
+  }
+
+  box.innerHTML =
+    "<strong>Heute geschlossen</strong><br>Mittagstisch · 11:00–14:00 Uhr.";
+
+}
+
+
 </script>
+
+<div
+  id="speiseplan-preview-modal"
+  class="preview-modal"
+  aria-hidden="true"
+  role="dialog"
+  aria-modal="true"
+>
+  <div
+    class="preview-backdrop"
+    onclick="sp_vorschauSchliessen()"
+  ></div>
+
+  <div class="preview-box">
+    <button
+      type="button"
+      class="preview-close"
+      onclick="sp_vorschauSchliessen()"
+      aria-label="Vorschau schließen"
+    >×</button>
+
+    <div class="sp-preview">
+      <div class="sp-sheet">
+        <img
+          class="sp-sheet-bg"
+          src="./blank-template-2480.png"
+          alt=""
+        >
+        <svg
+          id="sp-preview-overlay"
+          viewBox="0 0 210 297"
+          preserveAspectRatio="none"
+        ></svg>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body></html>
