@@ -92,6 +92,81 @@ button.save{margin-top:28px;padding:14px 24px;border:0;background:var(--green);c
     margin:0;
   }
 }
+
+.hero-admin-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+  gap:18px;
+  margin-top:22px;
+}
+
+.hero-admin-card{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.18);
+  border-radius:10px;
+  padding:14px;
+}
+
+.hero-admin-card img{
+  display:block;
+  width:100%;
+  aspect-ratio:4 / 3;
+  object-fit:cover;
+  border-radius:8px;
+  margin-bottom:12px;
+}
+
+.hero-admin-meta{
+  display:grid;
+  grid-template-columns:70px 1fr;
+  gap:8px;
+  align-items:center;
+}
+
+.hero-admin-meta label{
+  margin:0;
+  font-size:12px;
+  color:var(--green);
+  font-weight:700;
+  text-transform:uppercase;
+}
+
+.hero-admin-card input[type="number"]{
+  margin:0;
+}
+
+.hero-admin-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+
+.hero-admin-actions button{
+  margin-top:0;
+  padding:9px 12px;
+  border-radius:10px;
+}
+
+.hero-active-label{
+  display:inline-block;
+  margin-bottom:10px;
+  padding:5px 8px;
+  border-radius:8px;
+  background:var(--green);
+  color:var(--cream);
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+@media(max-width:700px){
+  .hero-admin-grid{
+    grid-template-columns:1fr;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -101,6 +176,9 @@ button.save{margin-top:28px;padding:14px 24px;border:0;background:var(--green);c
 <button class="admin-tab active" type="button" onclick="zeigeBereich('gerichte-bereich',this)">Gerichte</button>
 <button class="admin-tab" type="button" onclick="zeigeBereich('speiseplan-bereich',this);sp_init()">Speiseplan</button>
 <button class="admin-tab" type="button" onclick="zeigeBereich('sondertage-bereich',this);sondertageLaden()">Sondertage</button>
+<button class="admin-tab" type="button" onclick="zeigeBereich('hero-bilder-bereich',this);heroBilderLaden()">
+  Website Bilder
+</button>
 </div>
 
 <section id="gerichte-bereich" class="admin-bereich active">
@@ -162,6 +240,63 @@ button.save{margin-top:28px;padding:14px 24px;border:0;background:var(--green);c
     <h2>Gespeicherte Sondertage</h2>
     <div id="sondertage-liste">Wird geladen …</div>
   </div>
+</section>
+
+
+<section id="hero-bilder-bereich" class="admin-bereich">
+
+  <div class="form">
+
+    <h2>Website Bilder</h2>
+
+    <p class="intro">
+      Hier kannst du die Bilder für die automatische Slideshow ganz oben
+      auf der Website verwalten. Du kannst mehrere Bilder gleichzeitig
+      auswählen. Aktive Bilder werden automatisch alle 4,5 Sekunden gewechselt.
+    </p>
+
+    <label for="hero-bilder-dateien">Bilder auswählen</label>
+    <input
+      type="file"
+      id="hero-bilder-dateien"
+      accept="image/png,image/jpeg,image/webp"
+      multiple
+    >
+
+    <label for="hero-alt">Alternativtext</label>
+    <input
+      type="text"
+      id="hero-alt"
+      placeholder="z. B. Schnitzel mit Bratkartoffeln"
+    >
+
+    <button
+      type="button"
+      class="save"
+      onclick="heroBilderHochladen()"
+    >
+      Bilder hochladen
+    </button>
+
+    <div id="hero-meldung"></div>
+
+  </div>
+
+  <div class="saved-plans">
+
+    <h2>Aktive Hero-Bilder</h2>
+
+    <p class="intro">
+      Mit der Reihenfolge bestimmst du, welches Bild an welcher Stelle erscheint.
+      Bilder können aktiviert/deaktiviert oder gelöscht werden.
+    </p>
+
+    <div id="hero-bilder-liste">
+      Wird geladen …
+    </div>
+
+  </div>
+
 </section>
 
 <section id="speiseplan-bereich" class="admin-bereich">
@@ -1244,6 +1379,489 @@ async function sondertagLoeschen(id){
 
   sondertageLaden();
 }
+
+
+/* ==========================================================
+   HERO-BILDER VERWALTEN
+   ========================================================== */
+
+async function heroBilderLaden(){
+
+  const liste =
+    document.getElementById(
+      "hero-bilder-liste"
+    );
+
+  if(!liste)return;
+
+
+  liste.innerHTML =
+    "Wird geladen …";
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("HeroBilder")
+      .select("*")
+      .order("sortierung",{ascending:true})
+      .order("created_at",{ascending:true});
+
+
+  if(error){
+
+    console.error(error);
+
+    liste.innerHTML =
+      "<p>Website-Bilder konnten nicht geladen werden.</p>";
+
+    return;
+  }
+
+
+  if(!data?.length){
+
+    liste.innerHTML =
+      "<p>Noch keine Hero-Bilder angelegt. Die bisherige Standard-Slideshow bleibt aktiv.</p>";
+
+    return;
+  }
+
+
+  const grid =
+    document.createElement("div");
+
+  grid.className =
+    "hero-admin-grid";
+
+
+  data.forEach(
+    bild => {
+
+      const card =
+        document.createElement("div");
+
+      card.className =
+        "hero-admin-card";
+
+
+      card.innerHTML = `
+
+        <img
+          src="${bild.bild_url}"
+          alt="${bild.alt_text || "Hero-Bild"}"
+        >
+
+        ${
+          bild.aktiv
+            ? `<span class="hero-active-label">Aktiv</span>`
+            : `<span class="hero-active-label" style="background:#777">Deaktiviert</span>`
+        }
+
+        <div class="hero-admin-meta">
+
+          <label>Reihenfolge</label>
+
+          <input
+            type="number"
+            min="1"
+            step="1"
+            value="${bild.sortierung || 1}"
+            id="hero-order-${bild.id}"
+          >
+
+        </div>
+
+        <div class="hero-admin-meta" style="margin-top:8px">
+
+          <label>Alt-Text</label>
+
+          <input
+            type="text"
+            value="${String(bild.alt_text || "").replace(/"/g,"&quot;")}"
+            id="hero-alt-${bild.id}"
+          >
+
+        </div>
+
+        <div class="hero-admin-actions">
+
+          <button
+            type="button"
+            onclick="heroBildSpeichern(${bild.id})"
+          >
+            Speichern
+          </button>
+
+          <button
+            type="button"
+            onclick="heroBildToggle(${bild.id},${!bild.aktiv})"
+          >
+            ${bild.aktiv ? "Deaktivieren" : "Aktivieren"}
+          </button>
+
+          <button
+            type="button"
+            onclick="heroBildLoeschen(${bild.id},'${encodeURIComponent(bild.storage_path || "")}')"
+          >
+            Löschen
+          </button>
+
+        </div>
+
+      `;
+
+      grid.appendChild(
+        card
+      );
+
+    }
+  );
+
+
+  liste.innerHTML="";
+  liste.appendChild(grid);
+
+}
+
+
+async function heroBilderHochladen(){
+
+  const input =
+    document.getElementById(
+      "hero-bilder-dateien"
+    );
+
+  const alt =
+    document.getElementById(
+      "hero-alt"
+    ).value.trim();
+
+  const meldung =
+    document.getElementById(
+      "hero-meldung"
+    );
+
+
+  const files =
+    Array.from(
+      input.files || []
+    );
+
+
+  if(!files.length){
+
+    meldung.textContent =
+      "Bitte mindestens ein Bild auswählen.";
+
+    return;
+  }
+
+
+  try{
+
+    const {
+      data:existing
+    } =
+      await supabaseClient
+        .from("HeroBilder")
+        .select("sortierung")
+        .order(
+          "sortierung",
+          {ascending:false}
+        )
+        .limit(1)
+        .maybeSingle();
+
+
+    let sortierung =
+      Number(
+        existing?.sortierung || 0
+      )
+      + 1;
+
+
+    for(
+      const file of files
+    ){
+
+      if(!file.type.startsWith("image/")){
+        continue;
+      }
+
+
+      const extension =
+        (
+          file.name
+            .split(".")
+            .pop()
+            || "jpg"
+        )
+        .toLowerCase();
+
+
+      const storagePath =
+        `hero-${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
+
+
+      const {
+        error:uploadError
+      } =
+        await supabaseClient
+          .storage
+          .from("hero-bilder")
+          .upload(
+            storagePath,
+            file,
+            {
+              contentType:file.type,
+              upsert:false,
+              cacheControl:"3600"
+            }
+          );
+
+
+      if(uploadError){
+
+        console.error(
+          uploadError
+        );
+
+        throw new Error(
+          `Upload von ${file.name} fehlgeschlagen.`
+        );
+
+      }
+
+
+      const {
+        data:publicData
+      } =
+        supabaseClient
+          .storage
+          .from("hero-bilder")
+          .getPublicUrl(
+            storagePath
+          );
+
+
+      const {
+        error:dbError
+      } =
+        await supabaseClient
+          .from("HeroBilder")
+          .insert([{
+            bild_url:
+              publicData.publicUrl,
+
+            bild_name:
+              file.name,
+
+            storage_path:
+              storagePath,
+
+            sortierung,
+
+            aktiv:true,
+
+            alt_text:
+              alt ||
+              file.name
+          }]);
+
+
+      if(dbError){
+
+        console.error(
+          dbError
+        );
+
+        await supabaseClient
+          .storage
+          .from("hero-bilder")
+          .remove([storagePath]);
+
+        throw new Error(
+          `Das Bild ${file.name} konnte nicht in der Datenbank gespeichert werden.`
+        );
+
+      }
+
+
+      sortierung += 1;
+
+    }
+
+
+    input.value="";
+    document.getElementById(
+      "hero-alt"
+    ).value="";
+
+    meldung.textContent =
+      `${files.length} Bild(er) wurden hochgeladen.`;
+
+    heroBilderLaden();
+
+  }catch(error){
+
+    console.error(error);
+
+    meldung.textContent =
+      error?.message ||
+      "Website-Bilder konnten nicht hochgeladen werden.";
+
+  }
+
+}
+
+
+async function heroBildSpeichern(id){
+
+  const order =
+    Number(
+      document.getElementById(
+        `hero-order-${id}`
+      ).value
+    );
+
+
+  const alt =
+    document.getElementById(
+      `hero-alt-${id}`
+    ).value.trim();
+
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from("HeroBilder")
+      .update({
+        sortierung:
+          order || 1,
+        alt_text:
+          alt
+      })
+      .eq("id",id);
+
+
+  if(error){
+
+    console.error(error);
+
+    alert(
+      "Website-Bild konnte nicht gespeichert werden."
+    );
+
+    return;
+  }
+
+
+  heroBilderLaden();
+}
+
+
+async function heroBildToggle(
+  id,
+  aktiv
+){
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from("HeroBilder")
+      .update({
+        aktiv
+      })
+      .eq("id",id);
+
+
+  if(error){
+
+    console.error(error);
+
+    alert(
+      "Der Aktiv-Status konnte nicht geändert werden."
+    );
+
+    return;
+  }
+
+
+  heroBilderLaden();
+}
+
+
+async function heroBildLoeschen(
+  id,
+  encodedPath
+){
+
+  if(
+    !confirm(
+      "Dieses Hero-Bild wirklich löschen?"
+    )
+  ){
+    return;
+  }
+
+
+  const storagePath =
+    decodeURIComponent(
+      encodedPath || ""
+    );
+
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from("HeroBilder")
+      .delete()
+      .eq("id",id);
+
+
+  if(error){
+
+    console.error(error);
+
+    alert(
+      "Website-Bild konnte nicht gelöscht werden."
+    );
+
+    return;
+  }
+
+
+  if(storagePath){
+
+    try{
+
+      await supabaseClient
+        .storage
+        .from("hero-bilder")
+        .remove([storagePath]);
+
+    }catch(error){
+
+      console.warn(
+        "Bilddatei konnte nicht aus Storage gelöscht werden:",
+        error
+      );
+
+    }
+
+  }
+
+
+  heroBilderLaden();
+
+}
+
 
 </script>
 </body></html>
