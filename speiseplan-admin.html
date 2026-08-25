@@ -3533,7 +3533,7 @@ function sp_init(){
     const cur=Math.ceil((((iso-ysd)/86400000)+1)/7);
 
     spState.year=ys;
-    spState.week=Math.min(cur+1,53);
+    spState.week=cur;
     y.value=spState.year;
     w.value=spState.week;
 
@@ -7679,6 +7679,142 @@ document.addEventListener("keydown",(event)=>{
     adminMehrSchliessen();
   }
 });
+
+function adminSchnellGerichte(){
+
+  const tab =
+    document.querySelector(
+      '.admin-primary-tabs .admin-tab[onclick*="gerichte-bereich"]'
+    );
+
+  if(tab){
+    zeigeBereich(
+      "gerichte-bereich",
+      tab
+    );
+  }
+
+  const datum =
+    document.getElementById(
+      "datum"
+    );
+
+  if(datum && !datum.value){
+
+    const d =
+      new Date();
+
+    const iso =
+      [
+        d.getFullYear(),
+        String(d.getMonth()+1).padStart(2,"0"),
+        String(d.getDate()).padStart(2,"0")
+      ].join("-");
+
+    datum.value =
+      iso;
+  }
+
+  const gericht =
+    document.getElementById(
+      "gericht"
+    );
+
+  if(gericht){
+
+    setTimeout(
+      ()=>{
+        gericht.focus();
+
+        gericht.scrollIntoView({
+          behavior:"smooth",
+          block:"center"
+        });
+      },
+      50
+    );
+  }
+
+}
+
+
+function adminSchnellHeute(){
+
+  const tab =
+    document.querySelector(
+      '.admin-primary-tabs .admin-tab[onclick*="gerichte-bereich"]'
+    );
+
+  if(tab){
+    zeigeBereich(
+      "gerichte-bereich",
+      tab
+    );
+  }
+
+  const datum =
+    document.getElementById(
+      "datum"
+    );
+
+  const d =
+    new Date();
+
+  const iso =
+    [
+      d.getFullYear(),
+      String(d.getMonth()+1).padStart(2,"0"),
+      String(d.getDate()).padStart(2,"0")
+    ].join("-");
+
+  if(datum){
+    datum.value=iso;
+  }
+
+  const liste =
+    document.getElementById(
+      "gerichte-liste"
+    );
+
+  if(liste){
+
+    setTimeout(
+      ()=>{
+        liste.scrollIntoView({
+          behavior:"smooth",
+          block:"start"
+        });
+      },
+      50
+    );
+  }
+
+}
+
+
+function adminSchnellSpeiseplan(){
+
+  const tab =
+    document.querySelector(
+      '.admin-primary-tabs .admin-tab[onclick*="speiseplan-bereich"]'
+    );
+
+  if(tab){
+    zeigeBereich(
+      "speiseplan-bereich",
+      tab
+    );
+  }
+
+  setTimeout(
+    ()=>{
+      sp_init();
+    },
+    0
+  );
+
+}
+
 </script>
 
 <div
