@@ -3265,6 +3265,33 @@ function klassischeKlassikerFallback(){
 
 }
 
+
+function klassikerPreisText(value){
+
+  if(
+    value === null ||
+    value === undefined ||
+    value === ""
+  ){
+    return "";
+  }
+
+  const number =
+    Number(value);
+
+  if(!Number.isFinite(number)){
+    return "";
+  }
+
+  return number.toLocaleString(
+    "de-DE",
+    {
+      minimumFractionDigits:2,
+      maximumFractionDigits:2
+    }
+  ) + " €";
+}
+
 function klassikerKarteErstellen(item){
 
   const article=document.createElement("article");
@@ -3290,7 +3317,7 @@ function klassikerKarteErstellen(item){
     variants.push(
       `<div class="wurst-preis">
          ${item.variante_1 ? `<span>${item.variante_1}</span>` : ""}
-         <strong>${preisFormatieren(item.preis)}</strong>
+         <strong>${klassikerPreisText(item.preis)}</strong>
        </div>`
     );
   }
@@ -3299,14 +3326,14 @@ function klassikerKarteErstellen(item){
     variants.push(
       `<div class="wurst-preis">
          ${item.variante_2 ? `<span>${item.variante_2}</span>` : ""}
-         <strong>${preisFormatieren(item.preis_2)}</strong>
+         <strong>${klassikerPreisText(item.preis_2)}</strong>
        </div>`
     );
   }
 
   if(variants.length){
     if(variants.length===1 && !item.variante_1 && !item.variante_2){
-      html += `<div class="special-price">${preisFormatieren(item.preis)}</div>`;
+      html += `<div class="special-price">${klassikerPreisText(item.preis)}</div>`;
     }else{
       html += `<div class="wurst-preise">${variants.join("")}</div>`;
     }
@@ -3359,13 +3386,17 @@ async function ladeKlassiker(){
     data=klassischeKlassikerFallback();
   }
 
-  specials.innerHTML="";
+  const fragment =
+    document.createDocumentFragment();
 
   data.forEach(item=>{
-    specials.appendChild(
+    fragment.appendChild(
       klassikerKarteErstellen(item)
     );
   });
+
+  specials.innerHTML="";
+  specials.appendChild(fragment);
 }
 
 
