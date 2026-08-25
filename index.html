@@ -575,11 +575,83 @@ footer {
   text-align: center;
 }
 
+.legal{
+  border-top:1px solid var(--line);
+  padding:30px 6vw 0;
+  background:var(--cream);
+}
+
+.legal-inner{
+  max-width:1250px;
+  margin:0 auto;
+}
+
+.legal-links{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  font-size:13px;
+}
+
+.legal-links a{
+  color:var(--green);
+}
+
+.legal-links a:hover{
+  text-decoration:underline;
+}
+
+.legal-year{
+  margin-top:12px;
+  text-align:center;
+  color:#666;
+  font-size:13px;
+}
+
+.legal-content{
+  padding:70px 6vw;
+  border-top:1px solid var(--line);
+  background:var(--cream);
+}
+
+.legal-content .legal-inner{
+  max-width:900px;
+}
+
+.legal-content h2{
+  margin:0 0 25px;
+  color:var(--green);
+  font-family:"Barlow Condensed",sans-serif;
+  font-size:clamp(42px,5vw,64px);
+  text-transform:uppercase;
+  line-height:.9;
+}
+
+.legal-content p{
+  line-height:1.7;
+  margin:0 0 20px;
+}
+
+.legal-placeholder{
+  color:#666;
+}
+
 .footer-logo {
-  font-family: "Barlow Condensed";
-  font-size: 55px;
-  font-weight: 700;
-  line-height: .75;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.footer-logo img {
+  width:150px;
+  max-width:70%;
+  height:auto;
+  display:block;
 }
 
 footer p {
@@ -653,8 +725,9 @@ footer p {
 }
 
 .breakfast-section {
-  padding: 100px 0;
-  border-top: 1px solid var(--line);
+  padding: 0;
+  border-top: 0;
+  min-height: 0;
 }
 
 .breakfast-heading {
@@ -982,7 +1055,7 @@ footer p {
   <div class="hero-copy">
 
     <div class="kicker">
-      Frühstück · Mittagstisch · Lieferservice
+      Aktuell nur Mittagstisch · Frühstück & Lieferservice ab November
     </div>
 
     <h1>
@@ -1016,20 +1089,20 @@ footer p {
 
     <div class="info-card">
       <div class="icon">
-        <img src="kaffee.png" alt="Frühstück">
-      </div>
-      <h3>FRÜHSTÜCK</h3>
-      <div class="info-days">MO – FR</div>
-      <div class="info-time">08:00 – 10:30</div>
-    </div>
-
-    <div class="info-card">
-      <div class="icon">
         <img src="teller.png" alt="Mittagstisch">
       </div>
       <h3>MITTAGSTISCH</h3>
       <div class="info-days">MO – FR</div>
-      <div class="info-time">11:00 – 14:30</div>
+      <div class="info-time">11:00 – 14:00</div>
+    </div>
+
+    <div class="info-card">
+      <div class="icon">
+        <img src="kaffee.png" alt="Frühstück">
+      </div>
+      <h3>FRÜHSTÜCK</h3>
+      <div class="info-days">BALD AUCH FRÜHSTÜCK</div>
+      <div class="info-time">FÜR EUCH</div>
     </div>
 
     <div class="info-card">
@@ -1037,11 +1110,15 @@ footer p {
         <img src="roller.png" alt="Lieferservice">
       </div>
       <h3>LIEFERSERVICE</h3>
-      <div class="info-days">MO – FR</div>
-      <div class="info-time">11:30 – 14:00</div>
+      <div class="info-days">BALD AUCH LIEFERSERVICE</div>
+      <div class="info-time">FÜR EUCH · ÜBER LIEFERANDO</div>
     </div>
 
   </div>
+
+  <p style="margin:18px 0 0;color:var(--green);font-weight:700;letter-spacing:.05em;text-transform:uppercase;">
+    Aktuell ausschließlich Mittagstisch · BALD AUCH FRÜHSTÜCK UND LIEFERSERVICE FÜR EUCH
+  </p>
 
 </section>
 
@@ -1177,27 +1254,27 @@ footer p {
 
 </section>
 
+<section class="breakfast-section" id="fruehstueck">
+  <!-- Frühstücksbereich bleibt vorerst leer. -->
+</section>
+
 <section class="contact" id="kontakt">
-
   <div>
-
     <h2>Kommt<br>vorbei!</h2>
+  </div>
+
+  <div class="contact-box">
 
     <p>
-      Mahlzeit! Kantine & Mittagstisch<br>
+      <strong>Adresse</strong><br>
       Mönchsgasse 2–3<br>
       03046 Cottbus
     </p>
 
     <p>
-      Montag – Freitag<br>
-      Frühstück · 08:00 – 10:30<br>
-      Mittagstisch · 11:00 – 14:30
+      <strong>Inhaberin</strong><br>
+      Charlene Schubert
     </p>
-
-  </div>
-
-  <div class="contact-box">
 
     <p>
       <strong>Telefon</strong><br>
@@ -1205,67 +1282,68 @@ footer p {
     </p>
 
     <p>
-      <strong>Website</strong><br>
-      mahlzeit-cottbus.de
-    </p>
-
-    <p>
       <strong>Instagram</strong><br>
-      @mahlzeit_cottbus
+      <a
+        href="https://www.instagram.com/mahlzeit_cottbus/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        @mahlzeit_cottbus
+      </a>
     </p>
 
     <p>
       <strong>Lieferservice</strong><br>
-      Montag – Freitag · 11:30 – 14:00
+      Bald auch für euch · wird über Lieferando angeboten
+    </p>
+
+    <p>
+      <strong>Öffnungszeiten</strong><br>
+      Mittagstisch · Montag–Freitag · 11:00–14:00<br>
+      Frühstück · bald auch für euch
     </p>
 
   </div>
-
-</section>
+</section> 
 
 </main>
 
-<section class="breakfast-section" id="fruehstueck">
-
-  <div class="breakfast-heading">
-    <p class="eyebrow">GUTER START IN DEN TAG</p>
-    <h2>FRÜHSTÜCK</h2>
-    <p>
-      Frisch, unkompliziert und genau das Richtige für den kleinen Hunger.
-    </p>
+<section class="legal" aria-label="Rechtliche Hinweise">
+  <div class="legal-inner">
+    <div class="legal-links">
+      <a href="#" onclick="oeffneRechtsfenster('impressum'); return false;">Impressum</a>
+      <span>|</span>
+      <a href="#" onclick="oeffneRechtsfenster('datenschutz'); return false;">Datenschutzerklärung</a>
+    </div>
+    <div class="legal-year">© 2026 Mahlzeit! Kantine &amp; Mittagstisch</div>
   </div>
-
-  <div class="breakfast-grid">
-
-    <article class="breakfast-card">
-      <span class="breakfast-number">01</span>
-      <h3>Frühstücksteller</h3>
-      <p>Brötchen, Butter, Marmelade, Käse und Wurst.</p>
-      <strong>ab 5,90 €</strong>
-    </article>
-
-    <article class="breakfast-card">
-      <span class="breakfast-number">02</span>
-      <h3>Belegte Brötchen</h3>
-      <p>Frisch belegt – klassisch oder mit etwas Besonderem.</p>
-      <strong>ab 2,50 €</strong>
-    </article>
-
-    <article class="breakfast-card">
-      <span class="breakfast-number">03</span>
-      <h3>Kaffee & Croissant</h3>
-      <p>Der schnelle Start für unterwegs oder zum Sitzenbleiben.</p>
-      <strong>4,50 €</strong>
-    </article>
-
-  </div>
-
 </section>
+
+<div class="legal-modal" id="impressum-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="impressum-modal-title">
+  <div class="legal-modal-backdrop" onclick="schliesseRechtsfenster('impressum')"></div>
+  <div class="legal-modal-box">
+    <button type="button" class="legal-modal-close" onclick="schliesseRechtsfenster('impressum')" aria-label="Fenster schließen">×</button>
+    <h2 id="impressum-modal-title">Impressum</h2>
+    <p><strong>Mahlzeit! Kantine &amp; Mittagstisch</strong><br>Mönchsgasse 2–3<br>03046 Cottbus</p>
+    <p><strong>Inhaberin</strong><br>Charlene Schubert</p>
+    <p><strong>Telefon</strong><br>0355 25057</p>
+    <p class="legal-placeholder">Die vollständigen gesetzlich erforderlichen Angaben können hier ergänzt werden.</p>
+  </div>
+</div>
+
+<div class="legal-modal" id="datenschutz-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="datenschutz-modal-title">
+  <div class="legal-modal-backdrop" onclick="schliesseRechtsfenster('datenschutz')"></div>
+  <div class="legal-modal-box">
+    <button type="button" class="legal-modal-close" onclick="schliesseRechtsfenster('datenschutz')" aria-label="Fenster schließen">×</button>
+    <h2 id="datenschutz-modal-title">Datenschutzerklärung</h2>
+    <p class="legal-placeholder">Hier wird später die vollständige Datenschutzerklärung der Website hinterlegt.</p>
+  </div>
+</div>
 
 <footer>
 
   <div class="footer-logo">
-    MAHL<br>ZEIT
+    <img src="logo.png" alt="Mahlzeit! Logo">
   </div>
 
   <p>
@@ -1273,6 +1351,29 @@ footer p {
   </p>
 
 </footer>
+
+<script>
+function oeffneRechtsfenster(typ){
+  const modal=document.getElementById(typ+"-modal");
+  if(!modal)return;
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden","false");
+  document.body.classList.add("legal-modal-open");
+}
+function schliesseRechtsfenster(typ){
+  const modal=document.getElementById(typ+"-modal");
+  if(!modal)return;
+  modal.classList.remove("open");
+  modal.setAttribute("aria-hidden","true");
+  document.body.classList.remove("legal-modal-open");
+}
+document.addEventListener("keydown",event=>{
+  if(event.key!=="Escape")return;
+  document.querySelectorAll(".legal-modal.open").forEach(modal=>{
+    schliesseRechtsfenster(modal.id.replace("-modal",""));
+  });
+});
+</script>
 
 <script>
 window.addEventListener("scroll", function() {
