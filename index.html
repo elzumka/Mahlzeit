@@ -278,6 +278,7 @@ h1 {
   max-width:560px;
   aspect-ratio:4 / 3;
   overflow:hidden;
+  border-radius:10px;
 }
 
 .hero-slideshow .hero-slide{
@@ -289,6 +290,23 @@ h1 {
   opacity:0;
   transition:opacity 1.2s ease-in-out;
   pointer-events:none;
+}
+
+.hero-empty{
+  width:100%;
+  height:100%;
+  min-height:280px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:30px;
+  text-align:center;
+  color:var(--green);
+  background:var(--beige);
+  border:1px solid var(--line);
+  border-radius:10px;
+  font-weight:700;
+  line-height:1.5;
 }
 
 .hero-slideshow .hero-slide.active{
@@ -1603,33 +1621,7 @@ async function downloadSpeiseplanPDF(){
       id="hero-slideshow"
       class="hero-slideshow"
       aria-label="Gerichte von Mahlzeit"
-    >
-      <img
-        class="hero-photo hero-slide active"
-        src="gericht-hero.png"
-        alt="Gericht von Mahlzeit"
-      >
-      <img
-        class="hero-photo hero-slide"
-        src="gericht-2.png"
-        alt="Gericht von Mahlzeit"
-      >
-      <img
-        class="hero-photo hero-slide"
-        src="gericht-3.png"
-        alt="Gericht von Mahlzeit"
-      >
-      <img
-        class="hero-photo hero-slide"
-        src="gericht-4.png"
-        alt="Gericht von Mahlzeit"
-      >
-      <img
-        class="hero-photo hero-slide"
-        src="gericht-5.png"
-        alt="Gericht von Mahlzeit"
-      >
-    </div>
+    ></div>
   </div>
 
 </section>
@@ -2123,13 +2115,13 @@ async function ladeHeroBilder(){
 
   if(error){
 
-    console.warn(
-      "Hero-Bilder konnten nicht aus Supabase geladen werden:",
+    console.error(
+      "Website-Bilder konnten nicht aus Supabase geladen werden:",
       error
     );
 
-    // Fallback: die bereits im HTML hinterlegten Bilder behalten.
-    starteHeroSlideshow();
+    slideshow.innerHTML =
+      '<div class="hero-empty">Die Website-Bilder konnten gerade nicht geladen werden.</div>';
 
     return;
   }
@@ -2137,9 +2129,8 @@ async function ladeHeroBilder(){
 
   if(!data || !data.length){
 
-    // Solange noch keine Bilder über die Verwaltung angelegt wurden,
-    // bleibt die bisherige lokale Slideshow aktiv.
-    starteHeroSlideshow();
+    slideshow.innerHTML =
+      '<div class="hero-empty">Hier gibt es bald neue Eindrücke aus unserer Küche.</div>';
 
     return;
   }
@@ -2174,16 +2165,32 @@ async function ladeHeroBilder(){
           ? "eager"
           : "lazy";
 
+      img.addEventListener(
+        "error",
+        () => {
+          img.remove();
+
+          const remaining =
+            slideshow.querySelectorAll(
+              ".hero-slide"
+            );
+
+          if(!remaining.length){
+
+            slideshow.innerHTML =
+              '<div class="hero-empty">Hier gibt es bald neue Eindrücke aus unserer Küche.</div>';
+
+          }
+
+        }
+      );
+
       slideshow.appendChild(
         img
       );
 
     }
   );
-
-
-  slideshow.dataset.loaded =
-    "supabase";
 
 
   starteHeroSlideshow();
