@@ -836,76 +836,6 @@ button{
   }
 }
 
-
-.ankuendigung-admin-card{
-  border:1px solid var(--line);
-  border-radius:12px;
-  background:rgba(255,255,255,.16);
-  padding:18px;
-}
-
-.ankuendigung-admin-card.aktiv{
-  border-color:rgba(40,84,55,.28);
-  background:rgba(40,84,55,.06);
-}
-
-.ankuendigung-admin-card.inaktiv{
-  opacity:.65;
-}
-
-.ankuendigung-admin-title{
-  color:var(--green);
-  font-family:"Barlow Condensed",sans-serif;
-  font-size:30px;
-  text-transform:uppercase;
-  line-height:.95;
-}
-
-.ankuendigung-admin-text{
-  margin-top:10px;
-  color:#555;
-  white-space:pre-wrap;
-  line-height:1.55;
-}
-
-.ankuendigung-admin-card img{
-  display:block;
-  width:100%;
-  max-height:260px;
-  object-fit:cover;
-  border-radius:10px;
-  margin-top:14px;
-}
-
-.ankuendigung-admin-actions{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-top:16px;
-}
-
-.ankuendigung-admin-actions button{
-  margin:0;
-  border-radius:10px;
-}
-
-.ankuendigung-status{
-  display:inline-block;
-  margin-top:12px;
-  padding:6px 9px;
-  border-radius:8px;
-  font-size:10px;
-  font-weight:700;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  background:#8a8a8a;
-  color:#fff;
-}
-
-.ankuendigung-status.aktiv{
-  background:var(--green);
-}
-
 </style>
 </head>
 <body>
@@ -921,9 +851,6 @@ button{
 </button>
 <button class="admin-tab" type="button" onclick="zeigeBereich('website-einstellungen-bereich',this);websiteEinstellungenLaden();klassikerLaden()">
   Website Einstellungen
-</button>
-<button class="admin-tab" type="button" onclick="zeigeBereich('ankuendigungen-bereich',this);ankuendigungenLaden()">
-  Ankündigungen
 </button>
 </div>
 
@@ -1333,81 +1260,6 @@ button{
 
 </section>
 
-
-<section id="ankuendigungen-bereich" class="admin-bereich">
-
-  <div class="form">
-
-    <h2>Spontane Ankündigungen</h2>
-
-    <p class="intro">
-      Dieser Bereich erscheint auf der Website nur dann, wenn hier eine
-      aktive Ankündigung hinterlegt ist. Du kannst Text und optional ein
-      Bild verwenden.
-    </p>
-
-    <label for="ankuendigung-titel">
-      Überschrift
-    </label>
-
-    <input
-      type="text"
-      id="ankuendigung-titel"
-      placeholder="z. B. Heute geänderte Öffnungszeiten"
-    >
-
-    <label for="ankuendigung-text">
-      Text
-    </label>
-
-    <textarea
-      id="ankuendigung-text"
-      rows="5"
-      placeholder="Schreibt uns heute gern ... "
-    ></textarea>
-
-    <label for="ankuendigung-bild">
-      Bild (optional)
-    </label>
-
-    <input
-      type="file"
-      id="ankuendigung-bild"
-      accept="image/png,image/jpeg,image/webp"
-    >
-
-    <label class="checkbox">
-      <input
-        type="checkbox"
-        id="ankuendigung-aktiv"
-      >
-      Auf der Website anzeigen
-    </label>
-
-    <button
-      type="button"
-      class="save"
-      onclick="ankuendigungSpeichern()"
-    >
-      Ankündigung speichern
-    </button>
-
-    <div id="ankuendigung-meldung"></div>
-
-  </div>
-
-
-  <div class="saved-plans">
-
-    <h2>Aktuelle Ankündigung</h2>
-
-    <div id="ankuendigung-aktueller-status">
-      Wird geladen …
-    </div>
-
-  </div>
-
-</section>
 <section id="speiseplan-bereich" class="admin-bereich">
   <div class="sp-toolbar">
     <div>
@@ -5153,6 +5005,12 @@ async function feiertagUebernehmen(
 
 async function websiteEinstellungenLaden(){
 
+  const meldung =
+    document.getElementById(
+      "website-einstellungen-meldung"
+    );
+
+
   const {
     data,
     error
@@ -5160,109 +5018,134 @@ async function websiteEinstellungenLaden(){
     await supabaseClient
       .from("WebsiteEinstellungen")
       .select("*")
-      .limit(1)
+      .eq("id",1)
       .maybeSingle();
 
 
   if(error){
 
     console.error(
-      "Website-Einstellungen:",
+      "Website-Einstellungen laden:",
       error
     );
 
-    const meldung =
-      document.getElementById(
-        "website-einstellungen-meldung"
-      );
-
     if(meldung){
       meldung.textContent =
-        "Einstellungen konnten nicht geladen werden.";
+        "⚠ Einstellungen konnten nicht geladen werden: "
+        + error.message;
     }
 
     return;
-  }
-
-
-  if(!data){
-
-    return;
 
   }
+
+
+  const values =
+    data || {
+      mittagstisch_aktiv:true,
+      mittagstisch_von:"11:00",
+      mittagstisch_bis:"14:00",
+      fruehstueck_aktiv:false,
+      fruehstueck_von:"08:00",
+      fruehstueck_bis:"10:30",
+      lieferservice_aktiv:false,
+      lieferservice_von:"11:00",
+      lieferservice_bis:"14:00",
+      lieferservice_text:"Bald auch für euch · über Lieferando",
+      telefon:"0355 25057",
+      instagram:"@mahlzeit_cottbus"
+    };
 
 
   document.getElementById(
     "setting-mittag-aktiv"
   ).checked =
-    data.mittagstisch_aktiv !== false;
+    values.mittagstisch_aktiv === true;
 
   document.getElementById(
     "setting-mittag-von"
   ).value =
-    data.mittagstisch_von ||
-    "11:00";
+    String(
+      values.mittagstisch_von ||
+      "11:00"
+    ).slice(0,5);
 
   document.getElementById(
     "setting-mittag-bis"
   ).value =
-    data.mittagstisch_bis ||
-    "14:00";
+    String(
+      values.mittagstisch_bis ||
+      "14:00"
+    ).slice(0,5);
 
 
   document.getElementById(
     "setting-fruehstueck-aktiv"
   ).checked =
-    data.fruehstueck_aktiv === true;
+    values.fruehstueck_aktiv === true;
 
   document.getElementById(
     "setting-fruehstueck-von"
   ).value =
-    data.fruehstueck_von ||
-    "08:00";
+    String(
+      values.fruehstueck_von ||
+      "08:00"
+    ).slice(0,5);
 
   document.getElementById(
     "setting-fruehstueck-bis"
   ).value =
-    data.fruehstueck_bis ||
-    "10:30";
+    String(
+      values.fruehstueck_bis ||
+      "10:30"
+    ).slice(0,5);
 
 
   document.getElementById(
     "setting-lieferung-aktiv"
   ).checked =
-    data.lieferservice_aktiv === true;
+    values.lieferservice_aktiv === true;
 
   document.getElementById(
     "setting-lieferung-von"
   ).value =
-    data.lieferservice_von ||
-    "11:00";
+    String(
+      values.lieferservice_von ||
+      "11:00"
+    ).slice(0,5);
 
   document.getElementById(
     "setting-lieferung-bis"
   ).value =
-    data.lieferservice_bis ||
-    "14:00";
+    String(
+      values.lieferservice_bis ||
+      "14:00"
+    ).slice(0,5);
 
   document.getElementById(
     "setting-lieferung-text"
   ).value =
-    data.lieferservice_text ||
+    values.lieferservice_text ||
     "Bald auch für euch · über Lieferando";
 
 
   document.getElementById(
     "setting-telefon"
   ).value =
-    data.telefon ||
+    values.telefon ||
     "0355 25057";
 
   document.getElementById(
     "setting-instagram"
   ).value =
-    data.instagram ||
+    values.instagram ||
     "@mahlzeit_cottbus";
+
+
+  if(!data && meldung){
+    meldung.textContent =
+      "Noch keine Website-Einstellungen gespeichert. Die Standardwerte werden angezeigt.";
+  }
 
 }
 
@@ -5274,103 +5157,233 @@ async function websiteEinstellungenSpeichern(){
       "website-einstellungen-meldung"
     );
 
+  if(meldung){
+    meldung.textContent =
+      "Einstellungen werden gespeichert …";
+  }
+
+
   const values = {
 
-    id:1,
-
     mittagstisch_aktiv:
-      document.getElementById(
-        "setting-mittag-aktiv"
-      ).checked,
+      Boolean(
+        document.getElementById(
+          "setting-mittag-aktiv"
+        ).checked
+      ),
 
     mittagstisch_von:
       document.getElementById(
         "setting-mittag-von"
-      ).value,
+      ).value || "11:00",
 
     mittagstisch_bis:
       document.getElementById(
         "setting-mittag-bis"
-      ).value,
+      ).value || "14:00",
 
     fruehstueck_aktiv:
-      document.getElementById(
-        "setting-fruehstueck-aktiv"
-      ).checked,
+      Boolean(
+        document.getElementById(
+          "setting-fruehstueck-aktiv"
+        ).checked
+      ),
 
     fruehstueck_von:
       document.getElementById(
         "setting-fruehstueck-von"
-      ).value,
+      ).value || "08:00",
 
     fruehstueck_bis:
       document.getElementById(
         "setting-fruehstueck-bis"
-      ).value,
+      ).value || "10:30",
 
     lieferservice_aktiv:
-      document.getElementById(
-        "setting-lieferung-aktiv"
-      ).checked,
+      Boolean(
+        document.getElementById(
+          "setting-lieferung-aktiv"
+        ).checked
+      ),
 
     lieferservice_von:
       document.getElementById(
         "setting-lieferung-von"
-      ).value,
+      ).value || "11:00",
 
     lieferservice_bis:
       document.getElementById(
         "setting-lieferung-bis"
-      ).value,
+      ).value || "14:00",
 
     lieferservice_text:
       document.getElementById(
         "setting-lieferung-text"
-      ).value.trim(),
+      ).value.trim()
+      ||
+      "Bald auch für euch · über Lieferando",
 
     telefon:
       document.getElementById(
         "setting-telefon"
-      ).value.trim(),
+      ).value.trim()
+      ||
+      "0355 25057",
 
     instagram:
       document.getElementById(
         "setting-instagram"
       ).value.trim()
+      ||
+      "@mahlzeit_cottbus"
 
   };
 
 
-  const {
-    error
-  } =
-    await supabaseClient
-      .from("WebsiteEinstellungen")
-      .upsert(
-        [values],
-        {onConflict:"id"}
+  try{
+
+    /*
+     * Wir verwenden bewusst kein upsert().
+     * Stattdessen prüfen wir zuerst, ob der Datensatz mit id=1
+     * existiert. So sehen wir bei einem Berechtigungs-/RLS-Problem
+     * sofort eine klare Fehlermeldung und sind nicht von einem
+     * speziellen ON CONFLICT-Verhalten abhängig.
+     */
+
+    const {
+      data:existing,
+      error:findError
+    } =
+      await supabaseClient
+        .from("WebsiteEinstellungen")
+        .select("id")
+        .eq("id",1)
+        .maybeSingle();
+
+
+    if(findError){
+      throw new Error(
+        "WebsiteEinstellungen konnte nicht gelesen werden: "
+        + findError.message
+      );
+    }
+
+
+    let result;
+
+
+    if(existing?.id){
+
+      result =
+        await supabaseClient
+          .from("WebsiteEinstellungen")
+          .update(values)
+          .eq("id",1);
+
+    }else{
+
+      result =
+        await supabaseClient
+          .from("WebsiteEinstellungen")
+          .insert([
+            {
+              id:1,
+              ...values
+            }
+          ]);
+
+    }
+
+
+    if(result.error){
+
+      throw new Error(
+        "Speichern fehlgeschlagen: "
+        + result.error.message
       );
 
+    }
 
-  if(error){
+
+    /*
+     * Nach dem Speichern direkt aus Supabase zurücklesen.
+     * Damit wird geprüft, ob der geänderte Zustand tatsächlich
+     * in der Datenbank angekommen ist.
+     */
+
+    const {
+      data:verified,
+      error:verifyError
+    } =
+      await supabaseClient
+        .from("WebsiteEinstellungen")
+        .select("*")
+        .eq("id",1)
+        .maybeSingle();
+
+
+    if(verifyError){
+
+      throw new Error(
+        "Speichern war erfolgreich, aber die Kontrolle schlug fehl: "
+        + verifyError.message
+      );
+
+    }
+
+
+    if(!verified){
+
+      throw new Error(
+        "Es wurde kein gespeicherter Einstellungsdatensatz gefunden."
+      );
+
+    }
+
+
+    /*
+     * Formular unmittelbar mit dem gespeicherten Zustand
+     * synchronisieren.
+     */
+    document.getElementById(
+      "setting-mittag-aktiv"
+    ).checked =
+      verified.mittagstisch_aktiv === true;
+
+    document.getElementById(
+      "setting-fruehstueck-aktiv"
+    ).checked =
+      verified.fruehstueck_aktiv === true;
+
+    document.getElementById(
+      "setting-lieferung-aktiv"
+    ).checked =
+      verified.lieferservice_aktiv === true;
+
+
+    if(meldung){
+      meldung.textContent =
+        "✓ Einstellungen wurden gespeichert.";
+    }
+
+
+  }catch(error){
 
     console.error(
-      "Website-Einstellungen:",
+      "Website-Einstellungen speichern:",
       error
     );
 
     if(meldung){
       meldung.textContent =
-        "Einstellungen konnten nicht gespeichert werden.";
+        "⚠ "
+        + (
+          error?.message
+          ||
+          "Einstellungen konnten nicht gespeichert werden."
+        );
     }
 
-    return;
-  }
-
-
-  if(meldung){
-    meldung.textContent =
-      "Website-Einstellungen wurden gespeichert.";
   }
 
 }
@@ -5756,489 +5769,6 @@ async function klassikerToggle(
 
 }
 
-
-
-/* ==========================================================
-   SPONTANE ANKÜNDIGUNGEN
-   ========================================================== */
-
-async function ankuendigungenLaden(){
-
-  const statusBox =
-    document.getElementById(
-      "ankuendigung-aktueller-status"
-    );
-
-  if(!statusBox){
-    return;
-  }
-
-  statusBox.innerHTML =
-    "Wird geladen …";
-
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("Ankuendigungen")
-      .select("*")
-      .order(
-        "created_at",
-        {ascending:false}
-      )
-      .limit(1)
-      .maybeSingle();
-
-
-  if(error){
-
-    console.error(
-      "Ankündigungen:",
-      error
-    );
-
-    statusBox.innerHTML =
-      "<p>Ankündigung konnte nicht geladen werden.</p>";
-
-    return;
-  }
-
-
-  if(!data){
-
-    statusBox.innerHTML =
-      "<p>Aktuell ist keine Ankündigung hinterlegt.</p>";
-
-    document.getElementById(
-      "ankuendigung-titel"
-    ).value = "";
-
-    document.getElementById(
-      "ankuendigung-text"
-    ).value = "";
-
-    document.getElementById(
-      "ankuendigung-aktiv"
-    ).checked = false;
-
-    return;
-  }
-
-
-  document.getElementById(
-    "ankuendigung-titel"
-  ).value =
-    data.titel || "";
-
-  document.getElementById(
-    "ankuendigung-text"
-  ).value =
-    data.text || "";
-
-  document.getElementById(
-    "ankuendigung-aktiv"
-  ).checked =
-    data.aktiv === true;
-
-
-  statusBox.innerHTML = `
-    <div class="ankuendigung-admin-card ${
-      data.aktiv ? "aktiv" : "inaktiv"
-    }">
-
-      <div class="ankuendigung-admin-title">
-        ${data.titel || "Ohne Überschrift"}
-      </div>
-
-      <div class="ankuendigung-admin-text">
-        ${data.text || ""}
-      </div>
-
-      ${
-        data.bild_url
-          ? `
-            <img
-              src="${data.bild_url}"
-              alt=""
-            >
-          `
-          : ""
-      }
-
-      <span class="ankuendigung-status ${
-        data.aktiv ? "aktiv" : ""
-      }">
-        ${
-          data.aktiv
-            ? "Auf Website sichtbar"
-            : "Nicht sichtbar"
-        }
-      </span>
-
-      <div class="ankuendigung-admin-actions">
-
-        ${
-          data.aktiv
-            ? `
-              <button
-                type="button"
-                class="save"
-                onclick="ankuendigungDeaktivieren(${data.id})"
-              >
-                Ausblenden
-              </button>
-            `
-            : `
-              <button
-                type="button"
-                class="save"
-                onclick="ankuendigungAktivieren(${data.id})"
-              >
-                Anzeigen
-              </button>
-            `
-        }
-
-        <button
-          type="button"
-          onclick="ankuendigungLoeschen(${data.id},'${encodeURIComponent(data.storage_path || "")}')"
-        >
-          Löschen
-        </button>
-
-      </div>
-
-    </div>
-  `;
-}
-
-
-async function ankuendigungSpeichern(){
-
-  const titel =
-    document.getElementById(
-      "ankuendigung-titel"
-    ).value.trim();
-
-  const text =
-    document.getElementById(
-      "ankuendigung-text"
-    ).value.trim();
-
-  const aktiv =
-    document.getElementById(
-      "ankuendigung-aktiv"
-    ).checked;
-
-  const fileInput =
-    document.getElementById(
-      "ankuendigung-bild"
-    );
-
-  const meldung =
-    document.getElementById(
-      "ankuendigung-meldung"
-    );
-
-
-  if(
-    !titel &&
-    !text
-  ){
-
-    meldung.textContent =
-      "Bitte mindestens eine Überschrift oder einen Text eingeben.";
-
-    return;
-  }
-
-
-  const {
-    data:existing
-  } =
-    await supabaseClient
-      .from("Ankuendigungen")
-      .select("*")
-      .limit(1)
-      .maybeSingle();
-
-
-  let bildUrl =
-    existing?.bild_url ||
-    null;
-
-  let storagePath =
-    existing?.storage_path ||
-    null;
-
-
-  const file =
-    fileInput?.files?.[0];
-
-
-  if(file){
-
-    const extension =
-      (
-        file.name
-          .split(".")
-          .pop() ||
-        "jpg"
-      ).toLowerCase();
-
-    const newPath =
-      `ankuendigung-${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
-
-
-    const {
-      error:uploadError
-    } =
-      await supabaseClient
-        .storage
-        .from("ankuendigungen")
-        .upload(
-          newPath,
-          file,
-          {
-            contentType:file.type,
-            upsert:false,
-            cacheControl:"3600"
-          }
-        );
-
-
-    if(uploadError){
-
-      console.error(
-        uploadError
-      );
-
-      meldung.textContent =
-        "Das Bild konnte nicht hochgeladen werden.";
-
-      return;
-    }
-
-
-    const {
-      data:publicData
-    } =
-      supabaseClient
-        .storage
-        .from("ankuendigungen")
-        .getPublicUrl(
-          newPath
-        );
-
-
-    bildUrl =
-      publicData.publicUrl;
-
-    storagePath =
-      newPath;
-
-
-    if(existing?.storage_path){
-
-      await supabaseClient
-        .storage
-        .from("ankuendigungen")
-        .remove([
-          existing.storage_path
-        ]);
-
-    }
-
-  }
-
-
-  const values = {
-    titel,
-    text,
-    aktiv,
-    bild_url:bildUrl,
-    storage_path:storagePath
-  };
-
-
-  let result;
-
-
-  if(existing?.id){
-
-    result =
-      await supabaseClient
-        .from("Ankuendigungen")
-        .update(values)
-        .eq(
-          "id",
-          existing.id
-        );
-
-  }else{
-
-    result =
-      await supabaseClient
-        .from("Ankuendigungen")
-        .insert([
-          values
-        ]);
-
-  }
-
-
-  if(result.error){
-
-    console.error(
-      result.error
-    );
-
-    meldung.textContent =
-      "Die Ankündigung konnte nicht gespeichert werden.";
-
-    return;
-  }
-
-
-  fileInput.value =
-    "";
-
-  meldung.textContent =
-    aktiv
-      ? "Ankündigung wurde veröffentlicht."
-      : "Ankündigung wurde gespeichert und ist derzeit nicht sichtbar.";
-
-  ankuendigungenLaden();
-
-}
-
-
-async function ankuendigungAktivieren(
-  id
-){
-
-  const {
-    error
-  } =
-    await supabaseClient
-      .from("Ankuendigungen")
-      .update({
-        aktiv:true
-      })
-      .eq(
-        "id",
-        id
-      );
-
-  if(error){
-
-    console.error(error);
-
-    return;
-  }
-
-  ankuendigungenLaden();
-
-}
-
-
-async function ankuendigungDeaktivieren(
-  id
-){
-
-  const {
-    error
-  } =
-    await supabaseClient
-      .from("Ankuendigungen")
-      .update({
-        aktiv:false
-      })
-      .eq(
-        "id",
-        id
-      );
-
-  if(error){
-
-    console.error(error);
-
-    return;
-  }
-
-  ankuendigungenLaden();
-
-}
-
-
-async function ankuendigungLoeschen(
-  id,
-  encodedPath
-){
-
-  if(
-    !confirm(
-      "Diese Ankündigung wirklich löschen?"
-    )
-  ){
-    return;
-  }
-
-
-  const {
-    error
-  } =
-    await supabaseClient
-      .from("Ankuendigungen")
-      .delete()
-      .eq(
-        "id",
-        id
-      );
-
-
-  if(error){
-
-    console.error(error);
-
-    return;
-  }
-
-
-  const storagePath =
-    decodeURIComponent(
-      encodedPath || ""
-    );
-
-
-  if(storagePath){
-
-    try{
-
-      await supabaseClient
-        .storage
-        .from("ankuendigungen")
-        .remove([
-          storagePath
-        ]);
-
-    }catch(error){
-
-      console.warn(
-        "Ankündigungsbild konnte nicht gelöscht werden:",
-        error
-      );
-
-    }
-
-  }
-
-
-  ankuendigungenLaden();
-
-}
 
 </script>
 
