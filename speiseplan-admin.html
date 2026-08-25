@@ -1019,20 +1019,54 @@ async function sondertagSpeichern(){
     return;
   }
 
-  const {error}=
+  /*
+   * Erst prüfen, ob für dieses Datum bereits ein Sondertag existiert.
+   * So benötigen wir keinen UNIQUE-Constraint auf "datum".
+   */
+  const {data:existing, error:findError} =
     await supabaseClient
       .from("Sonderoeffnungszeiten")
-      .upsert([{
-        datum,
-        geschlossen,
-        von:geschlossen ? null : von,
-        bis:geschlossen ? null : bis,
-        hinweis
-      }],{onConflict:"datum"});
+      .select("id")
+      .eq("datum",datum)
+      .maybeSingle();
 
-  if(error){
-    console.error(error);
-    meldung.textContent=
+  if(findError){
+    console.error(findError);
+    meldung.textContent =
+      "Der Sondertag konnte nicht geprüft werden.";
+    return;
+  }
+
+  const sonderData = {
+    datum,
+    geschlossen,
+    von:geschlossen ? null : von,
+    bis:geschlossen ? null : bis,
+    hinweis
+  };
+
+  let saveResult;
+
+  if(existing?.id){
+
+    saveResult =
+      await supabaseClient
+        .from("Sonderoeffnungszeiten")
+        .update(sonderData)
+        .eq("id",existing.id);
+
+  }else{
+
+    saveResult =
+      await supabaseClient
+        .from("Sonderoeffnungszeiten")
+        .insert([sonderData]);
+
+  }
+
+  if(saveResult.error){
+    console.error(saveResult.error);
+    meldung.textContent =
       "Sondertag konnte nicht gespeichert werden.";
     return;
   }
