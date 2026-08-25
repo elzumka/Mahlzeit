@@ -560,20 +560,20 @@ button.save{margin-top:28px;padding:14px 24px;border:0;background:var(--green);c
 }
 
 .gericht-aktionen .ausverkauft-button{
-  background:#b84b3a;
-  border-color:#b84b3a;
-  color:#fff;
+  background:#b84b3a !important;
+  border-color:#b84b3a !important;
+  color:#fff !important;
 }
 
 .gericht-aktionen .ausverkauft-button:hover{
-  background:#9f3d31;
-  border-color:#9f3d31;
+  background:#9f3d31 !important;
+  border-color:#9f3d31 !important;
 }
 
 .gericht-aktionen .verfuegbar-button{
-  background:var(--green);
-  border-color:var(--green);
-  color:var(--cream);
+  background:var(--green) !important;
+  border-color:var(--green) !important;
+  color:var(--cream) !important;
 }
 
 .gericht-edit{
@@ -1336,13 +1336,29 @@ async function gerichtAusverkauftUmschalten(
     ausverkauft
 ){
 
+    const eintrag =
+        document.querySelector(
+            `.gericht-eintrag[data-id="${id}"]`
+        );
+
+    const button =
+        eintrag?.querySelector(
+            '.gericht-aktionen button:nth-child(2)'
+        );
+
+    if(button){
+        button.disabled=true;
+        button.textContent="Speichern …";
+    }
+
+
     const {
         error
     } =
         await supabaseClient
             .from('Gerichte')
             .update({
-                ausverkauft
+                ausverkauft:Boolean(ausverkauft)
             })
             .eq(
                 'id',
@@ -1352,7 +1368,20 @@ async function gerichtAusverkauftUmschalten(
 
     if(error){
 
-        console.error(error);
+        console.error(
+            "Ausverkauft-Update:",
+            error
+        );
+
+        if(button){
+
+            button.disabled=false;
+            button.textContent =
+                ausverkauft
+                    ? 'Ausverkauft'
+                    : 'Wieder verfügbar';
+
+        }
 
         document.getElementById(
             'meldung'
@@ -1360,6 +1389,80 @@ async function gerichtAusverkauftUmschalten(
             'Status konnte nicht geändert werden.';
 
         return;
+    }
+
+
+    /*
+     * Sofort sichtbaren Status aktualisieren.
+     * Dadurch muss die komplette Liste nicht neu aufgebaut werden.
+     */
+    if(eintrag){
+
+        eintrag.classList.toggle(
+            'sold',
+            Boolean(ausverkauft)
+        );
+
+    }
+
+
+    if(button){
+
+        button.disabled=false;
+
+        button.classList.toggle(
+            'ausverkauft-button',
+            Boolean(ausverkauft)
+        );
+
+        button.classList.toggle(
+            'verfuegbar-button',
+            !Boolean(ausverkauft)
+        );
+
+        button.textContent =
+            ausverkauft
+                ? 'Wieder verfügbar'
+                : 'Ausverkauft';
+
+        button.setAttribute(
+            'onclick',
+            `gerichtAusverkauftUmschalten(${id},${!ausverkauft})`
+        );
+
+    }
+
+
+    /*
+     * Badge im Gericht ebenfalls sofort aktualisieren.
+     */
+    const meta =
+        eintrag?.querySelector(
+            '.gericht-meta'
+        );
+
+    if(meta){
+
+        const vorhandenesBadge =
+            meta.querySelector(
+                '.gericht-badge.sold'
+            );
+
+        if(ausverkauft && !vorhandenesBadge){
+
+            meta.insertAdjacentHTML(
+                'beforeend',
+                '<span class="gericht-badge sold">Ausverkauft</span>'
+            );
+
+        }else if(
+            !ausverkauft &&
+            vorhandenesBadge
+        ){
+
+            vorhandenesBadge.remove();
+
+        }
 
     }
 
@@ -1370,8 +1473,6 @@ async function gerichtAusverkauftUmschalten(
         ausverkauft
             ? 'Gericht als ausverkauft markiert.'
             : 'Gericht ist wieder verfügbar.';
-
-    await gerichteLaden();
 
 }
 
