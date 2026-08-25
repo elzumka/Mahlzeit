@@ -559,6 +559,23 @@ button.save{margin-top:28px;padding:14px 24px;border:0;background:var(--green);c
   font-size:11px;
 }
 
+.gericht-aktionen .ausverkauft-button{
+  background:#b84b3a;
+  border-color:#b84b3a;
+  color:#fff;
+}
+
+.gericht-aktionen .ausverkauft-button:hover{
+  background:#9f3d31;
+  border-color:#9f3d31;
+}
+
+.gericht-aktionen .verfuegbar-button{
+  background:var(--green);
+  border-color:var(--green);
+  color:var(--cream);
+}
+
 .gericht-edit{
   display:grid;
   grid-template-columns:1fr 1fr 120px;
@@ -1167,7 +1184,7 @@ function gerichtKarteErstellen(
 
             <button
                 type="button"
-                class="save"
+                class="${gericht.ausverkauft ? 'ausverkauft-button' : 'verfuegbar-button'}"
                 onclick="gerichtAusverkauftUmschalten(${gericht.id},${!gericht.ausverkauft})"
             >
                 ${
