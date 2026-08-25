@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mahlzeit! – Verwaltung · Speiseplan & Tagesverwaltung</title>
+<title>Mahlzeit! – Verwaltung · Übersicht &amp; Speiseplan</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
 :root{--green:#285437;--green-dark:#1d4029;--cream:#f5eee4;--beige:#ddd1bf;--black:#20201d;--line:#b8ad9d;}
@@ -167,19 +167,235 @@ button.save{margin-top:28px;padding:14px 24px;border:0;background:var(--green);c
   }
 }
 
+
+.dashboard-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:20px;
+  margin-bottom:28px;
+}
+
+.dashboard-header h2{
+  margin:0 0 8px;
+  color:var(--green);
+  font-family:"Barlow Condensed",sans-serif;
+  font-size:clamp(44px,6vw,72px);
+  line-height:.9;
+  text-transform:uppercase;
+}
+
+.dashboard-refresh{
+  margin-top:0;
+  white-space:nowrap;
+}
+
+.dashboard-summary{
+  margin:0 0 24px;
+  padding:18px 20px;
+  border-radius:10px;
+  font-weight:700;
+  text-align:center;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.2);
+  color:var(--green);
+}
+
+.dashboard-summary.ok{
+  background:rgba(40,84,55,.08);
+  border-color:rgba(40,84,55,.2);
+}
+
+.dashboard-summary.warn{
+  background:rgba(194,140,48,.1);
+  border-color:rgba(194,140,48,.3);
+}
+
+.dashboard-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:18px;
+}
+
+.dashboard-card{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.18);
+  border-radius:10px;
+  padding:22px;
+}
+
+.dashboard-card h3{
+  margin:0 0 18px;
+  color:var(--green);
+  font-family:"Barlow Condensed",sans-serif;
+  font-size:30px;
+  line-height:.95;
+  text-transform:uppercase;
+}
+
+.dashboard-wide{
+  grid-column:1 / -1;
+}
+
+.dashboard-status-row{
+  display:flex;
+  justify-content:space-between;
+  gap:15px;
+  padding:11px 0;
+  border-bottom:1px solid var(--line);
+}
+
+.dashboard-status-row:last-child{
+  border-bottom:0;
+}
+
+.dashboard-status-row strong{
+  color:var(--green);
+}
+
+.dashboard-pill{
+  display:inline-block;
+  padding:5px 9px;
+  border-radius:8px;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+.dashboard-pill.ok{
+  background:var(--green);
+  color:var(--cream);
+}
+
+.dashboard-pill.warn{
+  background:#b67a24;
+  color:#fff;
+}
+
+.dashboard-pill.bad{
+  background:#b84b3a;
+  color:#fff;
+}
+
+.dashboard-check{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  padding:10px 0;
+  border-bottom:1px solid var(--line);
+}
+
+.dashboard-check:last-child{
+  border-bottom:0;
+}
+
+.dashboard-check-icon{
+  flex:0 0 22px;
+  font-weight:800;
+}
+
+.dashboard-check.ok .dashboard-check-icon{
+  color:var(--green);
+}
+
+.dashboard-check.warn .dashboard-check-icon{
+  color:#b67a24;
+}
+
+.dashboard-check.bad .dashboard-check-icon{
+  color:#b84b3a;
+}
+
+.dashboard-muted{
+  color:#666;
+  font-size:13px;
+  line-height:1.5;
+}
+
+@media(max-width:800px){
+  .dashboard-header{
+    flex-direction:column;
+  }
+
+  .dashboard-refresh{
+    width:100%;
+  }
+
+  .dashboard-grid{
+    grid-template-columns:1fr;
+  }
+
+  .dashboard-wide{
+    grid-column:auto;
+  }
+
+  .dashboard-status-row{
+    flex-direction:column;
+    gap:7px;
+  }
+}
+
 </style>
 </head>
 <body>
 <div class="container">
 <h1>Mahlzeit! Verwaltung</h1>
 <div class="admin-tabs">
-<button class="admin-tab active" type="button" onclick="zeigeBereich('gerichte-bereich',this)">Gerichte</button>
+<button class="admin-tab active" type="button" onclick="zeigeBereich('dashboard-bereich',this);dashboardLaden()">Übersicht</button>
+<button class="admin-tab" type="button" onclick="zeigeBereich('gerichte-bereich',this)">Gerichte</button>
 <button class="admin-tab" type="button" onclick="zeigeBereich('speiseplan-bereich',this);sp_init()">Speiseplan</button>
 <button class="admin-tab" type="button" onclick="zeigeBereich('sondertage-bereich',this);sondertageLaden()">Sondertage</button>
 <button class="admin-tab" type="button" onclick="zeigeBereich('hero-bilder-bereich',this);heroBilderLaden()">
   Website Bilder
 </button>
 </div>
+
+
+<section id="dashboard-bereich" class="admin-bereich active">
+
+  <div class="dashboard-header">
+    <div>
+      <h2>Übersicht</h2>
+      <p class="intro">
+        Hier siehst du sofort, ob der aktuelle und die kommenden Speisepläne
+        vollständig sind und ob noch etwas fehlt.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="save dashboard-refresh"
+      onclick="dashboardLaden()"
+    >
+      Aktualisieren
+    </button>
+  </div>
+
+  <div id="dashboard-summary" class="dashboard-summary">
+    Wird geladen …
+  </div>
+
+  <div class="dashboard-grid">
+
+    <div class="dashboard-card">
+      <h3>Aktueller Plan</h3>
+      <div id="dashboard-current">Wird geladen …</div>
+    </div>
+
+    <div class="dashboard-card">
+      <h3>Nächste Wochen</h3>
+      <div id="dashboard-upcoming">Wird geladen …</div>
+    </div>
+
+    <div class="dashboard-card dashboard-wide">
+      <h3>Qualitätsprüfung</h3>
+      <div id="dashboard-checks">Wird geladen …</div>
+    </div>
+
+  </div>
+
+</section>
 
 <section id="gerichte-bereich" class="admin-bereich active">
 <div class="form">
@@ -1860,6 +2076,424 @@ async function heroBildLoeschen(
 
   heroBilderLaden();
 
+}
+
+
+
+/* ==========================================================
+   ADMIN-DASHBOARD / QUALITÄTSPRÜFUNG
+   ========================================================== */
+
+function dashboardIsoDate(offsetDays=0){
+  const d = new Date();
+  d.setHours(12,0,0,0);
+  d.setDate(d.getDate()+offsetDays);
+  return d.toISOString().slice(0,10);
+}
+
+function dashboardIsoStart(year, week){
+  const simple = new Date(Date.UTC(year,0,4));
+  const day = simple.getUTCDay() || 7;
+  simple.setUTCDate(simple.getUTCDate() - day + 1 + (week-1)*7);
+  return simple;
+}
+
+function dashboardIsoWeek(date=new Date()){
+  const d = new Date(Date.UTC(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate()
+  ));
+  const day = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  const week = Math.ceil(
+    (((d-yearStart)/86400000)+1) / 7
+  );
+  return {
+    year:d.getUTCFullYear(),
+    week
+  };
+}
+
+function dashboardDateText(iso){
+  const d = new Date(iso+"T00:00:00");
+  return d.toLocaleDateString("de-DE",{
+    day:"2-digit",
+    month:"2-digit",
+    year:"numeric"
+  });
+}
+
+function dashboardWeekRange(year,week){
+  const start = dashboardIsoStart(year,week);
+  const end = new Date(start);
+  end.setUTCDate(end.getUTCDate()+4);
+  return {
+    start:start.toISOString().slice(0,10),
+    end:end.toISOString().slice(0,10)
+  };
+}
+
+async function dashboardLaden(){
+
+  const summary = document.getElementById("dashboard-summary");
+  const currentBox = document.getElementById("dashboard-current");
+  const upcomingBox = document.getElementById("dashboard-upcoming");
+  const checksBox = document.getElementById("dashboard-checks");
+
+  if(!summary || !currentBox || !upcomingBox || !checksBox){
+    return;
+  }
+
+  summary.className="dashboard-summary";
+  summary.textContent="Übersicht wird geladen …";
+  currentBox.innerHTML="Wird geladen …";
+  upcomingBox.innerHTML="Wird geladen …";
+  checksBox.innerHTML="Wird geladen …";
+
+  try{
+
+    const now = new Date();
+    const currentKW = dashboardIsoWeek(now);
+
+    const ranges = [];
+    for(let i=0;i<4;i++){
+      const monday = new Date(now);
+      monday.setDate(
+        monday.getDate()
+        - ((monday.getDay()+6)%7)
+        + i*7
+      );
+      const iso = dashboardIsoWeek(monday);
+      ranges.push({
+        ...iso,
+        ...dashboardWeekRange(iso.year,iso.week)
+      });
+    }
+
+    const firstRange = ranges[0];
+    const lastRange = ranges[ranges.length-1];
+
+    const [
+      {data:gerichte,error:gerichteError},
+      {data:plaene,error:plaeneError},
+      {data:sondertage,error:sondertageError},
+    ] = await Promise.all([
+      supabaseClient
+        .from("Gerichte")
+        .select("*")
+        .gte("datum",firstRange.start)
+        .lte("datum",lastRange.end)
+        .order("datum",{ascending:true})
+        .order("gerichte",{ascending:true}),
+
+      supabaseClient
+        .from("Speiseplaene")
+        .select("*")
+        .gte("jahr",ranges[0].year)
+        .order("jahr",{ascending:true})
+        .order("kw",{ascending:true}),
+
+      supabaseClient
+        .from("Sonderoeffnungszeiten")
+        .select("*")
+        .gte("datum",firstRange.start)
+        .lte("datum",lastRange.end)
+        .order("datum",{ascending:true})
+    ]);
+
+    if(gerichteError){
+      throw gerichteError;
+    }
+
+    if(plaeneError){
+      throw plaeneError;
+    }
+
+    const todayIso =
+      new Date().toISOString().slice(0,10);
+
+    const todayGerichte =
+      (gerichte||[]).filter(
+        g => g.datum === todayIso
+      );
+
+    const currentPlan =
+      (plaene||[]).find(
+        p => Number(p.jahr)===currentKW.year &&
+             Number(p.kw)===currentKW.week
+      );
+
+    const publishedPlan =
+      (plaene||[])
+        .filter(p =>
+          new Date(p.aktiv_ab) <= now
+        )
+        .sort(
+          (a,b) =>
+            new Date(b.aktiv_ab) -
+            new Date(a.aktiv_ab)
+        )[0];
+
+    const upcomingPlans =
+      ranges.map(r => ({
+        ...r,
+        plan:
+          (plaene||[]).find(
+            p =>
+              Number(p.jahr)===r.year &&
+              Number(p.kw)===r.week
+          )
+      }));
+
+    const missing = [];
+    const qualityByWeek = [];
+
+    for(const r of ranges){
+
+      const weekGerichte =
+        (gerichte||[]).filter(
+          g =>
+            g.datum >= r.start &&
+            g.datum <= r.end
+        );
+
+      const byDay = {
+        1:[],
+        2:[],
+        3:[],
+        4:[],
+        5:[]
+      };
+
+      weekGerichte.forEach(g=>{
+        const d =
+          new Date(g.datum+"T00:00:00");
+        const day = d.getDay();
+        if(byDay[day]){
+          byDay[day].push(g);
+        }
+      });
+
+      const dayNames = {
+        1:"Montag",
+        2:"Dienstag",
+        3:"Mittwoch",
+        4:"Donnerstag",
+        5:"Freitag"
+      };
+
+      for(const day of [1,2,3,4,5]){
+
+        const items = byDay[day];
+
+        if(!items.length){
+          missing.push(
+            `KW ${r.week}: ${dayNames[day]} – kein Gericht eingetragen.`
+          );
+          continue;
+        }
+
+        const noPrice =
+          items.filter(
+            item =>
+              item.preis === null ||
+              item.preis === "" ||
+              Number.isNaN(Number(item.preis))
+          );
+
+        if(noPrice.length){
+          missing.push(
+            `KW ${r.week}: ${dayNames[day]} – bei ${noPrice.length} Gericht(en) fehlt der Preis.`
+          );
+        }
+      }
+
+      const plan =
+        upcomingPlans.find(
+          p =>
+            p.year===r.year &&
+            p.week===r.week
+        )?.plan;
+
+      const planStatus =
+        plan
+          ? "Speiseplan vorhanden"
+          : "Speiseplan noch nicht veröffentlicht";
+
+      qualityByWeek.push({
+        ...r,
+        plan,
+        planStatus,
+        dayCount:
+          Object.values(byDay)
+            .filter(items=>items.length>0)
+            .length
+      });
+    }
+
+    // Current plan card
+    currentBox.innerHTML = `
+      <div class="dashboard-status-row">
+        <div>
+          <strong>KW ${currentKW.week}</strong>
+          <div class="dashboard-muted">
+            ${dashboardDateText(firstRange.start)}
+            – ${dashboardDateText(firstRange.end)}
+          </div>
+        </div>
+        <span class="dashboard-pill ${
+          currentPlan ? "ok" : "bad"
+        }">
+          ${currentPlan ? "angelegt" : "fehlt"}
+        </span>
+      </div>
+
+      <div class="dashboard-status-row">
+        <div>
+          <strong>Online</strong>
+          <div class="dashboard-muted">
+            ${
+              publishedPlan
+                ? `KW ${publishedPlan.kw}`
+                : "Noch kein Plan aktiv"
+            }
+          </div>
+        </div>
+        <span class="dashboard-pill ${
+          publishedPlan ? "ok" : "warn"
+        }">
+          ${publishedPlan ? "aktiv" : "prüfen"}
+        </span>
+      </div>
+
+      <div class="dashboard-status-row">
+        <div>
+          <strong>Heute</strong>
+          <div class="dashboard-muted">
+            ${todayGerichte.length} Gericht(e) eingetragen
+          </div>
+        </div>
+        <span class="dashboard-pill ${
+          todayGerichte.length ? "ok" : "bad"
+        }">
+          ${todayGerichte.length ? "bereit" : "fehlt"}
+        </span>
+      </div>
+    `;
+
+    // Upcoming weeks
+    upcomingBox.innerHTML =
+      qualityByWeek.slice(1).map(
+        item => `
+          <div class="dashboard-status-row">
+            <div>
+              <strong>KW ${item.week}</strong>
+              <div class="dashboard-muted">
+                ${dashboardDateText(item.start)}
+                – ${dashboardDateText(item.end)}
+              </div>
+            </div>
+            <span class="dashboard-pill ${
+              item.plan ? "ok" : "warn"
+            }">
+              ${
+                item.plan
+                  ? "vorbereitet"
+                  : "noch offen"
+              }
+            </span>
+          </div>
+        `
+      ).join("");
+
+    // Quality checks
+    if(missing.length===0){
+
+      checksBox.innerHTML = `
+        <div class="dashboard-check ok">
+          <div class="dashboard-check-icon">✓</div>
+          <div>
+            <strong>Alles vollständig</strong>
+            <div class="dashboard-muted">
+              In den nächsten vier Wochen fehlen keine Gerichte oder Preise.
+            </div>
+          </div>
+        </div>
+      `;
+
+    }else{
+
+      checksBox.innerHTML =
+        missing.map(
+          item => `
+            <div class="dashboard-check warn">
+              <div class="dashboard-check-icon">!</div>
+              <div>${item}</div>
+            </div>
+          `
+        ).join("");
+    }
+
+    // Additional plan checks.
+    qualityByWeek.slice(0,3).forEach(item=>{
+
+      if(!item.plan){
+
+        checksBox.innerHTML += `
+          <div class="dashboard-check warn">
+            <div class="dashboard-check-icon">!</div>
+            <div>
+              <strong>KW ${item.week}</strong>
+              <div>
+                Noch kein veröffentlichter Speiseplan gespeichert.
+              </div>
+            </div>
+          </div>
+        `;
+
+      }
+
+    });
+
+    const hasProblems =
+      missing.length>0 ||
+      qualityByWeek.slice(0,3).some(
+        item => !item.plan
+      );
+
+    summary.classList.add(
+      hasProblems
+        ? "warn"
+        : "ok"
+    );
+
+    summary.textContent =
+      hasProblems
+        ? "⚠️ Es gibt noch Punkte zu prüfen."
+        : "✓ Alles bereit – die kommenden Wochen sind vollständig.";
+
+  }catch(error){
+
+    console.error(
+      "Dashboard-Fehler:",
+      error
+    );
+
+    summary.classList.add("warn");
+    summary.textContent =
+      "Die Übersicht konnte nicht geladen werden.";
+
+    currentBox.innerHTML =
+      '<p>Supabase-Daten konnten nicht geladen werden.</p>';
+
+    upcomingBox.innerHTML =
+      '<p>Supabase-Daten konnten nicht geladen werden.</p>';
+
+    checksBox.innerHTML =
+      '<p>Bitte Browser-Konsole prüfen.</p>';
+  }
 }
 
 
