@@ -392,9 +392,26 @@ h1 {
 }
 
 #gerichte-container{
+  width:100%;
   max-width:980px;
   margin:0 auto;
   justify-content:center;
+}
+
+#gerichte-container .feierabend-box{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+}
+
+#gerichte-container .feierabend-box img{
+  display:block;
+  width:100%;
+  max-width:850px;
+  height:auto;
+  margin:0 auto;
 }
 
 .menu {
@@ -1582,7 +1599,11 @@ async function downloadSpeiseplanPDF(){
   </div>
 
   <div class="hero-art">
-    <div class="hero-slideshow" aria-label="Gerichte von Mahlzeit">
+    <div
+      id="hero-slideshow"
+      class="hero-slideshow"
+      aria-label="Gerichte von Mahlzeit"
+    >
       <img
         class="hero-photo hero-slide active"
         src="gericht-hero.png"
@@ -2078,6 +2099,179 @@ const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_KEY
 );
+
+
+async function ladeHeroBilder(){
+
+  const slideshow =
+    document.getElementById("hero-slideshow");
+
+  if(!slideshow)return;
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("HeroBilder")
+      .select("*")
+      .eq("aktiv",true)
+      .order("sortierung",{ascending:true})
+      .order("created_at",{ascending:true});
+
+
+  if(error){
+
+    console.warn(
+      "Hero-Bilder konnten nicht aus Supabase geladen werden:",
+      error
+    );
+
+    // Fallback: die bereits im HTML hinterlegten Bilder behalten.
+    starteHeroSlideshow();
+
+    return;
+  }
+
+
+  if(!data || !data.length){
+
+    // Solange noch keine Bilder über die Verwaltung angelegt wurden,
+    // bleibt die bisherige lokale Slideshow aktiv.
+    starteHeroSlideshow();
+
+    return;
+  }
+
+
+  slideshow.innerHTML = "";
+
+
+  data.forEach(
+    (bild,index) => {
+
+      const img =
+        document.createElement("img");
+
+      img.className =
+        "hero-photo hero-slide"
+        + (
+          index === 0
+            ? " active"
+            : ""
+        );
+
+      img.src =
+        bild.bild_url;
+
+      img.alt =
+        bild.alt_text ||
+        "Gericht von Mahlzeit";
+
+      img.loading =
+        index === 0
+          ? "eager"
+          : "lazy";
+
+      slideshow.appendChild(
+        img
+      );
+
+    }
+  );
+
+
+  slideshow.dataset.loaded =
+    "supabase";
+
+
+  starteHeroSlideshow();
+
+}
+
+
+function starteHeroSlideshow(){
+
+  const slideshow =
+    document.getElementById("hero-slideshow");
+
+  if(!slideshow)return;
+
+  if(
+    slideshow.dataset.timerStarted === "true"
+  ){
+    return;
+  }
+
+
+  const getSlides =
+    () =>
+      Array.from(
+        slideshow.querySelectorAll(".hero-slide")
+      );
+
+
+  let current =
+    0;
+
+
+  slideshow.dataset.timerStarted =
+    "true";
+
+
+  setInterval(
+    () => {
+
+      const slides =
+        getSlides();
+
+
+      if(slides.length < 2){
+        return;
+      }
+
+
+      const activeIndex =
+        slides.findIndex(
+          slide =>
+            slide.classList.contains("active")
+        );
+
+
+      current =
+        activeIndex >= 0
+          ? activeIndex
+          : current;
+
+
+      slides[current]
+        ?.classList.remove("active");
+
+
+      current =
+        (current + 1)
+        % slides.length;
+
+
+      slides[current]
+        ?.classList.add("active");
+
+    },
+    4500
+  );
+
+}
+
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+    ladeHeroBilder();
+  }
+);
+
+
 
 </script>
 
