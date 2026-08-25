@@ -604,6 +604,79 @@ footer {
   text-align: center;
 }
 
+.location{
+  padding:70px 6vw;
+  background:var(--cream);
+  border-top:1px solid var(--line);
+}
+
+.location-inner{
+  max-width:1250px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:minmax(280px, .8fr) minmax(420px, 1.6fr);
+  gap:45px;
+  align-items:stretch;
+}
+
+.location-copy{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:10px 0;
+}
+
+.location-copy .eyebrow{
+  margin:0 0 12px;
+  color:var(--green);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+
+.location-copy h2{
+  margin:0 0 22px;
+  color:var(--green);
+  font-family:"Barlow Condensed",sans-serif;
+  font-size:clamp(48px,6vw,78px);
+  line-height:.9;
+  text-transform:uppercase;
+}
+
+.location-copy p{
+  margin:0 0 25px;
+  line-height:1.6;
+  font-size:18px;
+}
+
+.location-button{
+  display:inline-block;
+  align-self:flex-start;
+  padding:13px 20px;
+  background:var(--green);
+  color:var(--cream);
+  text-decoration:none;
+  font-weight:700;
+  letter-spacing:.07em;
+  font-size:12px;
+}
+
+.location-map{
+  min-height:360px;
+  border:1px solid var(--line);
+  background:var(--beige);
+  overflow:hidden;
+}
+
+.location-map iframe{
+  width:100%;
+  height:100%;
+  min-height:360px;
+  display:block;
+  border:0;
+}
+
 .legal{
   border-top:1px solid var(--line);
   padding:30px 6vw 0;
@@ -1056,6 +1129,72 @@ footer p {
   border: 1px solid var(--line);
   background: rgba(255,255,255,.12);
 }
+
+/* Rechtliche Hinweise: nur nach Klick als Popup anzeigen */
+.legal{
+  padding:18px 6vw 10px;
+  background:var(--cream);
+  border-top:1px solid var(--line);
+}
+.legal-inner{
+  max-width:1250px;
+  margin:0 auto;
+  text-align:center;
+}
+.legal-links{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:8px;
+  font-size:11px;
+  color:#666;
+}
+.legal-links a{
+  color:#666;
+  text-decoration:none;
+}
+.legal-modal{
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  display:none !important;
+  visibility:hidden;
+  opacity:0;
+}
+.legal-modal.open{
+  display:block !important;
+  visibility:visible;
+  opacity:1;
+}
+.legal-modal-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.55);
+}
+.legal-modal-box{
+  position:relative;
+  width:min(720px,calc(100vw - 32px));
+  max-height:calc(100vh - 48px);
+  overflow:auto;
+  margin:24px auto;
+  padding:38px 34px 30px;
+  background:var(--cream);
+  border:1px solid var(--line);
+  box-shadow:0 18px 60px rgba(0,0,0,.24);
+}
+.legal-modal-close{
+  position:absolute;
+  top:10px;
+  right:12px;
+  width:38px;
+  height:38px;
+  border:0;
+  background:transparent;
+  color:var(--green);
+  font-size:30px;
+  cursor:pointer;
+}
+body.legal-modal-open{overflow:hidden;}
 </style>
 </head>
 
@@ -1358,6 +1497,39 @@ footer p {
 </section> 
 
 </main>
+
+
+<section class="location" id="standort">
+  <div class="location-inner">
+
+    <div class="location-copy">
+      <p class="eyebrow">HIER FINDET IHR UNS</p>
+      <h2>Kommt vorbei!</h2>
+      <p>
+        Mönchsgasse 2–3<br>
+        03046 Cottbus
+      </p>
+      <a
+        class="location-button"
+        href="https://www.google.com/maps/search/?api=1&query=Mönchsgasse+2-3,+03046+Cottbus"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        ROUTE ÖFFNEN
+      </a>
+    </div>
+
+    <div class="location-map">
+      <iframe
+        title="Karte – Mahlzeit! Kantine & Mittagstisch"
+        src="https://www.google.com/maps?q=M%C3%B6nchsgasse%202-3%2C%2003046%20Cottbus&output=embed"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+      ></iframe>
+    </div>
+
+  </div>
+</section>
 
 <section class="legal" aria-label="Rechtliche Hinweise">
   <div class="legal-inner">
