@@ -1154,6 +1154,7 @@ button{
     >
 
     <button
+      id="website-einstellungen-speichern"
       type="button"
       class="save"
       onclick="websiteEinstellungenSpeichern()"
@@ -1162,6 +1163,13 @@ button{
     </button>
 
     <div id="website-einstellungen-meldung"></div>
+    <div
+      id="website-einstellungen-sync-hinweis"
+      class="intro"
+      style="font-size:12px;margin-top:8px;color:var(--green)"
+    >
+      Die Einstellungen werden beim Öffnen der Verwaltung automatisch aus Supabase geladen.
+    </div>
 
   </div>
 
@@ -2939,6 +2947,8 @@ async function sp_publishPlanOriginal(){
 
 window.addEventListener("DOMContentLoaded",()=>{
   gerichteLaden();
+  websiteEinstellungenLaden();
+  klassikerLaden();
 });
 
 /* ==========================================================
@@ -5157,9 +5167,19 @@ async function websiteEinstellungenSpeichern(){
       "website-einstellungen-meldung"
     );
 
+  const saveButton =
+    document.getElementById(
+      "website-einstellungen-speichern"
+    );
+
   if(meldung){
     meldung.textContent =
       "Einstellungen werden gespeichert …";
+  }
+
+  if(saveButton){
+    saveButton.disabled = true;
+    saveButton.textContent = "Speichern …";
   }
 
 
@@ -5366,6 +5386,11 @@ async function websiteEinstellungenSpeichern(){
         "✓ Einstellungen wurden gespeichert.";
     }
 
+    if(saveButton){
+      saveButton.disabled = false;
+      saveButton.textContent = "Einstellungen speichern";
+    }
+
 
   }catch(error){
 
@@ -5382,6 +5407,11 @@ async function websiteEinstellungenSpeichern(){
           ||
           "Einstellungen konnten nicht gespeichert werden."
         );
+    }
+
+    if(saveButton){
+      saveButton.disabled = false;
+      saveButton.textContent = "Einstellungen speichern";
     }
 
   }
