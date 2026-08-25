@@ -1010,6 +1010,70 @@ button{
 
 }
 
+
+.website-editor-head{
+  display:flex;
+  justify-content:space-between;
+  gap:18px;
+  align-items:flex-end;
+  margin-bottom:18px;
+}
+
+.website-editor-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:18px;
+}
+
+.website-editor-card{
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:rgba(255,255,255,.16);
+  padding:20px;
+}
+
+.website-editor-card h3{
+  margin:0 0 16px;
+  color:var(--green);
+  font-family:"Barlow Condensed",sans-serif;
+  font-size:30px;
+  line-height:1;
+  text-transform:uppercase;
+}
+
+.website-editor-card label{
+  display:block;
+  margin:12px 0 6px;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  color:#555;
+}
+
+.website-editor-card input,
+.website-editor-card textarea{
+  width:100%;
+  margin:0;
+}
+
+@media(max-width:760px){
+  .website-editor-head{
+    display:grid;
+    grid-template-columns:1fr;
+    align-items:stretch;
+  }
+
+  .website-editor-head button{
+    width:100%;
+    min-height:48px;
+  }
+
+  .website-editor-grid{
+    grid-template-columns:1fr;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1028,6 +1092,9 @@ button{
 </button>
 <button class="admin-tab" type="button" onclick="zeigeBereich('ankuendigungen-bereich',this);ankuendigungenLaden()">
   Ankündigungen
+</button>
+<button class="admin-tab" type="button" onclick="zeigeBereich('website-texte-bereich',this);websiteTexteLaden()">
+  Website Texte
 </button>
 </div>
 
@@ -1308,6 +1375,22 @@ button{
      onchange="websiteEinstellungenAutoSpeichern()">
 
 
+    <h3 class="settings-subtitle">Oberer Hinweis</h3>
+
+    <label for="setting-top-banner-text">
+      Text im oberen Hinweisbereich
+    </label>
+
+    <textarea
+      id="setting-top-banner-text"
+      rows="2"
+      placeholder="Aktuell ausschließlich Mittagstisch · BALD AUCH FRÜHSTÜCK UND LIEFERSERVICE FÜR EUCH"
+    ></textarea>
+
+    <p class="intro" style="font-size:12px;color:var(--green)">
+      Dieser Text wird im grünen Hinweisbereich direkt unter dem oberen Öffnungsbereich angezeigt.
+    </p>
+
     <h3 class="settings-subtitle">Kontakt</h3>
 
     <label for="setting-telefon">
@@ -1540,6 +1623,242 @@ button{
 
     <div id="ankuendigung-aktueller-status">
       Wird geladen …
+    </div>
+
+  </div>
+
+</section>
+
+<section id="website-texte-bereich" class="admin-bereich">
+
+  <div class="website-editor-head">
+    <div>
+      <h2>Website Texte</h2>
+      <p class="intro">
+        Hier kannst du die festen Texte der öffentlichen Website zentral bearbeiten.
+        Die Oberfläche orientiert sich an den Bereichen der Website.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="save"
+      id="website-texte-save"
+      onclick="websiteTexteSpeichern()"
+    >
+      Texte speichern
+    </button>
+  </div>
+
+  <div id="website-texte-meldung"></div>
+
+  <div class="website-editor-grid">
+
+    <div class="website-editor-card">
+      <h3>Navigation</h3>
+
+      <label for="txt-nav-mittag">Mittagstisch</label>
+      <input id="txt-nav-mittag" type="text">
+
+      <label for="txt-nav-klassiker">Klassiker</label>
+      <input id="txt-nav-klassiker" type="text">
+
+      <label for="txt-nav-speiseplan">Speiseplan</label>
+      <input id="txt-nav-speiseplan" type="text">
+
+      <label for="txt-nav-fruehstueck">Frühstück</label>
+      <input id="txt-nav-fruehstueck" type="text">
+
+      <label for="txt-nav-kontakt">Kontakt</label>
+      <input id="txt-nav-kontakt" type="text">
+    </div>
+
+
+    <div class="website-editor-card">
+      <h3>Startbereich</h3>
+
+      <label for="txt-hero-kicker">Kicker</label>
+      <input id="txt-hero-kicker" type="text">
+
+      <label for="txt-hero-titel">Überschrift</label>
+      <input id="txt-hero-titel" type="text">
+
+      <label for="txt-hero-text">Beschreibung</label>
+      <textarea id="txt-hero-text" rows="4"></textarea>
+
+      <label for="txt-hero-button">Button</label>
+      <input id="txt-hero-button" type="text">
+    </div>
+
+
+    <div class="website-editor-card">
+      <h3>Öffnungsbereich</h3>
+
+      <label for="txt-info-mittag">Mittagstisch · Titel</label>
+      <input id="txt-info-mittag" type="text">
+
+      <label for="txt-info-mittag-tage">Mittagstisch · Tage</label>
+      <input id="txt-info-mittag-tage" type="text">
+
+      <label for="txt-info-fruehstueck">Frühstück · Titel</label>
+      <input id="txt-info-fruehstueck" type="text">
+
+      <label for="txt-info-fruehstueck-bald">Frühstück · Hinweis</label>
+      <input id="txt-info-fruehstueck-bald" type="text">
+
+      <label for="txt-info-lieferung">Lieferservice · Titel</label>
+      <input id="txt-info-lieferung" type="text">
+
+      <label for="txt-info-lieferung-bald">Lieferservice · Hinweis</label>
+      <input id="txt-info-lieferung-bald" type="text">
+
+      <label for="txt-top-hinweis">Hinweis unter Öffnungszeiten</label>
+      <textarea id="txt-top-hinweis" rows="3"></textarea>
+    </div>
+
+
+    <div class="website-editor-card">
+      <h3>Mittagstisch</h3>
+
+      <label for="txt-heute">Überschrift</label>
+      <input id="txt-heute" type="text">
+
+      <label for="txt-naechste-woche">Hinweis nächste Woche</label>
+      <input id="txt-naechste-woche" type="text">
+
+      <label for="txt-ausverkauft">Ausverkauft</label>
+      <input id="txt-ausverkauft" type="text">
+    </div>
+
+
+    <div class="website-editor-card">
+      <h3>Klassiker</h3>
+
+      <label for="txt-klassiker-heading">Überschrift</label>
+      <input id="txt-klassiker-heading" type="text">
+
+      <label for="txt-klassiker-vegetarisch">Vegetarisch-Hinweis</label>
+      <input id="txt-klassiker-vegetarisch" type="text">
+    </div>
+
+
+    <div class="website-editor-card">
+      <h3>Speiseplan</h3>
+
+      <label for="txt-speiseplan-heading">Überschrift</label>
+      <input id="txt-speiseplan-heading" type="text">
+
+      <label for="txt-speiseplan-kicker">Kicker</label>
+      <input id="txt-speiseplan-kicker" type="text">
+
+      <label for="txt-speiseplan-subline">Unterzeile</label>
+      <input id="txt-speiseplan-subline" type="text">
+
+      <label for="txt-speiseplan-loading">Ladehinweis</label>
+      <input id="txt-speiseplan-loading" type="text">
+
+      <label for="txt-speiseplan-button">Button</label>
+      <input id="txt-speiseplan-button" type="text">
+
+      <label for="txt-speiseplan-pdf">PDF-Button</label>
+      <input id="txt-speiseplan-pdf" type="text">
+
+      <label for="txt-speiseplan-note">Hinweis</label>
+      <textarea id="txt-speiseplan-note" rows="2"></textarea>
+    </div>
+
+
+    <div class="website-editor-card">
+      <h3>Kontakt</h3>
+
+      <label for="txt-kontakt-heading">Überschrift</label>
+      <input id="txt-kontakt-heading" type="text">
+
+      <label for="txt-label-adresse">Adresse · Label</label>
+      <input id="txt-label-adresse" type="text">
+
+      <label for="txt-label-telefon">Telefon · Label</label>
+      <input id="txt-label-telefon" type="text">
+
+      <label for="txt-label-instagram">Instagram · Label</label>
+      <input id="txt-label-instagram" type="text">
+
+      <label for="txt-offer-mittag">Mittagstisch · Label</label>
+      <input id="txt-offer-mittag" type="text">
+
+      <label for="txt-offer-mittag-text">Mittagstisch · Text</label>
+      <input id="txt-offer-mittag-text" type="text">
+
+      <label for="txt-offer-fruehstueck">Frühstück · Label</label>
+      <input id="txt-offer-fruehstueck" type="text">
+
+      <label for="txt-offer-fruehstueck-text">Frühstück · Text</label>
+      <input id="txt-offer-fruehstueck-text" type="text">
+
+      <label for="txt-offer-lieferung">Lieferservice · Label</label>
+      <input id="txt-offer-lieferung" type="text">
+
+      <label for="txt-offer-lieferung-text">Lieferservice · Text</label>
+      <input id="txt-offer-lieferung-text" type="text">
+    </div>
+
+
+    <div class="website-editor-card">
+      <h3>Standort</h3>
+
+      <label for="txt-standort-kicker">Kicker</label>
+      <input id="txt-standort-kicker" type="text">
+
+      <label for="txt-standort-button">Routen-Button</label>
+      <input id="txt-standort-button" type="text">
+    </div>
+
+
+    <div class="website-editor-card">
+      <h3>Footer</h3>
+
+      <label for="txt-footer-impressum">Impressum</label>
+      <input id="txt-footer-impressum" type="text">
+
+      <label for="txt-footer-datenschutz">Datenschutzerklärung</label>
+      <input id="txt-footer-datenschutz" type="text">
+
+      <label for="txt-footer-jahr">Copyright-Text</label>
+      <input id="txt-footer-jahr" type="text">
+    </div>
+
+
+    <div class="website-editor-card">
+      <h3>Rechtliches</h3>
+
+      <label for="txt-impressum-heading">Impressum · Überschrift</label>
+      <input id="txt-impressum-heading" type="text">
+
+      <label for="txt-impressum-inhaberin">Inhaberin · Label</label>
+      <input id="txt-impressum-inhaberin" type="text">
+
+      <label for="txt-impressum-firma">Firmenname</label>
+      <input id="txt-impressum-firma" type="text">
+
+      <label for="txt-impressum-telefon">Telefon · Label</label>
+      <input id="txt-impressum-telefon" type="text">
+
+      <label for="txt-impressum-placeholder">Hinweistext</label>
+      <textarea id="txt-impressum-placeholder" rows="3"></textarea>
+
+      <label for="txt-datenschutz-heading">Datenschutz · Überschrift</label>
+      <input id="txt-datenschutz-heading" type="text">
+
+      <label for="txt-datenschutz-placeholder">Datenschutztext</label>
+      <textarea id="txt-datenschutz-placeholder" rows="4"></textarea>
+    </div>
+
+
+    <div class="website-editor-card">
+      <h3>Ganz unten</h3>
+
+      <label for="txt-footer-slogan">Slogan</label>
+      <input id="txt-footer-slogan" type="text">
     </div>
 
   </div>
@@ -5360,6 +5679,12 @@ async function websiteEinstellungenLaden(){
     setValue("setting-telefon",values.telefon||"0355 25057");
     setValue("setting-instagram",values.instagram||"@mahlzeit_cottbus");
 
+    setValue(
+      "setting-top-banner-text",
+      values.top_banner_text ||
+      "Aktuell ausschließlich Mittagstisch · BALD AUCH FRÜHSTÜCK UND LIEFERSERVICE FÜR EUCH"
+    );
+
     if(meldung){
       meldung.textContent =
         data
@@ -5418,7 +5743,11 @@ function websiteEinstellungenWerte(){
 
     instagram:
       document.getElementById("setting-instagram")?.value.trim() ||
-      "@mahlzeit_cottbus"
+      "@mahlzeit_cottbus",
+
+    top_banner_text:
+      document.getElementById("setting-top-banner-text")?.value.trim() ||
+      "Aktuell ausschließlich Mittagstisch · BALD AUCH FRÜHSTÜCK UND LIEFERSERVICE FÜR EUCH"
   };
 
 }
@@ -6415,6 +6744,226 @@ async function ankuendigungLoeschen(
 
   ankuendigungenLaden();
 
+}
+
+
+const WEBSITE_TEXTE_DEFAULTS = {
+  nav_mittag:"Mittagstisch Heute",
+  nav_klassiker:"Klassiker",
+  nav_speiseplan:"Speiseplan",
+  nav_fruehstueck:"Frühstück",
+  nav_kontakt:"Kontakt",
+
+  hero_kicker:"Aktuell nur Mittagstisch · Frühstück & Lieferservice ab November",
+  hero_titel:"Mahlzeit!",
+  hero_text:"Frisches Essen, ehrliche Küche und eine gute Mahlzeit mitten in Cottbus.",
+  hero_button:"Was gibt's heute?",
+
+  info_mittag:"MITTAGSTISCH",
+  info_mittag_tage:"MO – FR",
+  info_fruehstueck:"FRÜHSTÜCK",
+  info_fruehstueck_bald:"BALD AUCH FRÜHSTÜCK",
+  info_lieferung:"LIEFERSERVICE",
+  info_lieferung_bald:"BALD AUCH LIEFERSERVICE",
+  top_hinweis:"Aktuell ausschließlich Mittagstisch · BALD AUCH FRÜHSTÜCK UND LIEFERSERVICE FÜR EUCH",
+
+  heute:"Heute bei uns",
+  naechste_woche:"Ab Freitag 14:00 Uhr ist unser Speiseplan für nächste Woche online.",
+  ausverkauft:"AUSVERKAUFT",
+
+  klassiker_heading:"Unsere täglichen Klassiker",
+  klassiker_vegetarisch:"Vegetarisch",
+
+  speiseplan_heading:"Speiseplan",
+  speiseplan_kicker:"MAHLZEIT · SPEISEPLAN",
+  speiseplan_subline:"Frisch gekocht. Jeden Tag neu.",
+  speiseplan_loading:"Speiseplan wird geladen …",
+  speiseplan_button:"SPEISEPLAN ANZEIGEN",
+  speiseplan_pdf:"PDF DRUCKEN",
+  speiseplan_note:"Vegetarische Gerichte sind entsprechend gekennzeichnet.",
+
+  kontakt_heading:"Kommt vorbei!",
+  label_adresse:"ADRESSE",
+  label_telefon:"TELEFON",
+  label_instagram:"INSTAGRAM",
+  offer_mittag:"MITTAGSTISCH",
+  offer_mittag_text:"Montag–Freitag · 11:00–14:00 Uhr",
+  offer_fruehstueck:"FRÜHSTÜCK",
+  offer_fruehstueck_text:"Bald auch für euch",
+  offer_lieferung:"LIEFERSERVICE",
+  offer_lieferung_text:"Bald auch für euch · über Lieferando",
+
+  standort_kicker:"HIER FINDET IHR UNS",
+  standort_button:"ROUTE ÖFFNEN",
+
+  footer_impressum:"Impressum",
+  footer_datenschutz:"Datenschutzerklärung",
+  footer_jahr:"© 2026 Mahlzeit! Kantine & Mittagstisch",
+
+  impressum_heading:"Impressum",
+  impressum_inhaberin:"Inhaberin",
+  impressum_firma:"Mahlzeit! Kantine & Mittagstisch",
+  impressum_telefon:"Telefon",
+  impressum_placeholder:"Die vollständigen gesetzlich erforderlichen Angaben können hier ergänzt werden.",
+
+  datenschutz_heading:"Datenschutzerklärung",
+  datenschutz_placeholder:"Hier wird später die vollständige Datenschutzerklärung der Website hinterlegt.",
+
+  footer_slogan:"FRISCH. LECKER. FÜR EUCH."
+};
+
+const WEBSITE_TEXTE_FIELDS =
+  Object.keys(
+    WEBSITE_TEXTE_DEFAULTS
+  );
+
+async function websiteTexteLaden(){
+
+  const meldung =
+    document.getElementById(
+      "website-texte-meldung"
+    );
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("WebsiteTexte")
+      .select("*")
+      .eq("id",1)
+      .maybeSingle();
+
+  if(error){
+
+    console.error(
+      "Website-Texte:",
+      error
+    );
+
+    if(meldung){
+      meldung.textContent =
+        "⚠ Website-Texte konnten nicht geladen werden: " +
+        error.message;
+    }
+
+  }
+
+  const values =
+    {
+      ...WEBSITE_TEXTE_DEFAULTS,
+      ...(data || {})
+    };
+
+  WEBSITE_TEXTE_FIELDS.forEach(
+    key => {
+
+      const el =
+        document.getElementById(
+          "txt-" + key.replaceAll(
+            "_",
+            "-"
+          )
+        );
+
+      if(el){
+        el.value =
+          values[key] ?? "";
+      }
+
+    }
+  );
+
+  if(meldung){
+    meldung.textContent =
+      data
+        ? "Website-Texte geladen."
+        : "Standardtexte angezeigt – noch nicht gespeichert.";
+  }
+}
+
+
+async function websiteTexteSpeichern(){
+
+  const button =
+    document.getElementById(
+      "website-texte-save"
+    );
+
+  const meldung =
+    document.getElementById(
+      "website-texte-meldung"
+    );
+
+  const values = {
+    id:1
+  };
+
+  WEBSITE_TEXTE_FIELDS.forEach(
+    key => {
+
+      const el =
+        document.getElementById(
+          "txt-" + key.replaceAll(
+            "_",
+            "-"
+          )
+        );
+
+      values[key] =
+        el
+          ? el.value.trim()
+          : WEBSITE_TEXTE_DEFAULTS[key];
+
+    }
+  );
+
+  if(button){
+    button.disabled=true;
+    button.textContent="Speichern …";
+  }
+
+  try{
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("WebsiteTexte")
+        .upsert(
+          [values],
+          {onConflict:"id"}
+        );
+
+    if(error){
+      throw error;
+    }
+
+    if(meldung){
+      meldung.textContent =
+        "✓ Website-Texte wurden gespeichert.";
+    }
+
+  }catch(error){
+
+    console.error(
+      "Website-Texte speichern:",
+      error
+    );
+
+    if(meldung){
+      meldung.textContent =
+        "⚠ Speichern fehlgeschlagen: " +
+        (error?.message || "");
+    }
+
+  }finally{
+
+    if(button){
+      button.disabled=false;
+      button.textContent="Texte speichern";
+    }
+  }
 }
 
 </script>
