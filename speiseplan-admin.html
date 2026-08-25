@@ -648,6 +648,95 @@ button{
   z-index:4;
   margin:0 0 14px;
 }
+
+.feiertage-vorschlaege{
+  margin-top:24px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  overflow:hidden;
+  background:rgba(255,255,255,.16);
+}
+
+.feiertage-kopf{
+  padding:16px 18px;
+  background:rgba(40,84,55,.08);
+  border-bottom:1px solid var(--line);
+}
+
+.feiertage-kopf h3{
+  margin:0 0 6px;
+  color:var(--green);
+  font-family:"Barlow Condensed",sans-serif;
+  font-size:30px;
+  text-transform:uppercase;
+}
+
+.feiertage-kopf p{
+  margin:0;
+  color:#666;
+  font-size:13px;
+  line-height:1.5;
+}
+
+.feiertag-zeile{
+  display:grid;
+  grid-template-columns:135px minmax(0,1fr) auto;
+  align-items:center;
+  gap:16px;
+  padding:14px 18px;
+  border-bottom:1px solid var(--line);
+}
+
+.feiertag-zeile:last-child{
+  border-bottom:0;
+}
+
+.feiertag-datum{
+  font-weight:800;
+  color:var(--green);
+}
+
+.feiertag-name{
+  font-weight:700;
+}
+
+.feiertag-sub{
+  margin-top:3px;
+  color:#666;
+  font-size:12px;
+}
+
+.feiertag-wochenende{
+  color:#777;
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+}
+
+.feiertag-button{
+  margin:0;
+  border-radius:10px;
+  padding:9px 12px;
+  white-space:nowrap;
+}
+
+.feiertag-button.erledigt{
+  background:#8a8a8a;
+  color:#fff;
+  cursor:default;
+}
+
+@media(max-width:700px){
+  .feiertag-zeile{
+    grid-template-columns:1fr;
+    gap:8px;
+  }
+
+  .feiertag-button{
+    width:100%;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -657,7 +746,7 @@ button{
 <button class="admin-tab active" type="button" onclick="zeigeBereich('dashboard-bereich',this);dashboardLaden()">Übersicht</button>
 <button class="admin-tab" type="button" onclick="zeigeBereich('gerichte-bereich',this)">Gerichte</button>
 <button class="admin-tab" type="button" onclick="zeigeBereich('speiseplan-bereich',this);sp_init()">Speiseplan</button>
-<button class="admin-tab" type="button" onclick="zeigeBereich('sondertage-bereich',this);sondertageLaden()">Sondertage</button>
+<button class="admin-tab" type="button" onclick="zeigeBereich('sondertage-bereich',this);sondertageLaden();feiertageLaden()">Sondertage</button>
 <button class="admin-tab" type="button" onclick="zeigeBereich('hero-bilder-bereich',this);heroBilderLaden()">
   Website Bilder
 </button>
@@ -771,6 +860,26 @@ button{
     <h2>Gespeicherte Sondertage</h2>
     <div id="sondertage-liste">Wird geladen …</div>
   </div>
+
+
+  <div class="feiertage-vorschlaege">
+
+    <div class="feiertage-kopf">
+      <h3>Feiertage für Brandenburg</h3>
+      <p>
+        Für Cottbus werden die gesetzlich anerkannten Feiertage des Landes Brandenburg
+        automatisch vorgeschlagen. Du kannst sie mit einem Klick als „geschlossen“
+        in die Sondertage übernehmen.
+      </p>
+    </div>
+
+    <div id="feiertage-liste">
+      Feiertage werden geladen …
+    </div>
+
+  </div>
+
+
 </section>
 
 
@@ -4185,6 +4294,389 @@ document.addEventListener("keydown",(event)=>{
     sp_vorschauSchliessen();
   }
 });
+
+/* ==========================================================
+   FEIERTAGE BRANDENBURG / COTTBUS
+   ========================================================== */
+
+function ostersonntag(year){
+
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h =
+    (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l =
+    (32 + 2 * e + 2 * i - h - k) % 7;
+  const m =
+    Math.floor(
+      (a + 11 * h + 22 * l) / 451
+    );
+  const month =
+    Math.floor(
+      (h + l - 7 * m + 114) / 31
+    );
+  const day =
+    (
+      (h + l - 7 * m + 114) % 31
+    ) + 1;
+
+  return new Date(
+    Date.UTC(
+      year,
+      month - 1,
+      day
+    )
+  );
+
+}
+
+
+function feiertagISO(date){
+
+  return date
+    .toISOString()
+    .slice(0,10);
+
+}
+
+
+function feiertageBrandenburg(year){
+
+  const easter =
+    ostersonntag(year);
+
+  const addDays =
+    (base,days)=>{
+      const d =
+        new Date(base);
+      d.setUTCDate(
+        d.getUTCDate()+days
+      );
+      return d;
+    };
+
+
+  return [
+
+    {
+      datum:`${year}-01-01`,
+      name:"Neujahr"
+    },
+
+    {
+      datum:feiertagISO(
+        addDays(easter,-2)
+      ),
+      name:"Karfreitag"
+    },
+
+    {
+      datum:feiertagISO(
+        easter
+      ),
+      name:"Ostersonntag"
+    },
+
+    {
+      datum:feiertagISO(
+        addDays(easter,1)
+      ),
+      name:"Ostermontag"
+    },
+
+    {
+      datum:`${year}-05-01`,
+      name:"Tag der Arbeit"
+    },
+
+    {
+      datum:feiertagISO(
+        addDays(easter,39)
+      ),
+      name:"Christi Himmelfahrt"
+    },
+
+    {
+      datum:feiertagISO(
+        addDays(easter,49)
+      ),
+      name:"Pfingstsonntag"
+    },
+
+    {
+      datum:feiertagISO(
+        addDays(easter,50)
+      ),
+      name:"Pfingstmontag"
+    },
+
+    {
+      datum:`${year}-10-03`,
+      name:"Tag der Deutschen Einheit"
+    },
+
+    {
+      datum:`${year}-10-31`,
+      name:"Reformationstag"
+    },
+
+    {
+      datum:`${year}-12-25`,
+      name:"1. Weihnachtsfeiertag"
+    },
+
+    {
+      datum:`${year}-12-26`,
+      name:"2. Weihnachtsfeiertag"
+    }
+
+  ];
+
+}
+
+
+function feiertagDatumText(
+  iso
+){
+
+  const d =
+    new Date(
+      iso+"T00:00:00"
+    );
+
+  return d.toLocaleDateString(
+    "de-DE",
+    {
+      weekday:"long",
+      day:"2-digit",
+      month:"2-digit",
+      year:"numeric"
+    }
+  );
+
+}
+
+
+function feiertagWochentag(
+  iso
+){
+
+  const d =
+    new Date(
+      iso+"T00:00:00"
+    );
+
+  return d.getDay();
+
+}
+
+
+async function feiertageLaden(){
+
+  const liste =
+    document.getElementById(
+      "feiertage-liste"
+    );
+
+  if(!liste)return;
+
+
+  const year =
+    new Date().getFullYear();
+
+
+  const feiertage =
+    feiertageBrandenburg(
+      year
+    );
+
+
+  const {
+    data:sondertage,
+    error
+  } =
+    await supabaseClient
+      .from("Sonderoeffnungszeiten")
+      .select("datum")
+      .gte(
+        "datum",
+        `${year}-01-01`
+      )
+      .lte(
+        "datum",
+        `${year}-12-31`
+      );
+
+
+  if(error){
+
+    console.error(
+      "Feiertage:",
+      error
+    );
+
+  }
+
+
+  const vorhandene =
+    new Set(
+      (sondertage || [])
+        .map(
+          item => item.datum
+        )
+    );
+
+
+  liste.innerHTML =
+    feiertage
+      .map(
+        feiertag => {
+
+          const day =
+            feiertagWochentag(
+              feiertag.datum
+            );
+
+          const wochenende =
+            day === 0 ||
+            day === 6;
+
+          const schonAngelegt =
+            vorhandene.has(
+              feiertag.datum
+            );
+
+
+          return `
+            <div class="feiertag-zeile">
+
+              <div class="feiertag-datum">
+                ${feiertagDatumText(
+                  feiertag.datum
+                )}
+              </div>
+
+              <div>
+
+                <div class="feiertag-name">
+                  ${feiertag.name}
+                </div>
+
+                ${
+                  wochenende
+                    ? `
+                      <div class="feiertag-sub feiertag-wochenende">
+                        Wochenende · keine Mittagstisch-Planung nötig
+                      </div>
+                    `
+                    : `
+                      <div class="feiertag-sub">
+                        Werktag · als Sondertag übernehmbar
+                      </div>
+                    `
+                }
+
+              </div>
+
+              ${
+                schonAngelegt
+                  ? `
+                    <button
+                      type="button"
+                      class="feiertag-button erledigt"
+                      disabled
+                    >
+                      Bereits hinterlegt
+                    </button>
+                  `
+                  : `
+                    <button
+                      type="button"
+                      class="feiertag-button save"
+                      onclick="feiertagUebernehmen('${feiertag.datum}','${feiertag.name.replace(/'/g,"\\'")}')"
+                    >
+                      Als geschlossen übernehmen
+                    </button>
+                  `
+              }
+
+            </div>
+          `;
+
+        }
+      )
+      .join("");
+
+}
+
+
+async function feiertagUebernehmen(
+  datum,
+  name
+){
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from("Sonderoeffnungszeiten")
+      .insert([
+        {
+          datum,
+          geschlossen:true,
+          von:null,
+          bis:null,
+          hinweis:
+            `${name} · geschlossen`
+        }
+      ]);
+
+
+  if(error){
+
+    console.error(
+      "Feiertag übernehmen:",
+      error
+    );
+
+    const meldung =
+      document.getElementById(
+        "sondertag-meldung"
+      );
+
+    if(meldung){
+      meldung.textContent =
+        "Feiertag konnte nicht übernommen werden.";
+    }
+
+    return;
+  }
+
+
+  const meldung =
+    document.getElementById(
+      "sondertag-meldung"
+    );
+
+  if(meldung){
+    meldung.textContent =
+      `${name} (${feiertagDatumText(datum)}) wurde als geschlossen übernommen.`;
+  }
+
+
+  await sondertageLaden();
+  await feiertageLaden();
+
+}
+
+
 </script>
 
 <div
@@ -4228,5 +4720,4 @@ document.addEventListener("keydown",(event)=>{
   </div>
 </div>
 
-</body></html>
 </body></html>
