@@ -910,7 +910,6 @@ async function gerichteLaden(){
             )
             .order('datum',{ascending:true})
             .order('reihenfolge',{ascending:true,nullsFirst:false})
-            .order('created_at',{ascending:true,nullsFirst:false})
             .order('id',{ascending:true});
 
     if(error){
@@ -1415,7 +1414,6 @@ async function sp_loadFromSupabase(){
     .eq("speiseplan_anzeigen",true)
     .order("datum",{ascending:true})
     .order("reihenfolge",{ascending:true,nullsFirst:false})
-    .order("created_at",{ascending:true,nullsFirst:false})
     .order("id",{ascending:true});
 
   const {data:specialData,error:specialError} =
