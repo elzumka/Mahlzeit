@@ -306,7 +306,7 @@ const SP_DEFAULT=[
   [],
   []
 ];
-const spState={year:new Date().getFullYear(),week:1,days:JSON.parse(JSON.stringify(SP_DEFAULT))};
+const spState={year:new Date().getFullYear(),week:1,days:JSON.parse(JSON.stringify(SP_DEFAULT)),specialDays:{}};
 let sp_ready=false;
 
 function sp_esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
@@ -343,6 +343,27 @@ async function sp_loadFromSupabase(){
     .eq("speiseplan_anzeigen",true)
     .order("datum",{ascending:true})
     .order("gerichte",{ascending:true});
+
+  const {data:specialData,error:specialError} =
+    await supabaseClient
+      .from("Sonderoeffnungszeiten")
+      .select("*")
+      .gte("datum",from)
+      .lte("datum",to)
+      .order("datum",{ascending:true});
+
+  if(specialError){
+    console.warn(
+      "Sondertage konnten für den Speiseplan nicht geladen werden:",
+      specialError
+    );
+  }
+
+  spState.specialDays={};
+
+  (specialData || []).forEach(day=>{
+    spState.specialDays[day.datum]=day;
+  });
 
   if(error){
     console.error(error);
@@ -437,6 +458,51 @@ function sp_render(){
   const maxRows = 10;
 
   spState.days.forEach((items,di)=>{
+
+    const dayDate = new Date(start);
+    dayDate.setUTCDate(dayDate.getUTCDate()+di);
+    const isoDay = dayDate.toISOString().slice(0,10);
+    const special = spState.specialDays?.[isoDay];
+
+    /*
+     * Sondertag im druckbaren Speiseplan:
+     * geschlossen -> deutlicher Hinweis, Gerichte des Tages nicht anzeigen
+     * offen/verkürzt -> Hinweis oberhalb der Gerichte
+     */
+    if(special?.geschlossen){
+
+      const closedText =
+        (special.hinweis || "GESCHLOSSEN").toUpperCase();
+
+      s += sp_text(
+        86,
+        dayTop(di)+18,
+        closedText,
+        "sp-impact",
+        5,
+        18,
+        "middle"
+      );
+
+      return;
+    }
+
+    const visibleSpecial =
+      special?.hinweis
+        ? special.hinweis
+        : (
+            special
+              ? `GEÄNDERTE ÖFFNUNGSZEIT · ${special.von || "11:00"}–${special.bis || "14:00"} UHR`
+              : ""
+          );
+
+    /*
+     * Wenn ein Sonderhinweis vorhanden ist, wird der Gerichtblock
+     * etwas tiefer gesetzt, damit die Information klar erkennbar bleibt.
+     */
+    let specialOffset = 0;
+
+
     const visible=items
       .filter(item=>item[5]!==false)
       .slice(0,maxRows);
@@ -469,8 +535,24 @@ function sp_render(){
      * - bei vielen Gerichten kompakter
      * - der gesamte Block wird im Tagesfeld vertikal zentriert
      */
-    const top = dayTop(di);
+    const top =
+      dayTop(di)
+      + (visibleSpecial ? 7 : 0);
+
     const bottom = dayBottom(di);
+
+    if(visibleSpecial){
+      s += sp_text(
+        86,
+        dayTop(di)+4.5,
+        visibleSpecial.toUpperCase(),
+        "sp-round",
+        3.1,
+        8,
+        "middle",
+        "700"
+      );
+    }
     const availableHeight = bottom - top;
 
     const effectiveHeight = Math.min(groupHeight, availableHeight);
