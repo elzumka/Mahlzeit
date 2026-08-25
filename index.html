@@ -1471,64 +1471,6 @@ footer p {
   cursor:pointer;
 }
 body.legal-modal-open{overflow:hidden;}
-
-.announcement-section{
-  padding:35px 6vw 55px;
-}
-
-.announcement-inner{
-  max-width:1250px;
-  margin:0 auto;
-}
-
-.announcement-card{
-  display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(260px,420px);
-  gap:28px;
-  align-items:center;
-  padding:28px;
-  border-radius:12px;
-  background:var(--green);
-  color:var(--cream);
-}
-
-.announcement-copy h2{
-  margin:8px 0 14px;
-  color:var(--cream);
-  font-family:"Barlow Condensed",sans-serif;
-  font-size:clamp(38px,5vw,62px);
-  line-height:.9;
-  text-transform:uppercase;
-}
-
-.announcement-copy p:last-child{
-  margin:0;
-  font-size:17px;
-  line-height:1.6;
-  white-space:pre-wrap;
-}
-
-.announcement-copy .eyebrow{
-  color:var(--cream);
-  opacity:.8;
-  margin:0;
-}
-
-.announcement-image-wrap img{
-  display:block;
-  width:100%;
-  max-height:360px;
-  object-fit:cover;
-  border-radius:10px;
-}
-
-@media(max-width:800px){
-  .announcement-card{
-    grid-template-columns:1fr;
-    padding:22px;
-  }
-}
-
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
@@ -1786,47 +1728,6 @@ async function downloadSpeiseplanPDF(){
 </section>
 
 <main>
-
-
-<section
-  class="announcement-section"
-  id="spontane-ankuendigung"
-  hidden
->
-  <div class="announcement-inner">
-
-    <div class="announcement-card">
-
-      <div class="announcement-copy">
-
-        <p
-          class="eyebrow"
-          id="announcement-kicker"
-        >
-          AKTUELL
-        </p>
-
-        <h2 id="announcement-title"></h2>
-
-        <p id="announcement-text"></p>
-
-      </div>
-
-      <div
-        class="announcement-image-wrap"
-        id="announcement-image-wrap"
-        hidden
-      >
-        <img
-          id="announcement-image"
-          alt=""
-        >
-      </div>
-
-    </div>
-
-  </div>
-</section>
 
 <section class="section" id="mittagstisch">
 
@@ -3241,14 +3142,8 @@ async function ladeKlassiker(){
       .from("Klassiker")
       .select("*")
       .eq("aktiv",true)
-      .order(
-        "sortierung",
-        {ascending:true}
-      )
-      .order(
-        "id",
-        {ascending:true}
-      );
+      .order("sortierung",{ascending:true})
+      .order("id",{ascending:true});
 
   if(error || !data?.length){
     return;
@@ -3261,148 +3156,66 @@ async function ladeKlassiker(){
 
   if(!specials)return;
 
-  specials.innerHTML = "";
+  specials.innerHTML="";
 
-  data.forEach(
-    item => {
+  data.forEach(item=>{
 
-      const article =
-        document.createElement(
-          "article"
-        );
+    const article=document.createElement("article");
+    article.className="special";
 
-      article.className =
-        "special";
+    const titleHtml =
+      item.vegetarisch
+        ? `<div class="special-title-veggie">
+             <img src="vegetarisch.png" class="special-veggie" alt="Vegetarisch">
+             <h3>${item.name || ""}</h3>
+           </div>`
+        : `<h3>${item.name || ""}</h3>`;
 
-      article.innerHTML = `
-        <h3>${item.name || ""}</h3>
-        <p>${(item.beschreibung || "").replace(/\n/g,"<br>")}</p>
-        <div class="special-price">
-          ${preisFormatieren(item.preis)}
-        </div>
-      `;
+    let html=titleHtml;
 
-      specials.appendChild(
-        article
-      );
-
+    if(item.beschreibung){
+      html +=
+        `<p>${String(item.beschreibung).replace(/\\n/g,"<br>")}</p>`;
     }
-  );
 
+    const variants=[];
+
+    if(item.preis!==null && item.preis!==""){
+      variants.push(
+        `<div class="wurst-preis">
+          <span>${item.variante_1 || ""}</span>
+          <strong>${preisFormatieren(item.preis)}</strong>
+        </div>`
+      );
+    }
+
+    if(item.preis_2!==null && item.preis_2!==""){
+      variants.push(
+        `<div class="wurst-preis">
+          <span>${item.variante_2 || ""}</span>
+          <strong>${preisFormatieren(item.preis_2)}</strong>
+        </div>`
+      );
+    }
+
+    if(variants.length){
+      html +=
+        variants.length === 1 && !item.variante_1
+          ? `<div class="special-price">${preisFormatieren(item.preis)}</div>`
+          : `<div class="wurst-preise">${variants.join("")}</div>`;
+    }
+
+    article.innerHTML=html;
+    specials.appendChild(article);
+  });
 }
+
 
 
 document.addEventListener("DOMContentLoaded",()=>{
   ladeWebsiteEinstellungen();
   ladeKlassiker();
 });
-
-async function ladeAnkuendigung(){
-
-  const section =
-    document.getElementById(
-      "spontane-ankuendigung"
-    );
-
-  if(!section){
-    return;
-  }
-
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("Ankuendigungen")
-      .select("*")
-      .eq(
-        "aktiv",
-        true
-      )
-      .order(
-        "created_at",
-        {ascending:false}
-      )
-      .limit(1)
-      .maybeSingle();
-
-
-  if(error){
-
-    console.warn(
-      "Ankündigung konnte nicht geladen werden:",
-      error
-    );
-
-    section.hidden = true;
-
-    return;
-  }
-
-
-  if(!data){
-
-    section.hidden = true;
-
-    return;
-  }
-
-
-  document.getElementById(
-    "announcement-title"
-  ).textContent =
-    data.titel || "";
-
-
-  document.getElementById(
-    "announcement-text"
-  ).textContent =
-    data.text || "";
-
-
-  const imageWrap =
-    document.getElementById(
-      "announcement-image-wrap"
-    );
-
-  const image =
-    document.getElementById(
-      "announcement-image"
-    );
-
-
-  if(
-    data.bild_url
-  ){
-
-    image.src =
-      data.bild_url;
-
-    imageWrap.hidden =
-      false;
-
-  }else{
-
-    imageWrap.hidden =
-      true;
-
-  }
-
-
-  section.hidden =
-    false;
-
-}
-
-
-document.addEventListener(
-  "DOMContentLoaded",
-  () => {
-    ladeAnkuendigung();
-  }
-);
-
 </script>
 
 </body>
