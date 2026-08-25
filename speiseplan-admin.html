@@ -1074,32 +1074,525 @@ button{
   }
 }
 
+
+/* ==========================================================
+   VERWALTUNG · SCHNELLER TAGESBETRIEB
+   ========================================================== */
+
+.admin-tabs{
+  align-items:center;
+  position:sticky;
+  top:0;
+  z-index:50;
+  background:var(--cream);
+  padding-top:10px;
+  padding-bottom:10px;
+}
+
+.admin-tab{
+  border-radius:10px;
+  white-space:nowrap;
+}
+
+.admin-tab.primary{
+  font-size:14px;
+  padding:13px 22px;
+}
+
+.admin-tab.primary.active{
+  box-shadow:0 4px 0 rgba(40,84,55,.12);
+}
+
+.admin-tab-divider{
+  width:1px;
+  height:34px;
+  background:var(--line);
+  margin:0 4px;
+  flex:0 0 auto;
+}
+
+.admin-quickbar{
+  position:sticky;
+  top:62px;
+  z-index:45;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+  padding:10px 14px;
+  margin:-8px 0 18px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:rgba(248,241,225,.96);
+  backdrop-filter:blur(8px);
+}
+
+.admin-context{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+
+.admin-context-kicker{
+  color:#777;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+
+.admin-context strong{
+  color:var(--green);
+  font-family:"Barlow Condensed",sans-serif;
+  font-size:30px;
+  line-height:1;
+  text-transform:uppercase;
+}
+
+.admin-quick-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.admin-quick-actions button{
+  margin:0;
+  min-height:42px;
+  padding:9px 14px;
+  border-radius:10px;
+  border:1px solid var(--line);
+  background:#fff;
+  color:var(--green);
+  font-weight:800;
+  cursor:pointer;
+}
+
+.admin-quick-actions .quick-main{
+  border-color:var(--green);
+  background:var(--green);
+  color:var(--cream);
+}
+
+.daily-toolbar{
+  display:flex;
+  justify-content:space-between;
+  gap:18px;
+  align-items:center;
+  margin:0 0 18px;
+  padding:18px 20px;
+  border-radius:14px;
+  background:var(--green);
+  color:var(--cream);
+}
+
+.daily-kicker{
+  display:block;
+  opacity:.75;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+
+.daily-toolbar h2{
+  margin:2px 0 4px;
+  font-family:"Barlow Condensed",sans-serif;
+  font-size:42px;
+  line-height:.9;
+  text-transform:uppercase;
+}
+
+.daily-toolbar p{
+  margin:0;
+  opacity:.9;
+}
+
+.daily-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.daily-action{
+  margin:0;
+  min-height:44px;
+  padding:10px 14px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.28);
+  background:rgba(255,255,255,.12);
+  color:var(--cream);
+  font-weight:800;
+  cursor:pointer;
+}
+
+.daily-action.primary-action{
+  background:var(--cream);
+  color:var(--green);
+}
+
+.gerichte-form{
+  margin-bottom:18px;
+}
+
+.gerichte-form > h2{
+  margin-top:0;
+}
+
+.gerichte-form .save{
+  border-radius:10px;
+}
+
+#gerichte-liste{
+  margin-top:18px;
+}
+
+#gerichte-liste > *{
+  border-radius:10px;
+}
+
+.admin-bereich h2{
+  scroll-margin-top:120px;
+}
+
+@media(max-width:760px){
+
+  .admin-tabs{
+    top:0;
+    overflow-x:auto;
+    flex-wrap:nowrap;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .admin-tabs::-webkit-scrollbar{
+    display:none;
+  }
+
+  .admin-tab.primary{
+    flex:0 0 auto;
+    padding:12px 17px;
+  }
+
+  .admin-tab-divider{
+    display:block;
+  }
+
+  .admin-quickbar{
+    top:58px;
+    align-items:stretch;
+    flex-direction:column;
+  }
+
+  .admin-quick-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+  }
+
+  .admin-quick-actions button{
+    width:100%;
+    min-height:46px;
+  }
+
+  .daily-toolbar{
+    align-items:stretch;
+    flex-direction:column;
+  }
+
+  .daily-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
+
+  .daily-action{
+    width:100%;
+  }
+
+}
+
+@media(max-width:480px){
+
+  .admin-quick-actions{
+    grid-template-columns:1fr;
+  }
+
+  .daily-actions{
+    grid-template-columns:1fr;
+  }
+
+}
+
+
+.admin-more-modal{
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  display:none;
+}
+
+.admin-more-modal.open{
+  display:block;
+}
+
+.admin-more-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(30,45,36,.42);
+  backdrop-filter:blur(3px);
+}
+
+.admin-more-box{
+  position:relative;
+  width:min(760px,calc(100vw - 28px));
+  max-height:calc(100vh - 28px);
+  overflow:auto;
+  margin:14px auto;
+  padding:28px;
+  border-radius:16px;
+  border:1px solid var(--line);
+  background:var(--cream);
+  box-shadow:0 20px 70px rgba(0,0,0,.18);
+}
+
+.admin-more-box h2{
+  margin:2px 0 22px;
+  color:var(--green);
+  font-family:"Barlow Condensed",sans-serif;
+  font-size:48px;
+  line-height:.9;
+  text-transform:uppercase;
+}
+
+.admin-more-close{
+  position:absolute;
+  top:12px;
+  right:12px;
+  width:42px;
+  height:42px;
+  border-radius:10px;
+  border:1px solid var(--line);
+  background:#fff;
+  color:var(--green);
+  font-size:28px;
+  line-height:1;
+  cursor:pointer;
+}
+
+.admin-more-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+
+.admin-more-grid button{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:5px;
+  min-height:110px;
+  margin:0;
+  padding:16px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background:#fff;
+  color:var(--green);
+  text-align:left;
+  cursor:pointer;
+}
+
+.admin-more-grid button:hover{
+  border-color:var(--green);
+  background:rgba(40,84,55,.06);
+}
+
+.admin-more-grid strong{
+  font-size:16px;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+
+.admin-more-grid span{
+  color:#666;
+  line-height:1.4;
+}
+
+.admin-primary-tabs{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  border-bottom:0;
+}
+
+.admin-primary-tabs .admin-tab{
+  width:100%;
+  min-height:56px;
+  border-radius:12px;
+}
+
+.admin-primary-tabs .more-button{
+  background:rgba(40,84,55,.08);
+  border-color:rgba(40,84,55,.2);
+}
+
+@media(max-width:760px){
+
+  .admin-primary-tabs{
+    position:static;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:7px;
+  }
+
+  .admin-primary-tabs .admin-tab{
+    padding:11px 8px;
+    font-size:11px;
+    letter-spacing:.03em;
+  }
+
+  .admin-more-grid{
+    grid-template-columns:1fr;
+  }
+
+  .admin-more-box{
+    width:calc(100vw - 18px);
+    margin:9px auto;
+    padding:20px;
+    max-height:calc(100vh - 18px);
+  }
+
+}
+
 </style>
 </head>
 <body>
 <div class="container">
 <h1>Mahlzeit! Verwaltung</h1>
-<div class="admin-tabs">
-<button class="admin-tab active" type="button" onclick="zeigeBereich('dashboard-bereich',this);dashboardLaden()">Übersicht</button>
-<button class="admin-tab" type="button" onclick="zeigeBereich('gerichte-bereich',this)">Gerichte</button>
-<button class="admin-tab" type="button" onclick="zeigeBereich('speiseplan-bereich',this);sp_init()">Speiseplan</button>
-<button class="admin-tab" type="button" onclick="zeigeBereich('sondertage-bereich',this);sondertageLaden();feiertageLaden()">Sondertage</button>
-<button class="admin-tab" type="button" onclick="zeigeBereich('hero-bilder-bereich',this);heroBilderLaden()">
-  Website Bilder
-</button>
-<button class="admin-tab" type="button" onclick="zeigeBereich('website-einstellungen-bereich',this);websiteEinstellungenLaden();klassikerLaden()">
-  Website Einstellungen
-</button>
-<button class="admin-tab" type="button" onclick="zeigeBereich('ankuendigungen-bereich',this);ankuendigungenLaden()">
-  Ankündigungen
-</button>
-<button class="admin-tab" type="button" onclick="zeigeBereich('website-texte-bereich',this);websiteTexteLaden()">
-  Website Texte
-</button>
+<div class="admin-tabs admin-primary-tabs">
+
+  <button
+    class="admin-tab primary active"
+    type="button"
+    onclick="zeigeBereich('gerichte-bereich',this)"
+  >
+    Gerichte
+  </button>
+
+  <button
+    class="admin-tab primary"
+    type="button"
+    onclick="zeigeBereich('speiseplan-bereich',this);sp_init()"
+  >
+    Speiseplan
+  </button>
+
+  <button
+    class="admin-tab primary"
+    type="button"
+    onclick="zeigeBereich('dashboard-bereich',this);dashboardLaden()"
+  >
+    Übersicht
+  </button>
+
+  <button
+    class="admin-tab primary more-button"
+    type="button"
+    onclick="adminMehrOeffnen()"
+  >
+    Mehr
+  </button>
+
+</div>
+
+<div class="admin-quickbar">
+  <div class="admin-context">
+    <span class="admin-context-kicker">Tagesgeschäft</span>
+    <strong id="admin-context-title">Gerichte</strong>
+  </div>
+
+  <div class="admin-quick-actions">
+    <button type="button" class="quick-main" onclick="adminSchnellGerichte()">+ Gericht</button>
+    <button type="button" onclick="adminSchnellHeute()">Heute</button>
+    <button type="button" onclick="adminSchnellSpeiseplan()">Speiseplan</button>
+  </div>
+</div>
+
+<div
+  class="admin-more-modal"
+  id="admin-more-modal"
+  aria-hidden="true"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="admin-more-title"
+>
+  <div
+    class="admin-more-backdrop"
+    onclick="adminMehrSchliessen()"
+  ></div>
+
+  <div class="admin-more-box">
+
+    <button
+      type="button"
+      class="admin-more-close"
+      onclick="adminMehrSchliessen()"
+      aria-label="Menü schließen"
+    >
+      ×
+    </button>
+
+    <span class="admin-context-kicker">Weitere Bereiche</span>
+
+    <h2 id="admin-more-title">
+      Verwaltung
+    </h2>
+
+    <div class="admin-more-grid">
+
+      <button
+        type="button"
+        onclick="adminMehrBereich('sondertage-bereich',this);sondertageLaden();feiertageLaden()"
+      >
+        <strong>Sondertage</strong>
+        <span>Feiertage &amp; Öffnungszeiten</span>
+      </button>
+
+      <button
+        type="button"
+        onclick="adminMehrBereich('hero-bilder-bereich',this);heroBilderLaden()"
+      >
+        <strong>Website Bilder</strong>
+        <span>Slideshow verwalten</span>
+      </button>
+
+      <button
+        type="button"
+        onclick="adminMehrBereich('website-einstellungen-bereich',this);websiteEinstellungenLaden();klassikerLaden()"
+      >
+        <strong>Website Einstellungen</strong>
+        <span>Öffnungszeiten &amp; Kontakt</span>
+      </button>
+
+      <button
+        type="button"
+        onclick="adminMehrBereich('ankuendigungen-bereich',this);ankuendigungenLaden()"
+      >
+        <strong>Ankündigungen</strong>
+        <span>Spontane Hinweise</span>
+      </button>
+
+      <button
+        type="button"
+        onclick="adminMehrBereich('website-texte-bereich',this);websiteTexteLaden()"
+      >
+        <strong>Website Texte</strong>
+        <span>Alle festen Texte bearbeiten</span>
+      </button>
+
+    </div>
+
+  </div>
 </div>
 
 
-<section id="dashboard-bereich" class="admin-bereich active">
+<section id="dashboard-bereich" class="admin-bereich">
 
   <div class="dashboard-header">
     <div>
@@ -1145,7 +1638,19 @@ button{
 </section>
 
 <section id="gerichte-bereich" class="admin-bereich active">
-<div class="form">
+<div class="daily-toolbar">
+  <div>
+    <span class="daily-kicker">Heute im Mittelpunkt</span>
+    <h2>Gerichte</h2>
+    <p>Gerichte eintragen, bearbeiten oder als ausverkauft markieren – ohne Umweg.</p>
+  </div>
+  <div class="daily-actions">
+    <button type="button" class="daily-action primary-action" onclick="adminSchnellGerichte()">+ Gericht eintragen</button>
+    <button type="button" class="daily-action" onclick="adminSchnellHeute()">Heute anzeigen</button>
+  </div>
+</div>
+
+<div class="form gerichte-form">
 <h2>Gericht eintragen</h2>
 <label for="datum">Datum</label><input type="date" id="datum">
 <label for="gericht">Gericht</label><input type="text" id="gericht" placeholder="z. B. Schnitzel">
@@ -1161,7 +1666,8 @@ button{
 </div>
 <button class="save" onclick="gerichtSpeichern()">Gericht speichern</button>
 <button class="save" type="button" onclick="whatsappTextKopieren()">WhatsApp-Text für heute kopieren</button>
-<div id="meldung"></div><div id="gerichte-liste"></div>
+<div id="meldung"></div>
+<div id="gerichte-liste"></div>
 </div>
 </section>
 
@@ -6966,6 +7472,211 @@ async function websiteTexteSpeichern(){
   }
 }
 
+
+function adminSchnellGerichte(){
+
+  const button =
+    document.querySelector(
+      '.admin-tab[onclick*="gerichte-bereich"]'
+    );
+
+  if(button){
+    zeigeBereich(
+      "gerichte-bereich",
+      button
+    );
+  }
+
+  const input =
+    document.getElementById(
+      "gericht"
+    );
+
+  if(input){
+    input.focus();
+    input.scrollIntoView({
+      behavior:"smooth",
+      block:"center"
+    });
+  }
+
+  adminAktualisiereKontext(
+    "Gerichte"
+  );
+
+}
+
+
+function adminSchnellHeute(){
+
+  adminSchnellGerichte();
+
+  const liste =
+    document.getElementById(
+      "gerichte-liste"
+    );
+
+  if(liste){
+
+    setTimeout(
+      ()=>{
+        liste.scrollIntoView({
+          behavior:"smooth",
+          block:"start"
+        });
+      },
+      100
+    );
+
+  }
+
+}
+
+
+function adminSchnellSpeiseplan(){
+
+  const button =
+    document.querySelector(
+      '.admin-tab[onclick*="speiseplan-bereich"]'
+    );
+
+  if(button){
+
+    zeigeBereich(
+      "speiseplan-bereich",
+      button
+    );
+
+    adminAktualisiereKontext(
+      "Speiseplan"
+    );
+
+    setTimeout(
+      ()=>{
+        sp_init();
+      },
+      0
+    );
+
+  }
+
+}
+
+
+function adminAktualisiereKontext(
+  titel
+){
+
+  const el =
+    document.getElementById(
+      "admin-context-title"
+    );
+
+  if(el){
+    el.textContent =
+      titel;
+  }
+
+}
+
+
+const adminOriginalZeigeBereich =
+  window.zeigeBereich;
+
+
+window.zeigeBereich =
+  function(
+    id,
+    button
+  ){
+
+    adminOriginalZeigeBereich(
+      id,
+      button
+    );
+
+    const titelMap = {
+      "gerichte-bereich":"Gerichte",
+      "speiseplan-bereich":"Speiseplan",
+      "dashboard-bereich":"Übersicht",
+      "sondertage-bereich":"Sondertage",
+      "hero-bilder-bereich":"Website Bilder",
+      "website-einstellungen-bereich":"Website Einstellungen",
+      "ankuendigungen-bereich":"Ankündigungen",
+      "website-texte-bereich":"Website Texte"
+    };
+
+    adminAktualisiereKontext(
+      titelMap[id] ||
+      "Verwaltung"
+    );
+
+  };
+
+window.addEventListener(
+  "DOMContentLoaded",
+  ()=>{
+    adminAktualisiereKontext(
+      "Gerichte"
+    );
+  }
+);
+
+
+function adminMehrOeffnen(){
+
+  const modal =
+    document.getElementById(
+      "admin-more-modal"
+    );
+
+  if(!modal)return;
+
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden","false");
+
+}
+
+
+function adminMehrSchliessen(){
+
+  const modal =
+    document.getElementById(
+      "admin-more-modal"
+    );
+
+  if(!modal)return;
+
+  modal.classList.remove("open");
+  modal.setAttribute("aria-hidden","true");
+
+}
+
+
+function adminMehrBereich(
+  id,
+  button
+){
+
+  adminMehrSchliessen();
+
+  const target =
+    document.querySelector(
+      `.admin-tab[onclick*="${id}"]`
+    );
+
+  zeigeBereich(
+    id,
+    target || button
+  );
+
+}
+
+document.addEventListener("keydown",(event)=>{
+  if(event.key==="Escape"){
+    adminMehrSchliessen();
+  }
+});
 </script>
 
 <div
