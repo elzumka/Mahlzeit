@@ -1306,6 +1306,42 @@ button{
         placeholder="11.50"
       >
 
+      <label for="klassiker-variante-1">
+        Variante / Zusatz (optional)
+      </label>
+      <input
+        type="text"
+        id="klassiker-variante-1"
+        placeholder="z. B. Nudeln"
+      >
+
+      <label for="klassiker-preis-2">
+        Zweiter Preis (optional)
+      </label>
+      <input
+        type="number"
+        id="klassiker-preis-2"
+        step="0.01"
+        placeholder="z. B. 8.20"
+      >
+
+      <label for="klassiker-variante-2">
+        Zweite Variante / Zusatz (optional)
+      </label>
+      <input
+        type="text"
+        id="klassiker-variante-2"
+        placeholder="z. B. mit Käse"
+      >
+
+      <label class="checkbox">
+        <input
+          type="checkbox"
+          id="klassiker-vegetarisch"
+        >
+        Vegetarisch
+      </label>
+
       <label class="checkbox">
         <input
           type="checkbox"
@@ -5420,347 +5456,262 @@ function websiteEinstellungenAutoSpeichern(){
 
 async function klassikerLaden(){
 
-  const liste =
-    document.getElementById(
-      "klassiker-liste"
-    );
-
+  const liste=document.getElementById("klassiker-liste");
   if(!liste)return;
 
+  liste.innerHTML="<p>Wird geladen …</p>";
 
-  const {
-    data,
-    error
-  } =
+  const {data,error} =
     await supabaseClient
       .from("Klassiker")
       .select("*")
-      .order(
-        "sortierung",
-        {ascending:true}
-      )
-      .order(
-        "id",
-        {ascending:true}
-      );
-
+      .order("sortierung",{ascending:true})
+      .order("id",{ascending:true});
 
   if(error){
-
-    console.error(
-      "Klassiker:",
-      error
-    );
-
+    console.error(error);
     liste.innerHTML =
-      "<p>Klassiker konnten nicht geladen werden.</p>";
-
+      `<p>Fehler beim Laden der Klassiker: ${error.message || ""}</p>`;
     return;
   }
-
 
   if(!data?.length){
-
-    liste.innerHTML =
-      "<p>Noch keine Klassiker angelegt.</p>";
-
+    liste.innerHTML="<p>Noch keine Klassiker angelegt.</p>";
     return;
   }
 
+  liste.innerHTML="";
 
-  liste.innerHTML = "";
+  data.forEach(item=>{
 
+    const row=document.createElement("div");
+    row.className=
+      "klassiker-admin-row " +
+      (item.aktiv ? "" : "klassiker-admin-inaktiv");
 
-  data.forEach(
-    item => {
-
-      const row =
-        document.createElement(
-          "div"
-        );
-
-      row.className =
-        "klassiker-admin "
-        +
-        (
-          item.aktiv
-            ? ""
-            : "klassiker-admin-inaktiv"
-        );
-
-
-      row.innerHTML = `
-
-        <div class="klassiker-admin-row">
-
-          <div>
-
-            <div class="klassiker-admin-name">
-              ${item.name || ""}
-            </div>
-
-            <div class="klassiker-admin-desc">
-              ${item.beschreibung || ""}
-            </div>
-
-            <div class="klassiker-admin-price">
-              ${preisFormatieren(item.preis)}
-            </div>
-
-          </div>
-
-          <div class="klassiker-admin-actions">
-
-            <button
-              type="button"
-              onclick="klassikerBearbeiten(${item.id})"
-            >
-              Bearbeiten
-            </button>
-
-            <button
-              type="button"
-              class="save"
-              onclick="klassikerToggle(${item.id},${!item.aktiv})"
-            >
-              ${
-                item.aktiv
-                  ? "Deaktivieren"
-                  : "Aktivieren"
-              }
-            </button>
-
-          </div>
-
-        </div>
-      `;
-
-
-      liste.appendChild(
-        row
+    const prices=[];
+    if(item.preis!==null && item.preis!==""){
+      prices.push(
+        `${item.variante_1 ? item.variante_1 + " · " : ""}${preisFormatieren(item.preis)}`
       );
-
     }
-  );
+    if(item.preis_2!==null && item.preis_2!==""){
+      prices.push(
+        `${item.variante_2 ? item.variante_2 + " · " : ""}${preisFormatieren(item.preis_2)}`
+      );
+    }
 
+    row.innerHTML=`
+      <div>
+        <div class="klassiker-admin-name">${item.name || ""}</div>
+        <div class="klassiker-admin-desc">${item.beschreibung || ""}</div>
+        <div class="klassiker-admin-price">${prices.join(" &nbsp; | &nbsp; ")}</div>
+        ${
+          item.vegetarisch
+            ? '<span class="gericht-badge veg">Vegetarisch</span>'
+            : ''
+        }
+        <span class="dashboard-pill ${item.aktiv ? "ok" : "warn"}">
+          ${item.aktiv ? "Auf Website sichtbar" : "Deaktiviert"}
+        </span>
+      </div>
+
+      <div class="klassiker-admin-actions">
+        <button
+          type="button"
+          class="save"
+          onclick="klassikerBearbeiten(${item.id})"
+        >
+          Bearbeiten
+        </button>
+
+        <button
+          type="button"
+          onclick="klassikerToggle(${item.id},${!item.aktiv})"
+        >
+          ${item.aktiv ? "Deaktivieren" : "Aktivieren"}
+        </button>
+      </div>
+    `;
+
+    liste.appendChild(row);
+  });
 }
 
 
 function klassikerNeu(){
 
-  document.getElementById(
-    "klassiker-id"
-  ).value =
-    "";
-
-  document.getElementById(
-    "klassiker-name"
-  ).value =
-    "";
-
-  document.getElementById(
-    "klassiker-beschreibung"
-  ).value =
-    "";
-
-  document.getElementById(
-    "klassiker-preis"
-  ).value =
-    "";
-
-  document.getElementById(
-    "klassiker-aktiv"
-  ).checked =
-    true;
-
-  document.getElementById(
-    "klassiker-form"
-  ).style.display =
-    "block";
-
+  document.getElementById("klassiker-id").value="";
+  document.getElementById("klassiker-name").value="";
+  document.getElementById("klassiker-beschreibung").value="";
+  document.getElementById("klassiker-preis").value="";
+  document.getElementById("klassiker-variante-1").value="";
+  document.getElementById("klassiker-preis-2").value="";
+  document.getElementById("klassiker-variante-2").value="";
+  document.getElementById("klassiker-vegetarisch").checked=false;
+  document.getElementById("klassiker-aktiv").checked=true;
+  document.getElementById("klassiker-form").style.display="block";
 }
 
 
-function klassikerBearbeiten(
-  id
-){
+async function klassikerBearbeiten(id){
 
-  supabaseClient
-    .from("Klassiker")
-    .select("*")
-    .eq("id",id)
-    .maybeSingle()
-    .then(
-      ({data,error})=>{
+  const {data,error}=
+    await supabaseClient
+      .from("Klassiker")
+      .select("*")
+      .eq("id",id)
+      .maybeSingle();
 
-        if(error || !data){
-          return;
-        }
+  if(error){
+    console.error(error);
+    alert("Der Klassiker konnte nicht geladen werden: " + error.message);
+    return;
+  }
 
+  if(!data)return;
 
-        document.getElementById(
-          "klassiker-id"
-        ).value =
-          data.id;
+  document.getElementById("klassiker-id").value=data.id;
+  document.getElementById("klassiker-name").value=data.name || "";
+  document.getElementById("klassiker-beschreibung").value=data.beschreibung || "";
+  document.getElementById("klassiker-preis").value=data.preis ?? "";
+  document.getElementById("klassiker-variante-1").value=data.variante_1 || "";
+  document.getElementById("klassiker-preis-2").value=data.preis_2 ?? "";
+  document.getElementById("klassiker-variante-2").value=data.variante_2 || "";
+  document.getElementById("klassiker-vegetarisch").checked=data.vegetarisch === true;
+  document.getElementById("klassiker-aktiv").checked=data.aktiv === true;
+  document.getElementById("klassiker-form").style.display="block";
 
-        document.getElementById(
-          "klassiker-name"
-        ).value =
-          data.name || "";
-
-        document.getElementById(
-          "klassiker-beschreibung"
-        ).value =
-          data.beschreibung || "";
-
-        document.getElementById(
-          "klassiker-preis"
-        ).value =
-          data.preis ?? "";
-
-        document.getElementById(
-          "klassiker-aktiv"
-        ).checked =
-          data.aktiv !== false;
-
-        document.getElementById(
-          "klassiker-form"
-        ).style.display =
-          "block";
-
-      }
-    );
-
+  document.getElementById("klassiker-form").scrollIntoView({
+    behavior:"smooth",
+    block:"center"
+  });
 }
 
 
 function klassikerFormSchliessen(){
-
-  document.getElementById(
-    "klassiker-form"
-  ).style.display =
-    "none";
-
+  document.getElementById("klassiker-form").style.display="none";
 }
 
 
 async function klassikerSpeichern(){
 
-  const id =
-    document.getElementById(
-      "klassiker-id"
-    ).value;
+  const id=document.getElementById("klassiker-id").value;
+  const name=document.getElementById("klassiker-name").value.trim();
+  const beschreibung=document.getElementById("klassiker-beschreibung").value.trim();
+  const preisRaw=document.getElementById("klassiker-preis").value;
+  const preis2Raw=document.getElementById("klassiker-preis-2").value;
+  const variante1=document.getElementById("klassiker-variante-1").value.trim();
+  const variante2=document.getElementById("klassiker-variante-2").value.trim();
+  const vegetarisch=document.getElementById("klassiker-vegetarisch").checked;
+  const aktiv=document.getElementById("klassiker-aktiv").checked;
+  const meldung=document.getElementById("website-einstellungen-meldung");
 
-  const name =
-    document.getElementById(
-      "klassiker-name"
-    ).value.trim();
-
-  const beschreibung =
-    document.getElementById(
-      "klassiker-beschreibung"
-    ).value.trim();
-
-  const preis =
-    document.getElementById(
-      "klassiker-preis"
-    ).value;
-
-  const aktiv =
-    document.getElementById(
-      "klassiker-aktiv"
-    ).checked;
-
-
-  if(
-    !name ||
-    preis === ""
-  ){
-
-    alert(
-      "Bitte Name und Preis ausfüllen."
-    );
-
+  if(!name || preisRaw===""){
+    if(meldung) meldung.textContent="Bitte Name und ersten Preis ausfüllen.";
     return;
-
   }
 
+  const preis=Number(preisRaw);
+  const preis2=preis2Raw==="" ? null : Number(preis2Raw);
 
-  const values = {
+  if(!Number.isFinite(preis)){
+    if(meldung) meldung.textContent="Bitte einen gültigen Preis eingeben.";
+    return;
+  }
 
+  if(preis2!==null && !Number.isFinite(preis2)){
+    if(meldung) meldung.textContent="Bitte einen gültigen zweiten Preis eingeben.";
+    return;
+  }
+
+  const values={
     name,
-
     beschreibung,
-
     preis,
-
+    variante_1:variante1 || null,
+    preis_2:preis2,
+    variante_2:variante2 || null,
+    vegetarisch,
     aktiv
-
   };
 
+  const formButton=document.querySelector(
+    '#klassiker-form button[onclick="klassikerSpeichern()"]'
+  );
 
-  let result;
-
-
-  if(id){
-
-    result =
-      await supabaseClient
-        .from("Klassiker")
-        .update(values)
-        .eq("id",id);
-
-  }else{
-
-    const {
-      data:last
-    } =
-      await supabaseClient
-        .from("Klassiker")
-        .select("sortierung")
-        .order(
-          "sortierung",
-          {ascending:false}
-        )
-        .limit(1)
-        .maybeSingle();
-
-    values.sortierung =
-      Number(
-        last?.sortierung || 0
-      ) + 1;
-
-
-    result =
-      await supabaseClient
-        .from("Klassiker")
-        .insert([
-          values
-        ]);
-
+  if(formButton){
+    formButton.disabled=true;
+    formButton.textContent="Speichern …";
   }
 
+  try{
 
-  if(result.error){
+    let result;
 
-    console.error(
-      "Klassiker speichern:",
-      result.error
-    );
+    if(id){
+      result=
+        await supabaseClient
+          .from("Klassiker")
+          .update(values)
+          .eq("id",id)
+          .select()
+          .single();
+    }else{
 
-    alert(
-      "Klassiker konnte nicht gespeichert werden."
-    );
+      const {data:last,error:lastError}=
+        await supabaseClient
+          .from("Klassiker")
+          .select("sortierung")
+          .order("sortierung",{ascending:false})
+          .limit(1)
+          .maybeSingle();
 
-    return;
+      if(lastError)throw lastError;
+
+      values.sortierung=
+        Number(last?.sortierung || 0)+1;
+
+      result=
+        await supabaseClient
+          .from("Klassiker")
+          .insert([values])
+          .select()
+          .single();
+    }
+
+    if(result.error)throw result.error;
+
+    if(meldung){
+      meldung.textContent=
+        id
+          ? "✓ Klassiker wurde aktualisiert."
+          : "✓ Klassiker wurde angelegt.";
+    }
+
+    klassikerFormSchliessen();
+    await klassikerLaden();
+
+  }catch(error){
+
+    console.error(error);
+
+    if(meldung){
+      meldung.textContent=
+        "⚠ Klassiker konnte nicht gespeichert werden: " +
+        (error?.message || "Unbekannter Fehler.");
+    }
+
+  }finally{
+
+    if(formButton){
+      formButton.disabled=false;
+      formButton.textContent="Speichern";
+    }
 
   }
-
-
-  klassikerFormSchliessen();
-  klassikerLaden();
-
 }
+
 
 async function klassikerToggle(
   id,
