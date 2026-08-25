@@ -571,15 +571,7 @@ h1 {
 /* ---------------- KLASSIKER MOBILE ---------------- */
 
 
-  .week-preview-card{
-    padding:18px;
-  }
-
-  .week-preview-head h3{
-    font-size:30px;
-  }
-
-@media (max-width: 800px) {
+  @media (max-width: 800px) {
 
   .special-grid {
     grid-template-columns: 1fr;
@@ -767,6 +759,103 @@ footer {
   min-height:360px;
   display:block;
   border:0;
+}
+
+
+.next-week-note{
+  display:none;
+  max-width:820px;
+  margin:24px auto 0;
+  padding:14px 20px;
+  background:rgba(40,84,55,.07);
+  border:1px solid rgba(40,84,55,.18);
+  border-radius:10px;
+  color:var(--green);
+  text-align:center;
+  font-weight:700;
+  line-height:1.5;
+}
+
+.next-week-note.show{
+  display:block;
+}
+
+.dish-share{
+  margin-top:12px;
+  padding:8px 12px;
+  border:0;
+  background:var(--green);
+  color:var(--cream);
+  border-radius:10px;
+  cursor:pointer;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+
+.dish-share:hover{
+  background:var(--green-dark);
+}
+
+.dish.sold-out{
+  opacity:.72;
+}
+
+.sold-out-label{
+  display:inline-block;
+  margin-top:8px;
+  padding:5px 9px;
+  border-radius:8px;
+  background:#b84b3a;
+  color:#fff;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+
+.special-hours-note{
+  display:none;
+  max-width:820px;
+  margin:16px auto 0;
+  padding:12px 18px;
+  border-radius:10px;
+  background:rgba(40,84,55,.07);
+  border:1px solid rgba(40,84,55,.18);
+  color:var(--green);
+  text-align:center;
+  font-weight:700;
+}
+
+.special-hours-note.show{
+  display:block;
+}
+
+.speiseplan-actions{
+  display:flex;
+  gap:12px;
+  justify-content:center;
+  flex-wrap:wrap;
+  margin:24px auto 0;
+}
+
+.speiseplan-actions .speiseplan-drucken{
+  width:auto;
+  min-width:220px;
+  margin:0;
+}
+
+@media(max-width:700px){
+  .speiseplan-actions{
+    flex-direction:column;
+    align-items:center;
+  }
+
+  .speiseplan-actions .speiseplan-drucken{
+    width:100%;
+    max-width:360px;
+  }
 }
 
 .legal{
@@ -1050,60 +1139,6 @@ footer p {
 }
 
 
-.week-preview-section{
-  padding-top:35px;
-}
-
-.week-preview-card{
-  max-width:900px;
-  margin:0 auto;
-  padding:28px;
-  border:1px solid var(--line);
-  background:rgba(255,255,255,.25);
-  border-radius:12px;
-}
-
-.week-preview-head{
-  text-align:center;
-  margin-bottom:18px;
-}
-
-.week-preview-head .eyebrow{
-  margin:0 0 7px;
-  color:var(--green);
-  font-size:12px;
-  font-weight:700;
-  letter-spacing:.12em;
-  text-transform:uppercase;
-}
-
-.week-preview-head h3{
-  margin:0;
-  color:var(--green);
-  font-family:"Barlow Condensed",sans-serif;
-  font-size:34px;
-  line-height:.95;
-  text-transform:uppercase;
-}
-
-.week-preview-image{
-  width:min(560px,100%);
-  margin:0 auto;
-}
-
-.week-preview-image img{
-  display:block;
-  width:100%;
-  height:auto;
-  border:1px solid var(--line);
-  border-radius:10px;
-}
-
-.week-preview-button{
-  max-width:360px;
-  margin:24px auto 0;
-}
-
 .week-dish-title{
   margin:0 0 4px;
   font-size:17px;
@@ -1365,6 +1400,129 @@ footer p {
 }
 body.legal-modal-open{overflow:hidden;}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+async function downloadSpeiseplanPDF(){
+
+  try{
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("Speiseplaene")
+        .select("*")
+        .lte(
+          "aktiv_ab",
+          new Date().toISOString()
+        )
+        .order(
+          "aktiv_ab",
+          {ascending:false}
+        )
+        .limit(1)
+        .maybeSingle();
+
+
+    if(error || !data || !data.bild_url){
+
+      throw new Error(
+        "Der aktuelle Speiseplan ist noch nicht verfügbar."
+      );
+
+    }
+
+
+    if(
+      !window.jspdf ||
+      !window.jspdf.jsPDF
+    ){
+
+      window.open(
+        data.bild_url,
+        "_blank",
+        "noopener,noreferrer"
+      );
+
+      return;
+    }
+
+
+    const response =
+      await fetch(
+        data.bild_url
+      );
+
+    const blob =
+      await response.blob();
+
+
+    const dataUrl =
+      await new Promise(
+        resolve => {
+
+          const reader =
+            new FileReader();
+
+          reader.onloadend =
+            () => resolve(
+              reader.result
+            );
+
+          reader.readAsDataURL(
+            blob
+          );
+
+        }
+      );
+
+
+    const {
+      jsPDF
+    } =
+      window.jspdf;
+
+
+    const pdf =
+      new jsPDF({
+        orientation:"portrait",
+        unit:"mm",
+        format:"a4"
+      });
+
+
+    pdf.addImage(
+      dataUrl,
+      "PNG",
+      0,
+      0,
+      210,
+      297
+    );
+
+
+    pdf.save(
+      `Speiseplan-KW-${data.kw}-${data.jahr}.pdf`
+    );
+
+  }catch(error){
+
+    console.error(
+      "PDF-Download:",
+      error
+    );
+
+    alert(
+      "Der PDF-Download konnte nicht gestartet werden. " +
+      "Bitte den Speiseplan öffnen und dort drucken."
+    );
+
+  }
+
+}
+
+
+</script>
 </head>
 
 <body>
@@ -1496,44 +1654,11 @@ body.legal-modal-open{overflow:hidden;}
 
     <div class="menu" id="gerichte-container"></div>
 
+    <div id="naechste-woche-hinweis" class="next-week-note"></div>
+
   </div>
 
 </section>
-
-
-<section class="section week-preview-section" id="diese-woche">
-  <div class="section-inner">
-
-    <div class="section-title">
-      <h2>Diese Woche</h2>
-    </div>
-
-    <div class="week-preview-card">
-
-      <div class="week-preview-head">
-        <p class="eyebrow" id="week-preview-kw">SPEISEPLAN</p>
-        <h3 id="week-preview-range">Speiseplan wird geladen …</h3>
-      </div>
-
-      <div class="week-preview-image" id="week-preview-image">
-        <div class="speiseplan-loading">
-          Speiseplan wird geladen …
-        </div>
-      </div>
-
-      <a
-        href="#speiseplan"
-        class="speiseplan-drucken week-preview-button"
-      >
-        SPEISEPLAN ANSEHEN &amp; AUSDRUCKEN
-      </a>
-
-    </div>
-
-  </div>
-</section>
-
-
 <section class="section specials" id="klassiker">
 
   <div class="section-inner">
@@ -1617,47 +1742,46 @@ body.legal-modal-open{overflow:hidden;}
 
 
 <section class="section" id="speiseplan">
-
   <div class="section-inner">
-
     <div class="section-title">
-      <h2>Wochenübersicht</h2>
+      <h2>Speiseplan</h2>
     </div>
 
     <div class="week-header">
       <div>
-        <p class="eyebrow" id="speiseplan-kw">
-          MAHLZEIT · SPEISEPLAN
-        </p>
-        <h3 id="speiseplan-datum">
-          Speiseplan wird geladen …
-        </h3>
+        <p class="eyebrow" id="speiseplan-kw">MAHLZEIT · SPEISEPLAN</p>
+        <h3 id="speiseplan-datum">Speiseplan wird geladen …</h3>
       </div>
-
-      <p>
-        Frisch gekocht. Jeden Tag neu.
-      </p>
+      <p>Frisch gekocht. Jeden Tag neu.</p>
     </div>
 
-    <div
-      class="week-menu"
-      id="wochenuebersicht-container"
-    >
-      <div class="speiseplan-loading">
-        Wochenübersicht wird geladen …
-      </div>
+    <div class="speiseplan-bild" id="speiseplan-container">
+      <div class="speiseplan-loading">Speiseplan wird geladen …</div>
+    </div>
+
+    <div class="speiseplan-actions">
+      <a
+        href="#diese-woche"
+        class="speiseplan-drucken"
+      >
+        SPEISEPLAN ANSEHEN
+      </a>
+      <button
+        type="button"
+        class="speiseplan-drucken"
+        onclick="downloadSpeiseplanPDF()"
+      >
+        PDF HERUNTERLADEN
+      </button>
     </div>
 
     <div class="menu-note">
       Vegetarische Gerichte sind entsprechend gekennzeichnet.
     </div>
-
   </div>
-
 </section>
 
-
-<section class="breakfast-section" id="fruehstueck">
+<section class="breakfast-section" id="fruehstueck"> id="fruehstueck">
   <!-- Frühstücksbereich bleibt vorerst leer. -->
 </section>
 
@@ -1942,170 +2066,413 @@ const supabaseClient = window.supabase.createClient(
 
 <script>
 
-async function ladeGerichte() {
+async function ladeGerichte(){
 
-    const jetzt = new Date();
-    const stunde = jetzt.getHours();
+  const jetzt = new Date();
+  const stunde = jetzt.getHours();
+  const wochentag = jetzt.getDay();
 
-    const container = document.getElementById("gerichte-container");
+  const container =
+    document.getElementById("gerichte-container");
 
-    if (!container) {
-        return;
+  const nextWeekNote =
+    document.getElementById("naechste-woche-hinweis");
+
+  if(!container)return;
+
+  if(nextWeekNote){
+    nextWeekNote.classList.remove("show");
+    nextWeekNote.textContent="";
+  }
+
+
+  /*
+   * Sonderöffnungszeiten zuerst prüfen.
+   */
+  const jahr =
+    jetzt.getFullYear();
+
+  const monat =
+    String(jetzt.getMonth()+1).padStart(2,"0");
+
+  const tag =
+    String(jetzt.getDate()).padStart(2,"0");
+
+  const heute =
+    `${jahr}-${monat}-${tag}`;
+
+
+  const {
+    data:specialDay
+  } =
+    await supabaseClient
+      .from("Sonderoeffnungszeiten")
+      .select("*")
+      .eq("datum",heute)
+      .maybeSingle();
+
+
+  if(specialDay){
+
+    const geschlossen =
+      specialDay.geschlossen !== false;
+
+    if(geschlossen){
+
+      container.innerHTML = `
+        <div class="feierabend-box">
+          <img
+            src="feierabend.png"
+            alt="Heute geschlossen"
+          >
+        </div>
+      `;
+
+      return;
+
     }
 
+    const specialVon =
+      specialDay.von || "11:00";
 
-   /*
-    WOCHENENDE
-    Freitag ab 14:00 Uhr
-    Samstag komplett
-    Sonntag komplett
-*/
+    const specialBis =
+      specialDay.bis || "14:00";
 
-const wochentag = jetzt.getDay();
+    if(
+      nextWeekNote &&
+      specialDay.hinweis
+    ){
+      nextWeekNote.textContent =
+        specialDay.hinweis;
 
-const istWochenende =
-    (wochentag === 5 && stunde >= 14) ||
-    wochentag === 6 ||
-    wochentag === 0;
+      nextWeekNote.classList.add("show");
+    }
 
-if (istWochenende) {
+  }
+
+
+  /*
+   * Reguläres Wochenende / Feierabend.
+   */
+
+  const istWochenende =
+    (wochentag===5 && stunde>=14) ||
+    wochentag===6 ||
+    wochentag===0;
+
+
+  if(
+    istWochenende &&
+    !specialDay
+  ){
 
     container.innerHTML = `
-        <div class="feierabend-box">
-            <img
-                src="wochenende.png"
-                alt="Schönes Wochenende"
-            >
-        </div>
+      <div class="feierabend-box">
+        <img
+          src="wochenende.png"
+          alt="Schönes Wochenende"
+        >
+      </div>
     `;
 
     return;
-}
+  }
 
 
-/*
-    FEIERABEND
-    Montag bis Donnerstag ab 14:00 Uhr
-*/
+  /*
+   * Montag–Donnerstag ab 14:00 Uhr Feierabend.
+   */
 
-if (stunde >= 14) {
+  if(
+    stunde>=14 &&
+    !specialDay
+  ){
 
     container.innerHTML = `
-        <div class="feierabend-box">
-            <img
-                src="feierabend.png"
-                alt="Feierabend"
-            >
-        </div>
+      <div class="feierabend-box">
+        <img
+          src="feierabend.png"
+          alt="Feierabend"
+        >
+      </div>
     `;
 
     return;
-}
+  }
 
 
-    /* --------------------------------
-       VOR 14:00 UHR → GERICHTE LADEN
-       -------------------------------- */
+  /*
+   * Freitag vor 14:00 Uhr:
+   * Hinweis auf den kommenden Speiseplan.
+   */
 
-    const jahr = jetzt.getFullYear();
+  if(
+    wochentag===5 &&
+    stunde<14 &&
+    nextWeekNote
+  ){
 
-    const monat = String(
-        jetzt.getMonth() + 1
-    ).padStart(2, "0");
+    nextWeekNote.textContent =
+      "Ab Freitag 14:00 Uhr ist unser Speiseplan für nächste Woche online.";
 
-    const tag = String(
-        jetzt.getDate()
-    ).padStart(2, "0");
-
-    const heute =
-        `${jahr}-${monat}-${tag}`;
-
-
-    const { data, error } = await supabaseClient
-        .from("Gerichte")
-        .select("*")
-        .eq("datum", heute)
-        .order("gerichte", { ascending: true });
+    nextWeekNote.classList.add("show");
+  }
 
 
-    if (error) {
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("Gerichte")
+      .select("*")
+      .eq("datum",heute)
+      .eq("website_anzeigen",true)
+      .order(
+        "gerichte",
+        {ascending:true}
+      );
 
-        console.error(
-            "Fehler beim Laden der Gerichte:",
-            error
+
+  if(error){
+
+    console.error(
+      "Fehler beim Laden der Gerichte:",
+      error
+    );
+
+    return;
+  }
+
+
+  container.innerHTML = "";
+
+
+  if(!data || !data.length){
+
+    container.innerHTML = `
+      <div class="feierabend-box">
+        <p style="color:var(--green);font-weight:700;">
+          Heute sind keine Gerichte eingetragen.
+        </p>
+      </div>
+    `;
+
+    return;
+  }
+
+
+  data.forEach(
+    gericht => {
+
+      const karte =
+        document.createElement("div");
+
+      karte.className =
+        "dish"
+        + (
+          gericht.ausverkauft
+            ? " sold-out"
+            : ""
         );
 
-        return;
+
+      const safeName =
+        String(
+          gericht.gerichte || ""
+        )
+        .replace(/"/g,'&quot;');
+
+
+      const safeBeilage =
+        String(
+          gericht.beilage || ""
+        )
+        .replace(/"/g,'&quot;');
+
+
+      const preis =
+        Number(
+          gericht.preis
+        )
+        .toFixed(2)
+        .replace(".",",");
+
+
+      karte.innerHTML = `
+
+        <div class="dish-info">
+
+          ${
+            gericht.vegetarisch
+              ? `
+                <img
+                  src="vegetarisch.png"
+                  class="veggie-icon"
+                  alt="Vegetarisch"
+                >
+              `
+              : ""
+          }
+
+          <div>
+
+            <h3>
+              ${gericht.gerichte || ""}
+            </h3>
+
+            <p>
+              ${gericht.beilage || ""}
+            </p>
+
+            ${
+              gericht.ausverkauft
+                ? `
+                  <div class="sold-out-label">
+                    AUSVERKAUFT
+                  </div>
+                `
+                : ""
+            }
+
+          </div>
+
+        </div>
+
+
+        <div class="price">
+
+          ${preis} €
+
+          ${
+            !gericht.ausverkauft
+              ? `
+                <button
+                  type="button"
+                  class="dish-share"
+                  onclick='teileGericht(${JSON.stringify({
+                    name:gericht.gerichte || "",
+                    beilage:gericht.beilage || "",
+                    preis:preis
+                  })})'
+                >
+                  TEILEN
+                </button>
+              `
+              : ""
+          }
+
+        </div>
+      `;
+
+
+      container.appendChild(
+        karte
+      );
+
     }
-
-
-    container.innerHTML = "";
-
-
-    /* --------------------------------
-       GERICHTE ANZEIGEN
-       -------------------------------- */
-
-    data.forEach(gericht => {
-
-        const karte =
-            document.createElement("div");
-
-        karte.className = "dish";
-
-
-        karte.innerHTML = `
-
-            <div class="dish-info">
-
-                ${
-                    gericht.vegetarisch
-                        ? `
-                            <img
-                                src="vegetarisch.png"
-                                class="veggie-icon"
-                                alt="Vegetarisch"
-                            >
-                          `
-                        : ""
-                }
-
-                <div>
-
-                    <h3>
-                        ${gericht.gerichte}
-                    </h3>
-
-                    <p>
-                        ${gericht.beilage || ""}
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <div class="price">
-
-                ${
-                    Number(gericht.preis)
-                        .toFixed(2)
-                        .replace(".", ",")
-                } €
-
-            </div>
-
-        `;
-
-
-        container.appendChild(karte);
-
-    });
-
-
-    planeNaechstesUpdate();
+  );
 
 }
+
+
+/* --------------------------------
+   GERICHT TEILEN
+   -------------------------------- */
+
+async function teileGericht(gericht){
+
+  const text =
+    `Heute bei Mahlzeit!\n\n` +
+    `${gericht.name}` +
+    (
+      gericht.beilage
+        ? ` – ${gericht.beilage}`
+        : ""
+    ) +
+    ` – ${gericht.preis} €\n\n` +
+    `Heute von 11:00–14:00 Uhr.`;
+
+
+  const shareData = {
+    title:"Mahlzeit! · Heute bei uns",
+    text
+  };
+
+
+  if(
+    navigator.share
+  ){
+
+    try{
+      await navigator.share(
+        shareData
+      );
+
+      return;
+
+    }catch(error){
+
+      if(
+        error?.name === "AbortError"
+      ){
+        return;
+      }
+
+    }
+
+  }
+
+
+  /*
+   * Desktop-/Fallback:
+   * WhatsApp öffnen.
+   */
+
+  const whatsapp =
+    "https://wa.me/?text="
+    +
+    encodeURIComponent(
+      text
+      + "\n\n"
+      + window.location.href
+    );
+
+  window.open(
+    whatsapp,
+    "_blank",
+    "noopener,noreferrer"
+  );
+
+}
+
+
+/* --------------------------------
+   NÄCHSTE WOCHE / SONDERTAG
+   -------------------------------- */
+
+async function planeNaechstesUpdate(){
+
+  const jetzt =
+    new Date();
+
+  /*
+   * Jede Minute neu prüfen.
+   * Dadurch wird Freitag 14:00 Uhr zuverlässig sichtbar,
+   * auch wenn die Seite seit Freitagmorgen geöffnet war.
+   */
+
+  await ladeGerichte();
+  await ladeSpeiseplan();
+}
+
+
+setInterval(
+  ()=>{
+    ladeGerichte();
+  },
+  60 * 1000
+);
 
 
 /* --------------------------------
@@ -2163,60 +2530,12 @@ function zeigeHeutigesDatum() {
 
 
 /* --------------------------------
-   AUTOMATISCHES UPDATE
-   -------------------------------- */
-
-function planeNaechstesUpdate() {
-
-    const jetzt = new Date();
-
-    // Der Speiseplan wechselt immer freitags um 14:00 Uhr.
-    // Bereits vorbereitete Wochen können in Supabase liegen;
-    // ladeSpeiseplan() sucht automatisch den zu diesem Zeitpunkt
-    // bereits aktivierten, neuesten Plan.
-
-    const wochentag = jetzt.getDay(); // So=0 ... Fr=5 ... Sa=6
-
-    let tageBisFreitag = (5 - wochentag + 7) % 7;
-
-    // Wenn heute Freitag und 14:00 bereits vorbei ist,
-    // wird auf den kommenden Freitag gewartet.
-    if (tageBisFreitag === 0 && jetzt.getHours() >= 14) {
-        tageBisFreitag = 7;
-    }
-
-    const naechstesUpdate = new Date(jetzt);
-    naechstesUpdate.setDate(
-        jetzt.getDate() + tageBisFreitag
-    );
-    naechstesUpdate.setHours(14, 0, 0, 0);
-
-    const zeitBisUpdate =
-        naechstesUpdate.getTime() - jetzt.getTime();
-
-    setTimeout(async () => {
-
-        zeigeHeutigesDatum();
-
-        await ladeGerichte();
-        await ladeSpeiseplan();
-
-        planeNaechstesUpdate();
-
-    }, Math.max(zeitBisUpdate, 1000));
-}
-
-/* --------------------------------
    SEITE STARTEN
    -------------------------------- */
 
 zeigeHeutigesDatum();
 
 ladeGerichte();
-
-planeNaechstesUpdate();
-
-
 /*
    Datum regelmäßig aktualisieren
 */
@@ -2229,47 +2548,28 @@ setInterval(
 
 
 /* ---------------- DYNAMISCHER SPEISEPLAN ---------------- */
-async function ladeSpeiseplan() {
+async function ladeSpeiseplan(){
 
   const kwElement =
     document.getElementById("speiseplan-kw");
 
   const datumElement =
     document.getElementById("speiseplan-datum");
+const container =
+    document.getElementById("speiseplan-container");
 
-  const weekKwElement =
-    document.getElementById("week-preview-kw");
 
-  const weekRangeElement =
-    document.getElementById("week-preview-range");
-
-  const weekImage =
-    document.getElementById("week-preview-image");
-
-  const weekContainer =
-    document.getElementById("wochenuebersicht-container");
-
-  if (
+  if(
     !kwElement ||
     !datumElement ||
     !weekKwElement ||
     !weekRangeElement ||
     !weekImage ||
-    !weekContainer
-  ) {
+    !container
+  ){
     return;
   }
 
-
-  /*
-   * Dieselbe Logik wie beim aktuellen Druck-Speiseplan:
-   *
-   * Es wird immer der neueste Datensatz ausgewählt, dessen
-   * aktiv_ab bereits erreicht ist.
-   *
-   * Dadurch wechseln Vorschau und Wochenübersicht automatisch
-   * zusammen mit dem druckbaren Speiseplan.
-   */
 
   const jetzt =
     new Date();
@@ -2294,287 +2594,68 @@ async function ladeSpeiseplan() {
       .maybeSingle();
 
 
-  if (error) {
+  if(error){
 
     console.error(
       "Fehler beim Laden des Speiseplans:",
       error
     );
 
-    const fehler =
-      '<div class="speiseplan-loading">' +
-      'Speiseplan konnte nicht geladen werden.' +
-      '</div>';
-
-    kwElement.textContent =
-      "MAHLZEIT · SPEISEPLAN";
-
-    datumElement.textContent =
-      "Speiseplan konnte nicht geladen werden.";
-
-    weekKwElement.textContent =
-      "SPEISEPLAN";
-
-    weekRangeElement.textContent =
-      "Speiseplan konnte nicht geladen werden.";
-
-    weekImage.innerHTML =
-      fehler;
-
-    weekContainer.innerHTML =
-      fehler;
-
     return;
   }
 
 
-  if (!data) {
-
-    const vorbereitet =
-      '<div class="speiseplan-loading">' +
-      'Der aktuelle Speiseplan wird vorbereitet.' +
-      '</div>';
+  if(!data){
 
     kwElement.textContent =
       "MAHLZEIT · SPEISEPLAN";
 
     datumElement.textContent =
       "Noch kein Speiseplan hinterlegt.";
-
-    weekKwElement.textContent =
-      "SPEISEPLAN";
-
-    weekRangeElement.textContent =
-      "Noch kein Speiseplan hinterlegt.";
-
-    weekImage.innerHTML =
-      vorbereitet;
-
-    weekContainer.innerHTML =
-      vorbereitet;
-
-    return;
+return;
   }
 
 
   const bildUrl =
-    data.bild_url
-      ? data.bild_url
-        + (data.bild_url.includes("?") ? "&" : "?")
-        + "v="
-        + Date.now()
-      : "";
+    data.bild_url +
+    (
+      data.bild_url.includes("?")
+        ? "&"
+        : "?"
+    )
+    +
+    "v="
+    +
+    Date.now();
 
 
   const datumsbereich =
     `${datumKurz(data.von)} – ${datumKurz(data.bis)}`;
 
 
-  // Daten für beide Website-Bereiche setzen.
   kwElement.textContent =
     `MAHLZEIT · KW ${data.kw}`;
 
   datumElement.textContent =
     datumsbereich;
-
-  weekKwElement.textContent =
-    `MAHLZEIT · KW ${data.kw}`;
-
-  weekRangeElement.textContent =
-    datumsbereich;
-
-
-  // Kleine Vorschau des originalen Druck-Speiseplans.
-  weekImage.innerHTML = `
+container.innerHTML = `
     <img
       src="${bildUrl}"
       alt="Speiseplan Mahlzeit KW ${data.kw}"
     >
+
+    <a
+      href="${data.bild_url}"
+      target="_blank"
+      rel="noopener"
+      class="speiseplan-drucken"
+    >
+      SPEISEPLAN ANZEIGEN
+    </a>
   `;
-
-
-  /*
-   * Digitale Wochenübersicht:
-   * Die Daten kommen aus derselben Gerichte-Tabelle wie
-   * "Heute bei uns". Dadurch bleibt auch diese Ansicht
-   * automatisch synchron.
-   */
-
-  const {
-    data:gerichte,
-    error:gerichteError
-  } =
-    await supabaseClient
-      .from("Gerichte")
-      .select("*")
-      .gte("datum",data.von)
-      .lte("datum",data.bis)
-      .eq("website_anzeigen",true)
-      .order(
-        "datum",
-        {ascending:true}
-      )
-      .order(
-        "gerichte",
-        {ascending:true}
-      );
-
-
-  if (gerichteError) {
-
-    console.error(
-      "Fehler beim Laden der Wochenübersicht:",
-      gerichteError
-    );
-
-    weekContainer.innerHTML =
-      '<div class="speiseplan-loading">' +
-      'Wochenübersicht konnte nicht geladen werden.' +
-      '</div>';
-
-    return;
-  }
-
-
-  const tage = {
-    1:"Montag",
-    2:"Dienstag",
-    3:"Mittwoch",
-    4:"Donnerstag",
-    5:"Freitag"
-  };
-
-
-  const gruppen = {
-    1:[],
-    2:[],
-    3:[],
-    4:[],
-    5:[]
-  };
-
-
-  (gerichte || []).forEach(
-    gericht => {
-
-      const datum =
-        new Date(
-          gericht.datum
-          + "T00:00:00"
-        );
-
-      const wochentag =
-        datum.getDay();
-
-
-      if (
-        gruppen[wochentag]
-      ) {
-
-        gruppen[wochentag].push(
-          gericht
-        );
-
-      }
-
-    }
-  );
-
-
-  weekContainer.innerHTML =
-    "";
-
-
-  Object.entries(
-    gruppen
-  ).forEach(
-    ([tagIndex,items]) => {
-
-      const card =
-        document.createElement(
-          "div"
-        );
-
-      card.className =
-        "day-card";
-
-
-      let html = `
-        <div class="day-name">
-          ${tage[tagIndex]}
-        </div>
-      `;
-
-
-      if (!items.length) {
-
-        html += `
-          <div class="day-dish">
-            <div>
-              <p>Kein Gericht eingetragen.</p>
-            </div>
-          </div>
-        `;
-
-      } else {
-
-        items.forEach(
-          gericht => {
-
-            const preis =
-              Number(
-                gericht.preis
-              )
-              .toFixed(2)
-              .replace(
-                ".",
-                ","
-              );
-
-
-            html += `
-              <div class="day-dish ${
-                gericht.vegetarisch
-                  ? "veggie"
-                  : ""
-              }">
-
-                <div>
-
-                  <div class="week-dish-title">
-                    ${gericht.gerichte || ""}
-                  </div>
-
-                  <p>
-                    ${gericht.beilage || ""}
-                  </p>
-
-                </div>
-
-                <strong>
-                  ${preis} €
-                </strong>
-
-              </div>
-            `;
-
-          }
-        );
-
-      }
-
-
-      card.innerHTML =
-        html;
-
-      weekContainer.appendChild(
-        card
-      );
-
-    }
-  );
-
 }
+
+
 function datumKurz(iso) {
   const d = new Date(iso + "T00:00:00");
   return String(d.getDate()).padStart(2,"0") + "." +
