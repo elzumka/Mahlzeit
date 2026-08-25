@@ -1496,23 +1496,48 @@ async function downloadSpeiseplanPDF(){
         .limit(1)
         .maybeSingle();
 
-    if(error || !data || !data.bild_url){
+
+    if(error){
+
+      console.error(
+        "Speiseplan-Abfrage:",
+        error
+      );
+
+      throw new Error(
+        "Der aktuelle Speiseplan konnte nicht geladen werden."
+      );
+
+    }
+
+
+    if(
+      !data ||
+      !data.bild_url
+    ){
+
       throw new Error(
         "Der aktuelle Speiseplan ist noch nicht verfügbar."
       );
+
     }
+
 
     if(
       !window.jspdf ||
       !window.jspdf.jsPDF
     ){
+
       window.open(
         data.bild_url,
         "_blank",
         "noopener,noreferrer"
       );
+
       return;
+
     }
+
 
     const response =
       await fetch(
@@ -1520,36 +1545,52 @@ async function downloadSpeiseplanPDF(){
         {cache:"no-store"}
       );
 
+
     if(!response.ok){
+
       throw new Error(
         "Die Speiseplan-Datei konnte nicht geladen werden."
       );
+
     }
+
 
     const blob =
       await response.blob();
 
+
     const dataUrl =
       await new Promise(
         (resolve,reject)=>{
+
           const reader =
             new FileReader();
 
-          reader.onloadend =
-            ()=>resolve(reader.result);
+          reader.onload =
+            ()=>resolve(
+              reader.result
+            );
 
           reader.onerror =
             ()=>reject(
-              new Error("Bild konnte nicht gelesen werden.")
+              new Error(
+                "Das Speiseplan-Bild konnte nicht verarbeitet werden."
+              )
             );
 
-          reader.readAsDataURL(blob);
+          reader.readAsDataURL(
+            blob
+          );
+
         }
       );
 
+
     const {
       jsPDF
-    } = window.jspdf;
+    } =
+      window.jspdf;
+
 
     const pdf =
       new jsPDF({
@@ -1557,6 +1598,7 @@ async function downloadSpeiseplanPDF(){
         unit:"mm",
         format:"a4"
       });
+
 
     pdf.addImage(
       dataUrl,
@@ -1567,9 +1609,11 @@ async function downloadSpeiseplanPDF(){
       297
     );
 
+
     pdf.save(
       `Speiseplan-KW-${data.kw}-${data.jahr}.pdf`
     );
+
 
   }catch(error){
 
@@ -1578,12 +1622,14 @@ async function downloadSpeiseplanPDF(){
       error
     );
 
+
     alert(
       error?.message ||
       "Der PDF-Download konnte nicht gestartet werden."
     );
 
   }
+
 }
 
 </script>
@@ -1831,7 +1877,7 @@ async function downloadSpeiseplanPDF(){
   </div>
 </section>
 
-<section class="breakfast-section" id="fruehstueck"> id="fruehstueck">
+<section class="breakfast-section" id="fruehstueck">
   <!-- Frühstücksbereich bleibt vorerst leer. -->
 </section>
 
@@ -2741,8 +2787,12 @@ async function ladeSpeiseplan(){
 
   const datumElement =
     document.getElementById("speiseplan-datum");
-const container =
+
+  const container =
     document.getElementById("speiseplan-container");
+
+  const anzeigenButton =
+    document.getElementById("speiseplan-anzeigen-button");
 
 
   if(
@@ -2751,6 +2801,11 @@ const container =
     !container
   ){
     return;
+  }
+
+
+  if(anzeigenButton){
+    anzeigenButton.removeAttribute("href");
   }
 
 
@@ -2787,13 +2842,6 @@ const container =
     return;
   }
 
-  const anzeigenButton =
-    document.getElementById("speiseplan-anzeigen-button");
-
-  if(anzeigenButton){
-    anzeigenButton.removeAttribute("href");
-  }
-
 
   if(!data){
 
@@ -2802,7 +2850,13 @@ const container =
 
     datumElement.textContent =
       "Noch kein Speiseplan hinterlegt.";
-return;
+
+    container.innerHTML =
+      `<div class="speiseplan-loading">
+        Noch kein Speiseplan hinterlegt.
+       </div>`;
+
+    return;
   }
 
 
@@ -2829,46 +2883,100 @@ return;
   datumElement.textContent =
     datumsbereich;
 
+
   const sondertageElement =
-    document.getElementById("speiseplan-sondertage");
+    document.getElementById(
+      "speiseplan-sondertage"
+    );
+
 
   if(sondertageElement){
-    const {data:sondertage} =
+
+    const {
+      data:sondertage
+    } =
       await supabaseClient
         .from("Sonderoeffnungszeiten")
         .select("*")
-        .gte("datum", data.von)
-        .lte("datum", data.bis)
-        .order("datum",{ascending:true});
+        .gte("datum",data.von)
+        .lte("datum",data.bis)
+        .order(
+          "datum",
+          {ascending:true}
+        );
+
 
     if(sondertage?.length){
+
       sondertageElement.innerHTML =
-        sondertage.map(item => {
-          const d = new Date(item.datum + "T00:00:00");
-          const datumText = d.toLocaleDateString("de-DE", {
-            weekday:"long",
-            day:"2-digit",
-            month:"2-digit"
-          });
+        sondertage
+          .map(item=>{
 
-          if(item.geschlossen){
-            return `<strong>${datumText}</strong> · ${
-              item.hinweis || "geschlossen"
-            }`;
-          }
+            const d =
+              new Date(
+                item.datum + "T00:00:00"
+              );
 
-          return `<strong>${datumText}</strong> · ${
-            item.hinweis ||
-            `geänderte Öffnungszeit ${item.von || "11:00"}–${item.bis || "14:00"} Uhr`
-          }`;
-        }).join("<br>");
+            const datumText =
+              d.toLocaleDateString(
+                "de-DE",
+                {
+                  weekday:"long",
+                  day:"2-digit",
+                  month:"2-digit"
+                }
+              );
 
-      sondertageElement.classList.add("show");
+
+            if(item.geschlossen){
+
+              return `
+                <strong>
+                  ${datumText}
+                </strong>
+                ·
+                ${item.hinweis || "geschlossen"}
+              `;
+
+            }
+
+
+            return `
+              <strong>
+                ${datumText}
+              </strong>
+              ·
+              ${
+                item.hinweis ||
+                `geänderte Öffnungszeit ${
+                  item.von || "11:00"
+                }–${
+                  item.bis || "14:00"
+                } Uhr`
+              }
+            `;
+
+          })
+          .join("<br>");
+
+
+      sondertageElement.classList.add(
+        "show"
+      );
+
     }else{
-      sondertageElement.classList.remove("show");
-      sondertageElement.textContent="";
+
+      sondertageElement.classList.remove(
+        "show"
+      );
+
+      sondertageElement.textContent =
+        "";
+
     }
+
   }
+
 
   container.innerHTML = `
     <img
@@ -2877,14 +2985,15 @@ return;
     >
   `;
 
-  const anzeigenButton =
-    document.getElementById("speiseplan-anzeigen-button");
 
   if(anzeigenButton){
-    anzeigenButton.href = data.bild_url;
-  }
-}
 
+    anzeigenButton.href =
+      data.bild_url;
+
+  }
+
+}
 
 function datumKurz(iso) {
   const d = new Date(iso + "T00:00:00");
@@ -2895,11 +3004,5 @@ function datumKurz(iso) {
 ladeSpeiseplan();
 </script>
 
-</body>
-</html>
-</body>
-</html>
-</body>
-</html>
 </body>
 </html>
