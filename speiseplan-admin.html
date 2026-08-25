@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mahlzeit! – Verwaltung · Speiseplan v30 · automatische Veröffentlichung</title>
+<title>Mahlzeit! – Verwaltung · Speiseplan & Tagesverwaltung</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
 :root{--green:#285437;--green-dark:#1d4029;--cream:#f5eee4;--beige:#ddd1bf;--black:#20201d;--line:#b8ad9d;}
@@ -100,6 +100,7 @@ button.save{margin-top:28px;padding:14px 24px;border:0;background:var(--green);c
 <div class="admin-tabs">
 <button class="admin-tab active" type="button" onclick="zeigeBereich('gerichte-bereich',this)">Gerichte</button>
 <button class="admin-tab" type="button" onclick="zeigeBereich('speiseplan-bereich',this);sp_init()">Speiseplan</button>
+<button class="admin-tab" type="button" onclick="zeigeBereich('sondertage-bereich',this);sondertageLaden()">Sondertage</button>
 </div>
 
 <section id="gerichte-bereich" class="admin-bereich active">
@@ -112,10 +113,55 @@ button.save{margin-top:28px;padding:14px 24px;border:0;background:var(--green);c
 <label class="checkbox"><input type="checkbox" id="vegetarisch"> Vegetarisch</label>
 <label class="checkbox"><input type="checkbox" id="website_anzeigen" checked> Auf Website anzeigen</label>
 <label class="checkbox"><input type="checkbox" id="speiseplan_anzeigen" checked> Auf Speiseplan drucken</label>
+<label class="checkbox"><input type="checkbox" id="ausverkauft"> Ausverkauft</label>
 <div class="intro" style="font-size:12px;margin-top:8px">Ein Gericht kann auf der Website erscheinen, ohne auf dem Druck-Speiseplan zu stehen – ideal für Gerichte vom Vortag.</div>
 <button class="save" onclick="gerichtSpeichern()">Gericht speichern</button>
+<button class="save" type="button" onclick="whatsappTextKopieren()">WhatsApp-Text für heute kopieren</button>
 <div id="meldung"></div><div id="gerichte-liste"></div>
 </div>
+</section>
+
+
+<section id="sondertage-bereich" class="admin-bereich">
+  <div class="form">
+    <h2>Sonderöffnungszeiten</h2>
+    <p class="intro">
+      Hier könnt ihr Feiertage, Sonderöffnungen und geänderte Öffnungszeiten
+      hinterlegen, ohne den Website-Code zu bearbeiten.
+    </p>
+
+    <label for="sonderdatum">Datum</label>
+    <input type="date" id="sonderdatum">
+
+    <label class="checkbox">
+      <input type="checkbox" id="sondergeschlossen" checked>
+      Geschlossen
+    </label>
+
+    <label for="sondervon">Von</label>
+    <input type="time" id="sondervon" value="11:00">
+
+    <label for="sonderbis">Bis</label>
+    <input type="time" id="sonderbis" value="14:00">
+
+    <label for="sonderhinweis">Hinweis</label>
+    <input
+      type="text"
+      id="sonderhinweis"
+      placeholder="z. B. Heiligabend · geschlossen"
+    >
+
+    <button class="save" type="button" onclick="sondertagSpeichern()">
+      Sondertag speichern
+    </button>
+
+    <div id="sondertag-meldung"></div>
+  </div>
+
+  <div class="saved-plans">
+    <h2>Gespeicherte Sondertage</h2>
+    <div id="sondertage-liste">Wird geladen …</div>
+  </div>
 </section>
 
 <section id="speiseplan-bereich" class="admin-bereich">
@@ -183,7 +229,8 @@ async function gerichtSpeichern(){
         preis,
         vegetarisch,
         website_anzeigen: websiteAnzeigen,
-        speiseplan_anzeigen: speiseplanAnzeigen
+        speiseplan_anzeigen: speiseplanAnzeigen,
+        ausverkauft: document.getElementById('ausverkauft').checked
     }]);
 
     if(error){
@@ -200,6 +247,7 @@ async function gerichtSpeichern(){
     document.getElementById('vegetarisch').checked=false;
     document.getElementById('website_anzeigen').checked=true;
     document.getElementById('speiseplan_anzeigen').checked=true;
+    document.getElementById('ausverkauft').checked=false;
     gerichteLaden();
 }
 
@@ -234,7 +282,7 @@ async function gerichteLaden(){
             <div class="gericht-datum">${datumFormatieren(gericht.datum)}</div>
             <div class="gericht-name">${gericht.gerichte} ${gericht.vegetarisch ? '🌱' : ''}</div>
             <div class="gericht-beilage">${gericht.beilage || ''}</div>
-            <div class="gericht-preis">${preisFormatieren(gericht.preis)}</div>
+            <div class="gericht-preis">${preisFormatieren(gericht.preis)} ${gericht.ausverkauft ? " · AUSVERKAUFT" : ""}</div>
             <button class="loeschen-button" onclick="gerichtLoeschen(${gericht.id},this)">Löschen</button>
         `;
         liste.appendChild(e);
@@ -891,5 +939,195 @@ async function sp_publishPlan(){
 window.addEventListener("DOMContentLoaded",()=>{
   gerichteLaden();
 });
+
+/* ==========================================================
+   WHATSAPP-TEXT
+   ========================================================== */
+
+async function whatsappTextKopieren(){
+
+  const jetzt=new Date();
+
+  const jahr=jetzt.getFullYear();
+  const monat=String(jetzt.getMonth()+1).padStart(2,"0");
+  const tag=String(jetzt.getDate()).padStart(2,"0");
+
+  const heute=`${jahr}-${monat}-${tag}`;
+
+  const {data,error}=
+    await supabaseClient
+      .from("Gerichte")
+      .select("*")
+      .eq("datum",heute)
+      .eq("website_anzeigen",true)
+      .order("gerichte",{ascending:true});
+
+  if(error){
+    alert("Die Gerichte konnten nicht geladen werden.");
+    return;
+  }
+
+  const lines=[
+    "Heute bei Mahlzeit!",
+    "",
+    ...(data || []).map(g =>
+      `${g.ausverkauft ? "AUSVERKAUFT · " : ""}${g.gerichte}${g.beilage ? " – " + g.beilage : ""} – ${preisFormatieren(g.preis)}`
+    ),
+    "",
+    "Heute von 11:00–14:00 Uhr.",
+    window.location.origin
+  ];
+
+  const text=lines.join("\n");
+
+  try{
+    await navigator.clipboard.writeText(text);
+    document.getElementById("meldung").textContent =
+      "WhatsApp-Text wurde kopiert.";
+  }catch(e){
+    prompt("WhatsApp-Text:",text);
+  }
+}
+
+
+/* ==========================================================
+   SONDERTAGE
+   ========================================================== */
+
+async function sondertagSpeichern(){
+
+  const datum=
+    document.getElementById("sonderdatum").value;
+
+  const geschlossen=
+    document.getElementById("sondergeschlossen").checked;
+
+  const von=
+    document.getElementById("sondervon").value;
+
+  const bis=
+    document.getElementById("sonderbis").value;
+
+  const hinweis=
+    document.getElementById("sonderhinweis").value.trim();
+
+  const meldung=
+    document.getElementById("sondertag-meldung");
+
+  if(!datum){
+    meldung.textContent="Bitte ein Datum auswählen.";
+    return;
+  }
+
+  const {error}=
+    await supabaseClient
+      .from("Sonderoeffnungszeiten")
+      .upsert([{
+        datum,
+        geschlossen,
+        von:geschlossen ? null : von,
+        bis:geschlossen ? null : bis,
+        hinweis
+      }],{onConflict:"datum"});
+
+  if(error){
+    console.error(error);
+    meldung.textContent=
+      "Sondertag konnte nicht gespeichert werden.";
+    return;
+  }
+
+  meldung.textContent=
+    "Sondertag wurde gespeichert.";
+
+  document.getElementById("sonderdatum").value="";
+  document.getElementById("sonderhinweis").value="";
+
+  sondertageLaden();
+}
+
+
+async function sondertageLaden(){
+
+  const liste=
+    document.getElementById("sondertage-liste");
+
+  if(!liste)return;
+
+  const {data,error}=
+    await supabaseClient
+      .from("Sonderoeffnungszeiten")
+      .select("*")
+      .order("datum",{ascending:true});
+
+  if(error){
+    console.error(error);
+    liste.innerHTML=
+      "<p>Sondertage konnten nicht geladen werden.</p>";
+    return;
+  }
+
+  if(!data?.length){
+    liste.innerHTML=
+      "<p>Noch keine Sondertage angelegt.</p>";
+    return;
+  }
+
+  liste.innerHTML="";
+
+  data.forEach(item=>{
+
+    const row=
+      document.createElement("div");
+
+    row.className=
+      "plan-entry";
+
+    row.innerHTML=`
+      <div>
+        <strong>${datumFormatieren(item.datum)}</strong>
+        <small>
+          ${
+            item.geschlossen
+              ? "Geschlossen"
+              : `${item.von || ""} – ${item.bis || ""}`
+          }
+          ${item.hinweis ? " · " + item.hinweis : ""}
+        </small>
+      </div>
+      <div class="plan-actions">
+        <button
+          type="button"
+          class="plan-delete"
+          onclick="sondertagLoeschen(${item.id})"
+        >
+          Löschen
+        </button>
+      </div>
+    `;
+
+    liste.appendChild(row);
+  });
+}
+
+
+async function sondertagLoeschen(id){
+
+  if(!confirm("Diesen Sondertag wirklich löschen?"))return;
+
+  const {error}=
+    await supabaseClient
+      .from("Sonderoeffnungszeiten")
+      .delete()
+      .eq("id",id);
+
+  if(error){
+    console.error(error);
+    return;
+  }
+
+  sondertageLaden();
+}
+
 </script>
 </body></html>
