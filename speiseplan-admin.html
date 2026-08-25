@@ -737,6 +737,175 @@ button{
   }
 }
 
+
+.settings-subtitle{
+  margin:26px 0 10px;
+  color:var(--green);
+  font-family:"Barlow Condensed",sans-serif;
+  font-size:28px;
+  line-height:1;
+  text-transform:uppercase;
+}
+
+.settings-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.settings-row > div{
+  min-width:0;
+}
+
+.settings-action-row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+
+.klassiker-admin{
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:rgba(255,255,255,.16);
+  margin-top:12px;
+  overflow:hidden;
+}
+
+.klassiker-admin-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:14px;
+  align-items:center;
+  padding:14px 16px;
+  border-bottom:1px solid var(--line);
+}
+
+.klassiker-admin-row:last-child{
+  border-bottom:0;
+}
+
+.klassiker-admin-name{
+  color:var(--green);
+  font-weight:800;
+  text-transform:uppercase;
+}
+
+.klassiker-admin-desc{
+  margin-top:4px;
+  color:#555;
+  font-size:13px;
+  line-height:1.5;
+}
+
+.klassiker-admin-price{
+  margin-top:5px;
+  font-weight:800;
+  color:var(--green);
+}
+
+.klassiker-admin-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+.klassiker-admin-actions button{
+  margin:0;
+  border-radius:10px;
+  padding:9px 11px;
+  font-size:11px;
+}
+
+.klassiker-admin-inaktiv{
+  opacity:.55;
+}
+
+@media(max-width:700px){
+  .settings-row{
+    grid-template-columns:1fr;
+  }
+
+  .klassiker-admin-row{
+    grid-template-columns:1fr;
+  }
+
+  .klassiker-admin-actions{
+    justify-content:flex-start;
+  }
+}
+
+
+.ankuendigung-admin-card{
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:rgba(255,255,255,.16);
+  padding:18px;
+}
+
+.ankuendigung-admin-card.aktiv{
+  border-color:rgba(40,84,55,.28);
+  background:rgba(40,84,55,.06);
+}
+
+.ankuendigung-admin-card.inaktiv{
+  opacity:.65;
+}
+
+.ankuendigung-admin-title{
+  color:var(--green);
+  font-family:"Barlow Condensed",sans-serif;
+  font-size:30px;
+  text-transform:uppercase;
+  line-height:.95;
+}
+
+.ankuendigung-admin-text{
+  margin-top:10px;
+  color:#555;
+  white-space:pre-wrap;
+  line-height:1.55;
+}
+
+.ankuendigung-admin-card img{
+  display:block;
+  width:100%;
+  max-height:260px;
+  object-fit:cover;
+  border-radius:10px;
+  margin-top:14px;
+}
+
+.ankuendigung-admin-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:16px;
+}
+
+.ankuendigung-admin-actions button{
+  margin:0;
+  border-radius:10px;
+}
+
+.ankuendigung-status{
+  display:inline-block;
+  margin-top:12px;
+  padding:6px 9px;
+  border-radius:8px;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  background:#8a8a8a;
+  color:#fff;
+}
+
+.ankuendigung-status.aktiv{
+  background:var(--green);
+}
+
 </style>
 </head>
 <body>
@@ -749,6 +918,12 @@ button{
 <button class="admin-tab" type="button" onclick="zeigeBereich('sondertage-bereich',this);sondertageLaden();feiertageLaden()">Sondertage</button>
 <button class="admin-tab" type="button" onclick="zeigeBereich('hero-bilder-bereich',this);heroBilderLaden()">
   Website Bilder
+</button>
+<button class="admin-tab" type="button" onclick="zeigeBereich('website-einstellungen-bereich',this);websiteEinstellungenLaden();klassikerLaden()">
+  Website Einstellungen
+</button>
+<button class="admin-tab" type="button" onclick="zeigeBereich('ankuendigungen-bereich',this);ankuendigungenLaden()">
+  Ankündigungen
 </button>
 </div>
 
@@ -939,6 +1114,300 @@ button{
 
 </section>
 
+
+<section id="website-einstellungen-bereich" class="admin-bereich">
+
+  <div class="form">
+
+    <h2>Öffnungszeiten & Website</h2>
+
+    <p class="intro">
+      Hier kannst du wichtige Angaben der Website spontan ändern, ohne den
+      HTML-Code zu bearbeiten.
+    </p>
+
+    <h3 class="settings-subtitle">Mittagstisch</h3>
+
+    <label class="checkbox">
+      <input type="checkbox" id="setting-mittag-aktiv" checked>
+      Mittagstisch aktiv
+    </label>
+
+    <div class="settings-row">
+      <div>
+        <label for="setting-mittag-von">Von</label>
+        <input type="time" id="setting-mittag-von" value="11:00">
+      </div>
+
+      <div>
+        <label for="setting-mittag-bis">Bis</label>
+        <input type="time" id="setting-mittag-bis" value="14:00">
+      </div>
+    </div>
+
+
+    <h3 class="settings-subtitle">Frühstück</h3>
+
+    <label class="checkbox">
+      <input type="checkbox" id="setting-fruehstueck-aktiv">
+      Frühstück aktiviert
+    </label>
+
+    <div class="settings-row">
+      <div>
+        <label for="setting-fruehstueck-von">Von</label>
+        <input type="time" id="setting-fruehstueck-von" value="08:00">
+      </div>
+
+      <div>
+        <label for="setting-fruehstueck-bis">Bis</label>
+        <input type="time" id="setting-fruehstueck-bis" value="10:30">
+      </div>
+    </div>
+
+
+    <h3 class="settings-subtitle">Lieferservice</h3>
+
+    <label class="checkbox">
+      <input type="checkbox" id="setting-lieferung-aktiv">
+      Lieferservice aktiviert
+    </label>
+
+    <label for="setting-lieferung-von">
+      Öffnungszeiten · von
+    </label>
+
+    <input
+      type="time"
+      id="setting-lieferung-von"
+      value="11:00"
+    >
+
+    <label for="setting-lieferung-bis">
+      Öffnungszeiten · bis
+    </label>
+
+    <input
+      type="time"
+      id="setting-lieferung-bis"
+      value="14:00"
+    >
+
+    <label for="setting-lieferung-text">
+      Hinweis
+    </label>
+
+    <input
+      type="text"
+      id="setting-lieferung-text"
+      placeholder="Bald auch für euch · über Lieferando"
+    >
+
+
+    <h3 class="settings-subtitle">Kontakt</h3>
+
+    <label for="setting-telefon">
+      Telefon
+    </label>
+
+    <input
+      type="text"
+      id="setting-telefon"
+      placeholder="0355 25057"
+    >
+
+    <label for="setting-instagram">
+      Instagram
+    </label>
+
+    <input
+      type="text"
+      id="setting-instagram"
+      placeholder="@mahlzeit_cottbus"
+    >
+
+    <button
+      type="button"
+      class="save"
+      onclick="websiteEinstellungenSpeichern()"
+    >
+      Einstellungen speichern
+    </button>
+
+    <div id="website-einstellungen-meldung"></div>
+
+  </div>
+
+
+  <div class="saved-plans">
+
+    <h2>Tägliche Klassiker</h2>
+
+    <p class="intro">
+      Diese Gerichte können hier jederzeit angepasst oder vorübergehend
+      deaktiviert werden.
+    </p>
+
+    <div id="klassiker-liste">
+      Wird geladen …
+    </div>
+
+    <button
+      type="button"
+      class="save"
+      onclick="klassikerNeu()"
+    >
+      Klassiker hinzufügen
+    </button>
+
+    <div id="klassiker-form" style="display:none">
+
+      <h3 class="settings-subtitle">
+        Klassiker bearbeiten
+      </h3>
+
+      <input type="hidden" id="klassiker-id">
+
+      <label for="klassiker-name">
+        Name
+      </label>
+
+      <input
+        type="text"
+        id="klassiker-name"
+        placeholder="z. B. Schnitzel Menü"
+      >
+
+      <label for="klassiker-beschreibung">
+        Beschreibung
+      </label>
+
+      <textarea
+        id="klassiker-beschreibung"
+        rows="3"
+        placeholder="Schnitzel + Rohkost oder Dessert + Getränk"
+      ></textarea>
+
+      <label for="klassiker-preis">
+        Preis
+      </label>
+
+      <input
+        type="number"
+        id="klassiker-preis"
+        step="0.01"
+        placeholder="11.50"
+      >
+
+      <label class="checkbox">
+        <input
+          type="checkbox"
+          id="klassiker-aktiv"
+          checked
+        >
+        Auf der Website anzeigen
+      </label>
+
+      <div class="settings-action-row">
+
+        <button
+          type="button"
+          class="save"
+          onclick="klassikerSpeichern()"
+        >
+          Speichern
+        </button>
+
+        <button
+          type="button"
+          onclick="klassikerFormSchliessen()"
+        >
+          Abbrechen
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<section id="ankuendigungen-bereich" class="admin-bereich">
+
+  <div class="form">
+
+    <h2>Spontane Ankündigungen</h2>
+
+    <p class="intro">
+      Dieser Bereich erscheint auf der Website nur dann, wenn hier eine
+      aktive Ankündigung hinterlegt ist. Du kannst Text und optional ein
+      Bild verwenden.
+    </p>
+
+    <label for="ankuendigung-titel">
+      Überschrift
+    </label>
+
+    <input
+      type="text"
+      id="ankuendigung-titel"
+      placeholder="z. B. Heute geänderte Öffnungszeiten"
+    >
+
+    <label for="ankuendigung-text">
+      Text
+    </label>
+
+    <textarea
+      id="ankuendigung-text"
+      rows="5"
+      placeholder="Schreibt uns heute gern ... "
+    ></textarea>
+
+    <label for="ankuendigung-bild">
+      Bild (optional)
+    </label>
+
+    <input
+      type="file"
+      id="ankuendigung-bild"
+      accept="image/png,image/jpeg,image/webp"
+    >
+
+    <label class="checkbox">
+      <input
+        type="checkbox"
+        id="ankuendigung-aktiv"
+      >
+      Auf der Website anzeigen
+    </label>
+
+    <button
+      type="button"
+      class="save"
+      onclick="ankuendigungSpeichern()"
+    >
+      Ankündigung speichern
+    </button>
+
+    <div id="ankuendigung-meldung"></div>
+
+  </div>
+
+
+  <div class="saved-plans">
+
+    <h2>Aktuelle Ankündigung</h2>
+
+    <div id="ankuendigung-aktueller-status">
+      Wird geladen …
+    </div>
+
+  </div>
+
+</section>
 <section id="speiseplan-bereich" class="admin-bereich">
   <div class="sp-toolbar">
     <div>
@@ -4676,6 +5145,1100 @@ async function feiertagUebernehmen(
 
 }
 
+
+
+/* ==========================================================
+   WEBSITE EINSTELLUNGEN
+   ========================================================== */
+
+async function websiteEinstellungenLaden(){
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("WebsiteEinstellungen")
+      .select("*")
+      .limit(1)
+      .maybeSingle();
+
+
+  if(error){
+
+    console.error(
+      "Website-Einstellungen:",
+      error
+    );
+
+    const meldung =
+      document.getElementById(
+        "website-einstellungen-meldung"
+      );
+
+    if(meldung){
+      meldung.textContent =
+        "Einstellungen konnten nicht geladen werden.";
+    }
+
+    return;
+  }
+
+
+  if(!data){
+
+    return;
+
+  }
+
+
+  document.getElementById(
+    "setting-mittag-aktiv"
+  ).checked =
+    data.mittagstisch_aktiv !== false;
+
+  document.getElementById(
+    "setting-mittag-von"
+  ).value =
+    data.mittagstisch_von ||
+    "11:00";
+
+  document.getElementById(
+    "setting-mittag-bis"
+  ).value =
+    data.mittagstisch_bis ||
+    "14:00";
+
+
+  document.getElementById(
+    "setting-fruehstueck-aktiv"
+  ).checked =
+    data.fruehstueck_aktiv === true;
+
+  document.getElementById(
+    "setting-fruehstueck-von"
+  ).value =
+    data.fruehstueck_von ||
+    "08:00";
+
+  document.getElementById(
+    "setting-fruehstueck-bis"
+  ).value =
+    data.fruehstueck_bis ||
+    "10:30";
+
+
+  document.getElementById(
+    "setting-lieferung-aktiv"
+  ).checked =
+    data.lieferservice_aktiv === true;
+
+  document.getElementById(
+    "setting-lieferung-von"
+  ).value =
+    data.lieferservice_von ||
+    "11:00";
+
+  document.getElementById(
+    "setting-lieferung-bis"
+  ).value =
+    data.lieferservice_bis ||
+    "14:00";
+
+  document.getElementById(
+    "setting-lieferung-text"
+  ).value =
+    data.lieferservice_text ||
+    "Bald auch für euch · über Lieferando";
+
+
+  document.getElementById(
+    "setting-telefon"
+  ).value =
+    data.telefon ||
+    "0355 25057";
+
+  document.getElementById(
+    "setting-instagram"
+  ).value =
+    data.instagram ||
+    "@mahlzeit_cottbus";
+
+}
+
+
+async function websiteEinstellungenSpeichern(){
+
+  const meldung =
+    document.getElementById(
+      "website-einstellungen-meldung"
+    );
+
+  const values = {
+
+    id:1,
+
+    mittagstisch_aktiv:
+      document.getElementById(
+        "setting-mittag-aktiv"
+      ).checked,
+
+    mittagstisch_von:
+      document.getElementById(
+        "setting-mittag-von"
+      ).value,
+
+    mittagstisch_bis:
+      document.getElementById(
+        "setting-mittag-bis"
+      ).value,
+
+    fruehstueck_aktiv:
+      document.getElementById(
+        "setting-fruehstueck-aktiv"
+      ).checked,
+
+    fruehstueck_von:
+      document.getElementById(
+        "setting-fruehstueck-von"
+      ).value,
+
+    fruehstueck_bis:
+      document.getElementById(
+        "setting-fruehstueck-bis"
+      ).value,
+
+    lieferservice_aktiv:
+      document.getElementById(
+        "setting-lieferung-aktiv"
+      ).checked,
+
+    lieferservice_von:
+      document.getElementById(
+        "setting-lieferung-von"
+      ).value,
+
+    lieferservice_bis:
+      document.getElementById(
+        "setting-lieferung-bis"
+      ).value,
+
+    lieferservice_text:
+      document.getElementById(
+        "setting-lieferung-text"
+      ).value.trim(),
+
+    telefon:
+      document.getElementById(
+        "setting-telefon"
+      ).value.trim(),
+
+    instagram:
+      document.getElementById(
+        "setting-instagram"
+      ).value.trim()
+
+  };
+
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from("WebsiteEinstellungen")
+      .upsert(
+        [values],
+        {onConflict:"id"}
+      );
+
+
+  if(error){
+
+    console.error(
+      "Website-Einstellungen:",
+      error
+    );
+
+    if(meldung){
+      meldung.textContent =
+        "Einstellungen konnten nicht gespeichert werden.";
+    }
+
+    return;
+  }
+
+
+  if(meldung){
+    meldung.textContent =
+      "Website-Einstellungen wurden gespeichert.";
+  }
+
+}
+
+
+/* ==========================================================
+   TÄGLICHE KLASSIKER
+   ========================================================== */
+
+async function klassikerLaden(){
+
+  const liste =
+    document.getElementById(
+      "klassiker-liste"
+    );
+
+  if(!liste)return;
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("Klassiker")
+      .select("*")
+      .order(
+        "sortierung",
+        {ascending:true}
+      )
+      .order(
+        "id",
+        {ascending:true}
+      );
+
+
+  if(error){
+
+    console.error(
+      "Klassiker:",
+      error
+    );
+
+    liste.innerHTML =
+      "<p>Klassiker konnten nicht geladen werden.</p>";
+
+    return;
+  }
+
+
+  if(!data?.length){
+
+    liste.innerHTML =
+      "<p>Noch keine Klassiker angelegt.</p>";
+
+    return;
+  }
+
+
+  liste.innerHTML = "";
+
+
+  data.forEach(
+    item => {
+
+      const row =
+        document.createElement(
+          "div"
+        );
+
+      row.className =
+        "klassiker-admin "
+        +
+        (
+          item.aktiv
+            ? ""
+            : "klassiker-admin-inaktiv"
+        );
+
+
+      row.innerHTML = `
+
+        <div class="klassiker-admin-row">
+
+          <div>
+
+            <div class="klassiker-admin-name">
+              ${item.name || ""}
+            </div>
+
+            <div class="klassiker-admin-desc">
+              ${item.beschreibung || ""}
+            </div>
+
+            <div class="klassiker-admin-price">
+              ${preisFormatieren(item.preis)}
+            </div>
+
+          </div>
+
+          <div class="klassiker-admin-actions">
+
+            <button
+              type="button"
+              onclick="klassikerBearbeiten(${item.id})"
+            >
+              Bearbeiten
+            </button>
+
+            <button
+              type="button"
+              class="save"
+              onclick="klassikerToggle(${item.id},${!item.aktiv})"
+            >
+              ${
+                item.aktiv
+                  ? "Deaktivieren"
+                  : "Aktivieren"
+              }
+            </button>
+
+          </div>
+
+        </div>
+      `;
+
+
+      liste.appendChild(
+        row
+      );
+
+    }
+  );
+
+}
+
+
+function klassikerNeu(){
+
+  document.getElementById(
+    "klassiker-id"
+  ).value =
+    "";
+
+  document.getElementById(
+    "klassiker-name"
+  ).value =
+    "";
+
+  document.getElementById(
+    "klassiker-beschreibung"
+  ).value =
+    "";
+
+  document.getElementById(
+    "klassiker-preis"
+  ).value =
+    "";
+
+  document.getElementById(
+    "klassiker-aktiv"
+  ).checked =
+    true;
+
+  document.getElementById(
+    "klassiker-form"
+  ).style.display =
+    "block";
+
+}
+
+
+function klassikerBearbeiten(
+  id
+){
+
+  supabaseClient
+    .from("Klassiker")
+    .select("*")
+    .eq("id",id)
+    .maybeSingle()
+    .then(
+      ({data,error})=>{
+
+        if(error || !data){
+          return;
+        }
+
+
+        document.getElementById(
+          "klassiker-id"
+        ).value =
+          data.id;
+
+        document.getElementById(
+          "klassiker-name"
+        ).value =
+          data.name || "";
+
+        document.getElementById(
+          "klassiker-beschreibung"
+        ).value =
+          data.beschreibung || "";
+
+        document.getElementById(
+          "klassiker-preis"
+        ).value =
+          data.preis ?? "";
+
+        document.getElementById(
+          "klassiker-aktiv"
+        ).checked =
+          data.aktiv !== false;
+
+        document.getElementById(
+          "klassiker-form"
+        ).style.display =
+          "block";
+
+      }
+    );
+
+}
+
+
+function klassikerFormSchliessen(){
+
+  document.getElementById(
+    "klassiker-form"
+  ).style.display =
+    "none";
+
+}
+
+
+async function klassikerSpeichern(){
+
+  const id =
+    document.getElementById(
+      "klassiker-id"
+    ).value;
+
+  const name =
+    document.getElementById(
+      "klassiker-name"
+    ).value.trim();
+
+  const beschreibung =
+    document.getElementById(
+      "klassiker-beschreibung"
+    ).value.trim();
+
+  const preis =
+    document.getElementById(
+      "klassiker-preis"
+    ).value;
+
+  const aktiv =
+    document.getElementById(
+      "klassiker-aktiv"
+    ).checked;
+
+
+  if(
+    !name ||
+    preis === ""
+  ){
+
+    alert(
+      "Bitte Name und Preis ausfüllen."
+    );
+
+    return;
+
+  }
+
+
+  const values = {
+
+    name,
+
+    beschreibung,
+
+    preis,
+
+    aktiv
+
+  };
+
+
+  let result;
+
+
+  if(id){
+
+    result =
+      await supabaseClient
+        .from("Klassiker")
+        .update(values)
+        .eq("id",id);
+
+  }else{
+
+    const {
+      data:last
+    } =
+      await supabaseClient
+        .from("Klassiker")
+        .select("sortierung")
+        .order(
+          "sortierung",
+          {ascending:false}
+        )
+        .limit(1)
+        .maybeSingle();
+
+    values.sortierung =
+      Number(
+        last?.sortierung || 0
+      ) + 1;
+
+
+    result =
+      await supabaseClient
+        .from("Klassiker")
+        .insert([
+          values
+        ]);
+
+  }
+
+
+  if(result.error){
+
+    console.error(
+      "Klassiker speichern:",
+      result.error
+    );
+
+    alert(
+      "Klassiker konnte nicht gespeichert werden."
+    );
+
+    return;
+
+  }
+
+
+  klassikerFormSchliessen();
+  klassikerLaden();
+
+}
+
+async function klassikerToggle(
+  id,
+  aktiv
+){
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from("Klassiker")
+      .update({
+        aktiv
+      })
+      .eq(
+        "id",
+        id
+      );
+
+
+  if(error){
+
+    console.error(error);
+
+    return;
+
+  }
+
+
+  klassikerLaden();
+
+}
+
+
+
+/* ==========================================================
+   SPONTANE ANKÜNDIGUNGEN
+   ========================================================== */
+
+async function ankuendigungenLaden(){
+
+  const statusBox =
+    document.getElementById(
+      "ankuendigung-aktueller-status"
+    );
+
+  if(!statusBox){
+    return;
+  }
+
+  statusBox.innerHTML =
+    "Wird geladen …";
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("Ankuendigungen")
+      .select("*")
+      .order(
+        "created_at",
+        {ascending:false}
+      )
+      .limit(1)
+      .maybeSingle();
+
+
+  if(error){
+
+    console.error(
+      "Ankündigungen:",
+      error
+    );
+
+    statusBox.innerHTML =
+      "<p>Ankündigung konnte nicht geladen werden.</p>";
+
+    return;
+  }
+
+
+  if(!data){
+
+    statusBox.innerHTML =
+      "<p>Aktuell ist keine Ankündigung hinterlegt.</p>";
+
+    document.getElementById(
+      "ankuendigung-titel"
+    ).value = "";
+
+    document.getElementById(
+      "ankuendigung-text"
+    ).value = "";
+
+    document.getElementById(
+      "ankuendigung-aktiv"
+    ).checked = false;
+
+    return;
+  }
+
+
+  document.getElementById(
+    "ankuendigung-titel"
+  ).value =
+    data.titel || "";
+
+  document.getElementById(
+    "ankuendigung-text"
+  ).value =
+    data.text || "";
+
+  document.getElementById(
+    "ankuendigung-aktiv"
+  ).checked =
+    data.aktiv === true;
+
+
+  statusBox.innerHTML = `
+    <div class="ankuendigung-admin-card ${
+      data.aktiv ? "aktiv" : "inaktiv"
+    }">
+
+      <div class="ankuendigung-admin-title">
+        ${data.titel || "Ohne Überschrift"}
+      </div>
+
+      <div class="ankuendigung-admin-text">
+        ${data.text || ""}
+      </div>
+
+      ${
+        data.bild_url
+          ? `
+            <img
+              src="${data.bild_url}"
+              alt=""
+            >
+          `
+          : ""
+      }
+
+      <span class="ankuendigung-status ${
+        data.aktiv ? "aktiv" : ""
+      }">
+        ${
+          data.aktiv
+            ? "Auf Website sichtbar"
+            : "Nicht sichtbar"
+        }
+      </span>
+
+      <div class="ankuendigung-admin-actions">
+
+        ${
+          data.aktiv
+            ? `
+              <button
+                type="button"
+                class="save"
+                onclick="ankuendigungDeaktivieren(${data.id})"
+              >
+                Ausblenden
+              </button>
+            `
+            : `
+              <button
+                type="button"
+                class="save"
+                onclick="ankuendigungAktivieren(${data.id})"
+              >
+                Anzeigen
+              </button>
+            `
+        }
+
+        <button
+          type="button"
+          onclick="ankuendigungLoeschen(${data.id},'${encodeURIComponent(data.storage_path || "")}')"
+        >
+          Löschen
+        </button>
+
+      </div>
+
+    </div>
+  `;
+}
+
+
+async function ankuendigungSpeichern(){
+
+  const titel =
+    document.getElementById(
+      "ankuendigung-titel"
+    ).value.trim();
+
+  const text =
+    document.getElementById(
+      "ankuendigung-text"
+    ).value.trim();
+
+  const aktiv =
+    document.getElementById(
+      "ankuendigung-aktiv"
+    ).checked;
+
+  const fileInput =
+    document.getElementById(
+      "ankuendigung-bild"
+    );
+
+  const meldung =
+    document.getElementById(
+      "ankuendigung-meldung"
+    );
+
+
+  if(
+    !titel &&
+    !text
+  ){
+
+    meldung.textContent =
+      "Bitte mindestens eine Überschrift oder einen Text eingeben.";
+
+    return;
+  }
+
+
+  const {
+    data:existing
+  } =
+    await supabaseClient
+      .from("Ankuendigungen")
+      .select("*")
+      .limit(1)
+      .maybeSingle();
+
+
+  let bildUrl =
+    existing?.bild_url ||
+    null;
+
+  let storagePath =
+    existing?.storage_path ||
+    null;
+
+
+  const file =
+    fileInput?.files?.[0];
+
+
+  if(file){
+
+    const extension =
+      (
+        file.name
+          .split(".")
+          .pop() ||
+        "jpg"
+      ).toLowerCase();
+
+    const newPath =
+      `ankuendigung-${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
+
+
+    const {
+      error:uploadError
+    } =
+      await supabaseClient
+        .storage
+        .from("ankuendigungen")
+        .upload(
+          newPath,
+          file,
+          {
+            contentType:file.type,
+            upsert:false,
+            cacheControl:"3600"
+          }
+        );
+
+
+    if(uploadError){
+
+      console.error(
+        uploadError
+      );
+
+      meldung.textContent =
+        "Das Bild konnte nicht hochgeladen werden.";
+
+      return;
+    }
+
+
+    const {
+      data:publicData
+    } =
+      supabaseClient
+        .storage
+        .from("ankuendigungen")
+        .getPublicUrl(
+          newPath
+        );
+
+
+    bildUrl =
+      publicData.publicUrl;
+
+    storagePath =
+      newPath;
+
+
+    if(existing?.storage_path){
+
+      await supabaseClient
+        .storage
+        .from("ankuendigungen")
+        .remove([
+          existing.storage_path
+        ]);
+
+    }
+
+  }
+
+
+  const values = {
+    titel,
+    text,
+    aktiv,
+    bild_url:bildUrl,
+    storage_path:storagePath
+  };
+
+
+  let result;
+
+
+  if(existing?.id){
+
+    result =
+      await supabaseClient
+        .from("Ankuendigungen")
+        .update(values)
+        .eq(
+          "id",
+          existing.id
+        );
+
+  }else{
+
+    result =
+      await supabaseClient
+        .from("Ankuendigungen")
+        .insert([
+          values
+        ]);
+
+  }
+
+
+  if(result.error){
+
+    console.error(
+      result.error
+    );
+
+    meldung.textContent =
+      "Die Ankündigung konnte nicht gespeichert werden.";
+
+    return;
+  }
+
+
+  fileInput.value =
+    "";
+
+  meldung.textContent =
+    aktiv
+      ? "Ankündigung wurde veröffentlicht."
+      : "Ankündigung wurde gespeichert und ist derzeit nicht sichtbar.";
+
+  ankuendigungenLaden();
+
+}
+
+
+async function ankuendigungAktivieren(
+  id
+){
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from("Ankuendigungen")
+      .update({
+        aktiv:true
+      })
+      .eq(
+        "id",
+        id
+      );
+
+  if(error){
+
+    console.error(error);
+
+    return;
+  }
+
+  ankuendigungenLaden();
+
+}
+
+
+async function ankuendigungDeaktivieren(
+  id
+){
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from("Ankuendigungen")
+      .update({
+        aktiv:false
+      })
+      .eq(
+        "id",
+        id
+      );
+
+  if(error){
+
+    console.error(error);
+
+    return;
+  }
+
+  ankuendigungenLaden();
+
+}
+
+
+async function ankuendigungLoeschen(
+  id,
+  encodedPath
+){
+
+  if(
+    !confirm(
+      "Diese Ankündigung wirklich löschen?"
+    )
+  ){
+    return;
+  }
+
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from("Ankuendigungen")
+      .delete()
+      .eq(
+        "id",
+        id
+      );
+
+
+  if(error){
+
+    console.error(error);
+
+    return;
+  }
+
+
+  const storagePath =
+    decodeURIComponent(
+      encodedPath || ""
+    );
+
+
+  if(storagePath){
+
+    try{
+
+      await supabaseClient
+        .storage
+        .from("ankuendigungen")
+        .remove([
+          storagePath
+        ]);
+
+    }catch(error){
+
+      console.warn(
+        "Ankündigungsbild konnte nicht gelöscht werden:",
+        error
+      );
+
+    }
+
+  }
+
+
+  ankuendigungenLaden();
+
+}
 
 </script>
 
