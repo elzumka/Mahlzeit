@@ -1129,19 +1129,19 @@ button{
     <h3 class="settings-subtitle">Mittagstisch</h3>
 
     <label class="checkbox">
-      <input type="checkbox" id="setting-mittag-aktiv" checked>
+      <input type="checkbox" id="setting-mittag-aktiv" checked onchange="websiteEinstellungenAutoSpeichern()">
       Mittagstisch aktiv
     </label>
 
     <div class="settings-row">
       <div>
         <label for="setting-mittag-von">Von</label>
-        <input type="time" id="setting-mittag-von" value="11:00">
+        <input type="time" id="setting-mittag-von" value="11:00" onchange="websiteEinstellungenAutoSpeichern()">
       </div>
 
       <div>
         <label for="setting-mittag-bis">Bis</label>
-        <input type="time" id="setting-mittag-bis" value="14:00">
+        <input type="time" id="setting-mittag-bis" value="14:00" onchange="websiteEinstellungenAutoSpeichern()">
       </div>
     </div>
 
@@ -1149,19 +1149,19 @@ button{
     <h3 class="settings-subtitle">Frühstück</h3>
 
     <label class="checkbox">
-      <input type="checkbox" id="setting-fruehstueck-aktiv">
+      <input type="checkbox" id="setting-fruehstueck-aktiv" onchange="websiteEinstellungenAutoSpeichern()">
       Frühstück aktiviert
     </label>
 
     <div class="settings-row">
       <div>
         <label for="setting-fruehstueck-von">Von</label>
-        <input type="time" id="setting-fruehstueck-von" value="08:00">
+        <input type="time" id="setting-fruehstueck-von" value="08:00" onchange="websiteEinstellungenAutoSpeichern()">
       </div>
 
       <div>
         <label for="setting-fruehstueck-bis">Bis</label>
-        <input type="time" id="setting-fruehstueck-bis" value="10:30">
+        <input type="time" id="setting-fruehstueck-bis" value="10:30" onchange="websiteEinstellungenAutoSpeichern()">
       </div>
     </div>
 
@@ -1169,7 +1169,7 @@ button{
     <h3 class="settings-subtitle">Lieferservice</h3>
 
     <label class="checkbox">
-      <input type="checkbox" id="setting-lieferung-aktiv">
+      <input type="checkbox" id="setting-lieferung-aktiv" onchange="websiteEinstellungenAutoSpeichern()">
       Lieferservice aktiviert
     </label>
 
@@ -1181,7 +1181,7 @@ button{
       type="time"
       id="setting-lieferung-von"
       value="11:00"
-    >
+     onchange="websiteEinstellungenAutoSpeichern()">
 
     <label for="setting-lieferung-bis">
       Öffnungszeiten · bis
@@ -1191,7 +1191,7 @@ button{
       type="time"
       id="setting-lieferung-bis"
       value="14:00"
-    >
+     onchange="websiteEinstellungenAutoSpeichern()">
 
     <label for="setting-lieferung-text">
       Hinweis
@@ -1201,7 +1201,7 @@ button{
       type="text"
       id="setting-lieferung-text"
       placeholder="Bald auch für euch · über Lieferando"
-    >
+     onchange="websiteEinstellungenAutoSpeichern()">
 
 
     <h3 class="settings-subtitle">Kontakt</h3>
@@ -1214,7 +1214,7 @@ button{
       type="text"
       id="setting-telefon"
       placeholder="0355 25057"
-    >
+     onchange="websiteEinstellungenAutoSpeichern()">
 
     <label for="setting-instagram">
       Instagram
@@ -1224,7 +1224,7 @@ button{
       type="text"
       id="setting-instagram"
       placeholder="@mahlzeit_cottbus"
-    >
+     onchange="websiteEinstellungenAutoSpeichern()">
 
     <button
       type="button"
@@ -1236,11 +1236,11 @@ button{
 
     <div id="website-einstellungen-meldung"></div>
     <div
-      id="website-einstellungen-sync-hinweis"
+      id="website-einstellungen-auto-hinweis"
       class="intro"
       style="font-size:12px;margin-top:8px;color:var(--green)"
     >
-      Änderungen werden direkt in Supabase gespeichert und anschließend geprüft.
+      Aktivierungen und Änderungen werden automatisch gespeichert. Der Button kann zusätzlich manuell verwendet werden.
     </div>
 
   </div>
@@ -5160,6 +5160,8 @@ async function feiertagUebernehmen(
    WEBSITE EINSTELLUNGEN
    ========================================================== */
 
+let websiteEinstellungenAutoSaveTimer = null;
+
 async function websiteEinstellungenLaden(){
 
   const meldung =
@@ -5202,96 +5204,93 @@ async function websiteEinstellungenLaden(){
         instagram:"@mahlzeit_cottbus"
       };
 
-    const setValue = (id,value)=>{
-      const el = document.getElementById(id);
-      if(el) el.value = value;
+    const setValue=(id,value)=>{
+      const el=document.getElementById(id);
+      if(el) el.value=value;
     };
 
-    const setChecked = (id,value)=>{
-      const el = document.getElementById(id);
-      if(el) el.checked = value === true;
+    const setChecked=(id,value)=>{
+      const el=document.getElementById(id);
+      if(el) el.checked=(value===true);
     };
 
-    setChecked(
-      "setting-mittag-aktiv",
-      values.mittagstisch_aktiv
-    );
+    setChecked("setting-mittag-aktiv",values.mittagstisch_aktiv);
+    setValue("setting-mittag-von",String(values.mittagstisch_von||"11:00").slice(0,5));
+    setValue("setting-mittag-bis",String(values.mittagstisch_bis||"14:00").slice(0,5));
 
-    setValue(
-      "setting-mittag-von",
-      String(values.mittagstisch_von || "11:00").slice(0,5)
-    );
+    setChecked("setting-fruehstueck-aktiv",values.fruehstueck_aktiv);
+    setValue("setting-fruehstueck-von",String(values.fruehstueck_von||"08:00").slice(0,5));
+    setValue("setting-fruehstueck-bis",String(values.fruehstueck_bis||"10:30").slice(0,5));
 
-    setValue(
-      "setting-mittag-bis",
-      String(values.mittagstisch_bis || "14:00").slice(0,5)
-    );
+    setChecked("setting-lieferung-aktiv",values.lieferservice_aktiv);
+    setValue("setting-lieferung-von",String(values.lieferservice_von||"11:00").slice(0,5));
+    setValue("setting-lieferung-bis",String(values.lieferservice_bis||"14:00").slice(0,5));
+    setValue("setting-lieferung-text",values.lieferservice_text||"Bald auch für euch · über Lieferando");
 
-    setChecked(
-      "setting-fruehstueck-aktiv",
-      values.fruehstueck_aktiv
-    );
-
-    setValue(
-      "setting-fruehstueck-von",
-      String(values.fruehstueck_von || "08:00").slice(0,5)
-    );
-
-    setValue(
-      "setting-fruehstueck-bis",
-      String(values.fruehstueck_bis || "10:30").slice(0,5)
-    );
-
-    setChecked(
-      "setting-lieferung-aktiv",
-      values.lieferservice_aktiv
-    );
-
-    setValue(
-      "setting-lieferung-von",
-      String(values.lieferservice_von || "11:00").slice(0,5)
-    );
-
-    setValue(
-      "setting-lieferung-bis",
-      String(values.lieferservice_bis || "14:00").slice(0,5)
-    );
-
-    setValue(
-      "setting-lieferung-text",
-      values.lieferservice_text ||
-      "Bald auch für euch · über Lieferando"
-    );
-
-    setValue(
-      "setting-telefon",
-      values.telefon || "0355 25057"
-    );
-
-    setValue(
-      "setting-instagram",
-      values.instagram || "@mahlzeit_cottbus"
-    );
+    setValue("setting-telefon",values.telefon||"0355 25057");
+    setValue("setting-instagram",values.instagram||"@mahlzeit_cottbus");
 
     if(meldung){
       meldung.textContent =
         data
           ? "Einstellungen aus Supabase geladen."
-          : "Standardwerte angezeigt – noch nichts gespeichert.";
+          : "Standardwerte angezeigt.";
     }
 
   }catch(error){
 
-    console.error(
-      "Website-Einstellungen laden:",
-      error
-    );
+    console.error("Website-Einstellungen laden:",error);
 
     if(meldung){
-      meldung.textContent =
-        "⚠ " + error.message;
+      meldung.textContent="⚠ "+error.message;
     }
   }
+}
+
+
+function websiteEinstellungenWerte(){
+
+  return {
+    mittagstisch_aktiv:
+      document.getElementById("setting-mittag-aktiv")?.checked===true,
+
+    mittagstisch_von:
+      document.getElementById("setting-mittag-von")?.value || "11:00",
+
+    mittagstisch_bis:
+      document.getElementById("setting-mittag-bis")?.value || "14:00",
+
+    fruehstueck_aktiv:
+      document.getElementById("setting-fruehstueck-aktiv")?.checked===true,
+
+    fruehstueck_von:
+      document.getElementById("setting-fruehstueck-von")?.value || "08:00",
+
+    fruehstueck_bis:
+      document.getElementById("setting-fruehstueck-bis")?.value || "10:30",
+
+    lieferservice_aktiv:
+      document.getElementById("setting-lieferung-aktiv")?.checked===true,
+
+    lieferservice_von:
+      document.getElementById("setting-lieferung-von")?.value || "11:00",
+
+    lieferservice_bis:
+      document.getElementById("setting-lieferung-bis")?.value || "14:00",
+
+    lieferservice_text:
+      document.getElementById("setting-lieferung-text")?.value.trim() ||
+      "Bald auch für euch · über Lieferando",
+
+    telefon:
+      document.getElementById("setting-telefon")?.value.trim() ||
+      "0355 25057",
+
+    instagram:
+      document.getElementById("setting-instagram")?.value.trim() ||
+      "@mahlzeit_cottbus"
+  };
+
 }
 
 
@@ -5307,90 +5306,71 @@ async function websiteEinstellungenSpeichern(){
       '#website-einstellungen-bereich button[onclick="websiteEinstellungenSpeichern()"]'
     );
 
-  const values = {
-    p_mittagstisch_aktiv:
-      document.getElementById("setting-mittag-aktiv").checked,
-
-    p_mittagstisch_von:
-      document.getElementById("setting-mittag-von").value || "11:00",
-
-    p_mittagstisch_bis:
-      document.getElementById("setting-mittag-bis").value || "14:00",
-
-    p_fruehstueck_aktiv:
-      document.getElementById("setting-fruehstueck-aktiv").checked,
-
-    p_fruehstueck_von:
-      document.getElementById("setting-fruehstueck-von").value || "08:00",
-
-    p_fruehstueck_bis:
-      document.getElementById("setting-fruehstueck-bis").value || "10:30",
-
-    p_lieferservice_aktiv:
-      document.getElementById("setting-lieferung-aktiv").checked,
-
-    p_lieferservice_von:
-      document.getElementById("setting-lieferung-von").value || "11:00",
-
-    p_lieferservice_bis:
-      document.getElementById("setting-lieferung-bis").value || "14:00",
-
-    p_lieferservice_text:
-      document.getElementById("setting-lieferung-text").value.trim() ||
-      "Bald auch für euch · über Lieferando",
-
-    p_telefon:
-      document.getElementById("setting-telefon").value.trim() ||
-      "0355 25057",
-
-    p_instagram:
-      document.getElementById("setting-instagram").value.trim() ||
-      "@mahlzeit_cottbus"
-  };
+  const values =
+    websiteEinstellungenWerte();
 
   if(button){
-    button.disabled = true;
-    button.textContent = "Speichern …";
+    button.disabled=true;
+    button.textContent="Speichern …";
   }
 
   if(meldung){
-    meldung.textContent =
-      "Einstellungen werden gespeichert …";
+    meldung.textContent="Einstellungen werden gespeichert …";
   }
 
   try{
 
+    /*
+     * Wir kennen die vorhandene Zeile id=1.
+     * Daher bewusst direkt UPDATE statt upsert.
+     */
     const {
-      data,
       error
     } =
-      await supabaseClient.rpc(
-        "set_website_einstellungen",
-        values
-      );
+      await supabaseClient
+        .from("WebsiteEinstellungen")
+        .update(values)
+        .eq("id",1);
 
     if(error){
       throw new Error(
-        "Supabase-Speicherung fehlgeschlagen: " +
+        "Supabase konnte die Einstellungen nicht speichern: " +
         error.message
       );
     }
 
-    if(!data){
+    /*
+     * Kontrolle: direkt wieder lesen.
+     */
+    const {
+      data:check,
+      error:checkError
+    } =
+      await supabaseClient
+        .from("WebsiteEinstellungen")
+        .select("*")
+        .eq("id",1)
+        .single();
+
+    if(checkError){
       throw new Error(
-        "Supabase hat die Änderung nicht bestätigt."
+        "Gespeichert, aber Prüfung fehlgeschlagen: " +
+        checkError.message
       );
     }
 
-    /*
-     * Danach direkt den tatsächlich gespeicherten Datensatz
-     * zurückladen.
-     */
-    await websiteEinstellungenLaden();
+    if(
+      Boolean(check.mittagstisch_aktiv) !==
+      Boolean(values.mittagstisch_aktiv)
+    ){
+      throw new Error(
+        "Supabase hat den neuen Aktiv-Status nicht übernommen."
+      );
+    }
 
     if(meldung){
       meldung.textContent =
-        "✓ Einstellungen wurden gespeichert.";
+        "✓ Gespeichert – Änderung ist in Supabase angekommen.";
     }
 
   }catch(error){
@@ -5411,12 +5391,27 @@ async function websiteEinstellungenSpeichern(){
   }finally{
 
     if(button){
-      button.disabled = false;
-      button.textContent =
-        "Einstellungen speichern";
+      button.disabled=false;
+      button.textContent="Einstellungen speichern";
     }
   }
 }
+
+
+function websiteEinstellungenAutoSpeichern(){
+
+  clearTimeout(
+    websiteEinstellungenAutoSaveTimer
+  );
+
+  websiteEinstellungenAutoSaveTimer =
+    setTimeout(
+      ()=>websiteEinstellungenSpeichern(),
+      250
+    );
+
+}
+
 
 
 /* ==========================================================
