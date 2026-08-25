@@ -264,6 +264,35 @@ h1 {
   box-shadow: none;
 }
 
+.hero-slideshow{
+  position:relative;
+  width:100%;
+  max-width:560px;
+  aspect-ratio:4 / 3;
+  overflow:hidden;
+}
+
+.hero-slideshow .hero-slide{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  opacity:0;
+  transition:opacity 1.2s ease-in-out;
+  pointer-events:none;
+}
+
+.hero-slideshow .hero-slide.active{
+  opacity:1;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .hero-slideshow .hero-slide{
+    transition:none;
+  }
+}
+
 /* ---------------- INFO ---------------- */
 
 .info {
@@ -569,8 +598,8 @@ h1 {
 /* ---------------- FOOTER ---------------- */
 
 footer {
-  background: var(--green);
-  color: var(--cream);
+  background: var(--beige);
+  color: var(--green);
   padding: 50px 6vw;
   text-align: center;
 }
@@ -1074,11 +1103,33 @@ footer p {
   </div>
 
   <div class="hero-art">
-    <img
-      class="hero-photo"
-      src="gericht-hero.png"
-      alt="Gericht von Mahlzeit"
-    >
+    <div class="hero-slideshow" aria-label="Gerichte von Mahlzeit">
+      <img
+        class="hero-photo hero-slide active"
+        src="gericht-hero.png"
+        alt="Gericht von Mahlzeit"
+      >
+      <img
+        class="hero-photo hero-slide"
+        src="gericht-2.png"
+        alt="Gericht von Mahlzeit"
+      >
+      <img
+        class="hero-photo hero-slide"
+        src="gericht-3.png"
+        alt="Gericht von Mahlzeit"
+      >
+      <img
+        class="hero-photo hero-slide"
+        src="gericht-4.png"
+        alt="Gericht von Mahlzeit"
+      >
+      <img
+        class="hero-photo hero-slide"
+        src="gericht-5.png"
+        alt="Gericht von Mahlzeit"
+      >
+    </div>
   </div>
 
 </section>
@@ -1351,6 +1402,61 @@ footer p {
   </p>
 
 </footer>
+
+
+<script>
+(function(){
+
+  const slides = Array.from(
+    document.querySelectorAll(".hero-slide")
+  );
+
+  if(slides.length < 2) return;
+
+  let current = 0;
+  const duration = 4500;
+
+  /*
+   * Falls ein zusätzliches Foto noch nicht im Repository liegt,
+   * wird es automatisch ausgeblendet. So funktioniert die Seite
+   * schon jetzt mit nur einem Bild und wächst später mit.
+   */
+  slides.forEach((slide, index) => {
+    slide.addEventListener("error", () => {
+      slide.remove();
+
+      const remaining =
+        document.querySelectorAll(".hero-slide");
+
+      if(remaining.length < 2) return;
+
+      if(index === 0){
+        current = 0;
+        remaining[0].classList.add("active");
+      }
+    });
+  });
+
+  setInterval(() => {
+
+    const currentSlides =
+      Array.from(
+        document.querySelectorAll(".hero-slide")
+      );
+
+    if(currentSlides.length < 2) return;
+
+    currentSlides[current]?.classList.remove("active");
+
+    current =
+      (current + 1) % currentSlides.length;
+
+    currentSlides[current].classList.add("active");
+
+  }, duration);
+
+})();
+</script>
 
 <script>
 function oeffneRechtsfenster(typ){
