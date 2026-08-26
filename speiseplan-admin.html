@@ -8863,10 +8863,6 @@ async function vorbestellungenLaden(){
         datum
       )
       .order(
-        "vermerkt",
-        {ascending:true}
-      )
-      .order(
         "erstellt_am",
         {ascending:true}
       );
@@ -8887,7 +8883,24 @@ async function vorbestellungenLaden(){
 
 
   const bestellungen=
-    data || [];
+    (data || []).sort(
+      (a,b)=>{
+        const aVermerkt =
+          a.vermerkt === true;
+        const bVermerkt =
+          b.vermerkt === true;
+
+        if(aVermerkt !== bVermerkt){
+          return aVermerkt ? 1 : -1;
+        }
+
+        return new Date(
+          a.erstellt_am || 0
+        ) - new Date(
+          b.erstellt_am || 0
+        );
+      }
+    );
 
   const offen=
     bestellungen.filter(
