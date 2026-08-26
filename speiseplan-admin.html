@@ -1947,6 +1947,222 @@ button{
   box-shadow:0 4px 0 rgba(40,84,55,.12);
 }
 
+
+.preorder-admin-day-tabs{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:10px;
+}
+
+.preorder-admin-day{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  margin:0;
+  min-height:48px;
+  border-radius:10px;
+  border:1px solid var(--line);
+  background:#fff;
+  color:var(--green);
+  font-weight:800;
+  cursor:pointer;
+}
+
+.preorder-admin-day.active{
+  background:var(--green);
+  color:var(--cream);
+  border-color:var(--green);
+}
+
+.preorder-day-count{
+  min-width:22px;
+  height:22px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 6px;
+  border-radius:999px;
+  background:rgba(40,84,55,.12);
+  color:var(--green);
+  font-size:11px;
+  font-weight:900;
+}
+
+.preorder-admin-day.active .preorder-day-count{
+  background:rgba(255,255,255,.18);
+  color:var(--cream);
+}
+
+.preorder-admin-summary{
+  margin-bottom:8px;
+  color:#666;
+  font-size:13px;
+}
+
+.preorder-admin-legend{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px 14px;
+  margin:0 0 14px;
+  color:#666;
+  font-size:11px;
+  font-weight:700;
+}
+
+.legend-dot{
+  display:inline-block;
+  width:8px;
+  height:8px;
+  margin-right:4px;
+  border-radius:50%;
+  background:#bbb;
+}
+
+.neu-dot{background:#b9473d}
+.vermerkt-dot{background:#b58b2d}
+.abgeholt-dot{background:#6b8f71}
+
+.preorder-admin-list{
+  display:grid;
+  gap:10px;
+}
+
+.preorder-admin-card{
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#fff;
+  padding:16px 17px;
+}
+
+.preorder-admin-card.vermerkt{
+  border-left:4px solid #b58b2d;
+}
+
+.preorder-admin-card.abgeholt{
+  opacity:.58;
+  border-left:4px solid #6b8f71;
+}
+
+.preorder-admin-card.neu{
+  border-left:4px solid #b9473d;
+}
+
+.preorder-admin-card-head{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:flex-start;
+  margin-bottom:10px;
+}
+
+.preorder-admin-state{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:5px 8px;
+  border-radius:7px;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+
+.state-neu{
+  background:rgba(185,71,61,.1);
+  color:#a13d35;
+}
+
+.state-vermerkt{
+  background:rgba(181,139,45,.12);
+  color:#86651f;
+}
+
+.state-abgeholt{
+  background:rgba(107,143,113,.14);
+  color:#4f7155;
+}
+
+.preorder-admin-date{
+  color:#777;
+  font-size:12px;
+}
+
+.preorder-admin-dishes{
+  margin-bottom:10px;
+  color:var(--green);
+  font-size:16px;
+  font-weight:900;
+}
+
+.preorder-admin-dish-line{
+  margin:0 0 3px;
+  line-height:1.35;
+}
+
+.preorder-admin-dish-line small{
+  color:#666;
+  font-weight:600;
+  font-size:12px;
+}
+
+.preorder-admin-note{
+  margin:0 0 12px;
+  padding:9px 11px;
+  border-radius:8px;
+  background:#f6f0df;
+  color:#5f5233;
+  font-size:13px;
+  line-height:1.45;
+}
+
+.preorder-admin-primary-meta{
+  display:grid;
+  gap:6px;
+  margin-bottom:10px;
+  padding:10px 11px;
+  border-radius:9px;
+  background:rgba(40,84,55,.06);
+  color:#3e4d42;
+  font-size:13px;
+}
+
+.preorder-admin-secondary-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px 14px;
+  color:#777;
+  font-size:11px;
+  line-height:1.45;
+}
+
+.preorder-admin-actions{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+
+.preorder-admin-actions button{
+  margin:0;
+  min-height:40px;
+  border-radius:9px;
+}
+
+.preorder-admin-actions .vermerkt-action{
+  background:#b58b2d;
+  border-color:#b58b2d;
+  color:#fff;
+}
+
+@media(max-width:760px){
+  .preorder-admin-card-head{flex-direction:column}
+  .preorder-admin-actions{display:grid;grid-template-columns:1fr}
+  .preorder-admin-actions button{width:100%}
+  .preorder-admin-secondary-meta{display:grid;grid-template-columns:1fr 1fr}
+}
+
 </style>
 </head>
 <body>
@@ -2928,11 +3144,24 @@ button{
   </div>
 
   <div class="preorder-admin-day-tabs">
-    <button type="button" class="preorder-admin-day active" onclick="vorbestellungenTagWaehlen('heute')">Heute</button>
-    <button type="button" class="preorder-admin-day" onclick="vorbestellungenTagWaehlen('morgen')">Morgen</button>
+    <button type="button" class="preorder-admin-day active" onclick="vorbestellungenTagWaehlen('heute')">
+      <span>Heute</span>
+      <span id="vorbestellungen-count-heute" class="preorder-day-count">0</span>
+    </button>
+
+    <button type="button" class="preorder-admin-day" onclick="vorbestellungenTagWaehlen('morgen')">
+      <span>Morgen</span>
+      <span id="vorbestellungen-count-morgen" class="preorder-day-count">0</span>
+    </button>
   </div>
 
   <div class="preorder-admin-summary" id="vorbestellungen-summary">Wird geladen …</div>
+
+  <div class="preorder-admin-legend">
+    <span><i class="legend-dot neu-dot"></i> Neu</span>
+    <span><i class="legend-dot vermerkt-dot"></i> Im Buch vermerkt</span>
+    <span><i class="legend-dot abgeholt-dot"></i> Abgeholt</span>
+  </div>
 
   <div id="vorbestellungen-liste" class="preorder-admin-list">Wird geladen …</div>
 
@@ -8602,108 +8831,498 @@ function vorbestellungenTagWaehlen(tag){
 
 async function vorbestellungenLaden(){
 
-  const liste=document.getElementById("vorbestellungen-liste");
-  const summary=document.getElementById("vorbestellungen-summary");
+  const liste=
+    document.getElementById(
+      "vorbestellungen-liste"
+    );
+
+  const summary=
+    document.getElementById(
+      "vorbestellungen-summary"
+    );
+
   if(!liste)return;
 
-  const datum=vorbestellungAdminDatumKey(vorbestellungenAdminTag);
-  liste.innerHTML="Wird geladen …";
+  const datum=
+    vorbestellungAdminDatumKey(
+      vorbestellungenAdminTag
+    );
 
-  const {data,error}=await supabaseClient
-    .from("Vorbestellungen")
-    .select("*")
-    .eq("datum",datum)
-    .order("erstellt_am",{ascending:true});
+  liste.innerHTML=
+    "Wird geladen …";
+
+  const {
+    data,
+    error
+  }=
+    await supabaseClient
+      .from("Vorbestellungen")
+      .select("*")
+      .eq(
+        "datum",
+        datum
+      )
+      .order(
+        "vermerkt",
+        {ascending:true}
+      )
+      .order(
+        "erstellt_am",
+        {ascending:true}
+      );
+
 
   if(error){
-    console.error("Vorbestellungen:",error);
-    liste.innerHTML='<div class="feedback-empty">Vorbestellungen konnten nicht geladen werden.</div>';
+
+    console.error(
+      "Vorbestellungen:",
+      error
+    );
+
+    liste.innerHTML=
+      '<div class="feedback-empty">Vorbestellungen konnten nicht geladen werden.</div>';
+
     return;
   }
 
-  const offen=(data||[]).filter(item=>!item.abgeholt).length;
-  if(summary)summary.textContent=`${data?.length||0} Bestellung(en) · ${offen} noch offen`;
 
-  if(!data?.length){
-    liste.innerHTML='<div class="feedback-empty">Keine Vorbestellungen für diesen Tag.</div>';
+  const bestellungen=
+    data || [];
+
+  const offen=
+    bestellungen.filter(
+      item =>
+        !item.abgeholt
+    ).length;
+
+  const neu=
+    bestellungen.filter(
+      item =>
+        !item.vermerkt &&
+        !item.abgeholt
+    ).length;
+
+  const vermerkt=
+    bestellungen.filter(
+      item =>
+        item.vermerkt &&
+        !item.abgeholt
+    ).length;
+
+
+  if(summary){
+
+    summary.textContent=
+      `${bestellungen.length} Vorbestellung${
+        bestellungen.length===1 ? "" : "en"
+      } · ${offen} offen${
+        vermerkt
+          ? ` · ${vermerkt} im Buch vermerkt`
+          : ""
+      }`;
+
+  }
+
+
+  const countId=
+    vorbestellungenAdminTag === "morgen"
+      ? "vorbestellungen-count-morgen"
+      : "vorbestellungen-count-heute";
+
+  const countEl=
+    document.getElementById(
+      countId
+    );
+
+  if(countEl){
+    countEl.textContent=
+      bestellungen.length;
+  }
+
+
+  if(
+    vorbestellungenAdminTag === "heute"
+  ){
+
+    vorbestellungenNebenCountAktualisieren(
+      "morgen"
+    );
+
+  }else{
+
+    vorbestellungenNebenCountAktualisieren(
+      "heute"
+    );
+
+  }
+
+
+  if(!bestellungen.length){
+
+    liste.innerHTML=
+      '<div class="feedback-empty">Keine Vorbestellungen für diesen Tag.</div>';
+
     return;
   }
+
 
   liste.innerHTML="";
 
-  data.forEach(item=>{
-    const card=document.createElement("article");
-    card.className="preorder-admin-card "+(item.abgeholt?"abgeholt":"");
 
-    const datumText=item.erstellt_am
-      ? new Date(item.erstellt_am).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"})
-      : "";
+  bestellungen.forEach(
+    item=>{
 
-    const positionen=Array.isArray(item.positionen)?item.positionen:[];
-    const positionenHtml=positionen.length
-      ? positionen.map(pos=>`
+      const card=
+        document.createElement(
+          "article"
+        );
+
+
+      const istAbgeholt=
+        item.abgeholt === true;
+
+      const istVermerkt=
+        item.vermerkt === true;
+
+      const istNeu=
+        !istVermerkt &&
+        !istAbgeholt;
+
+
+      card.className=
+        "preorder-admin-card" +
+        (
+          istNeu
+            ? " neu"
+            : ""
+        ) +
+        (
+          istVermerkt
+            ? " vermerkt"
+            : ""
+        ) +
+        (
+          istAbgeholt
+            ? " abgeholt"
+            : ""
+        );
+
+
+      const datumText=
+        item.erstellt_am
+          ? new Date(
+              item.erstellt_am
+            ).toLocaleString(
+              "de-DE",
+              {
+                dateStyle:"short",
+                timeStyle:"short"
+              }
+            )
+          : "";
+
+
+      const stateLabel=
+        istAbgeholt
+          ? '<span class="preorder-admin-state state-abgeholt">Abgeholt</span>'
+          : istVermerkt
+            ? '<span class="preorder-admin-state state-vermerkt">Im Buch vermerkt</span>'
+            : '<span class="preorder-admin-state state-neu">Neu</span>';
+
+
+      const positionen=
+        Array.isArray(
+          item.positionen
+        )
+          ? item.positionen
+          : [];
+
+
+      const positionenHtml=
+        positionen.length
+          ? positionen.map(
+              pos=>`
+                <div class="preorder-admin-dish-line">
+                  ${pos.menge || 1}× ${pos.gericht || ""}
+                  ${
+                    pos.beilage
+                      ? `<small> · ${pos.beilage}</small>`
+                      : ""
+                  }
+                </div>
+              `
+            ).join("")
+          : `
+              <div class="preorder-admin-dish-line">
+                ${item.menge || 1}× ${item.gericht || ""}
+              </div>
+            `;
+
+
+      const verpackungText=
+        item.verzehr === "Kantine"
+          ? "Kantine · keine Verpackung"
+          : item.verpackung === "Kantinenverpackung"
+            ? `Unsere Verpackung · ${Number(
+                item.verpackung_kosten || 0
+              ).toFixed(2).replace(".",",")} €`
+            : "Eigene Verpackung";
+
+
+      const verzehrText=
+        item.verzehr === "Kantine"
+          ? "Kantine"
+          : "Abholung";
+
+
+      const abholzeitText=
+        item.abholzeit
+          ? `ca. ${String(item.abholzeit).slice(0,5)} Uhr`
+          : "keine Angabe";
+
+
+      card.innerHTML=`
+
+        <div class="preorder-admin-card-head">
           <div>
-            <strong>${pos.menge||1}× ${pos.gericht||""}</strong>
-            ${pos.beilage?` · ${pos.beilage}`:""}
-            ${pos.preis!==undefined?` · ${Number(pos.preis).toFixed(2).replace(".",",")} €`:""}
+            ${stateLabel}
+            <div class="preorder-admin-date" style="margin-top:7px">
+              Bestellung ${datumText}
+            </div>
           </div>
-        `).join("")
-      : `<div><strong>${item.menge||1}× ${item.gericht||""}</strong></div>`;
+        </div>
 
-    const verpackungText =
-      item.verzehr === "Kantine"
-        ? "Keine Verpackung – Verzehr in der Kantine"
-        : (
-            item.verpackung === "Kantinenverpackung"
-              ? `Kantinenverpackung · ${Number(item.verpackung_kosten||0).toFixed(2).replace(".",",")} €`
-              : "Eigene Verpackung"
-          );
 
-    const verzehrText =
-      item.verzehr === "Kantine"
-        ? "Ich esse in der Kantine"
-        : "Ich hole mein Essen ab";
+        <div class="preorder-admin-dishes">
+          ${positionenHtml}
+        </div>
 
-    const abholzeitText =
-      item.abholzeit
-        ? `ca. ${item.abholzeit} Uhr`
-        : "Keine Angabe";
 
-    card.innerHTML=`
-      <div class="preorder-admin-card-head">
-        <div class="preorder-admin-dish">Vorbestellung</div>
-        <div class="preorder-admin-date">${datumText}</div>
-      </div>
+        ${
+          item.bemerkung
+            ? `
+              <div class="preorder-admin-note">
+                <strong>Anmerkung:</strong>
+                ${item.bemerkung}
+              </div>
+            `
+            : ""
+        }
 
-      <div class="preorder-admin-meta">
-        <div><strong>Gerichte:</strong> ${positionenHtml}</div>
-        <div><strong>Portionen:</strong> ${item.menge||1}</div>
-        <div><strong>Verpackung:</strong> ${verpackungText}</div>
-        <div><strong>Verzehr:</strong> ${verzehrText}</div>
-        <div><strong>Abholzeit:</strong> ${abholzeitText}</div>
-        <div><strong>Name:</strong> ${item.name||""}</div>
-        ${item.kontakt?`<div><strong>Telefon:</strong> ${item.kontakt}</div>`:""}
-        ${item.bemerkung?`<div><strong>Bemerkung:</strong> ${item.bemerkung}</div>`:""}
-      </div>
 
-      <div class="preorder-admin-actions">
-        <button type="button" class="save" onclick="vorbestellungStatus(${item.id},${!item.abgeholt})">
-          ${item.abgeholt?"Wieder öffnen":"Als abgeholt markieren"}
-        </button>
-        <button type="button" onclick="vorbestellungLoeschen(${item.id})">
-          Löschen
-        </button>
-      </div>
-    `;
+        <div class="preorder-admin-primary-meta">
 
-    liste.appendChild(card);
+          <div>
+            <strong>Verpackung:</strong>
+            ${verpackungText}
+          </div>
+
+          <div>
+            <strong>Abholzeit:</strong>
+            ${abholzeitText}
+          </div>
+
+        </div>
+
+
+        <div class="preorder-admin-secondary-meta">
+
+          <span>
+            <strong>Verzehr:</strong> ${verzehrText}
+          </span>
+
+          <span>
+            <strong>Portionen:</strong> ${item.menge || 1}
+          </span>
+
+          <span>
+            <strong>Name:</strong> ${item.name || ""}
+          </span>
+
+          ${
+            item.kontakt
+              ? `
+                <span>
+                  <strong>Tel.:</strong> ${item.kontakt}
+                </span>
+              `
+              : ""
+          }
+
+        </div>
+
+
+        <div class="preorder-admin-actions">
+
+          ${
+            !istVermerkt && !istAbgeholt
+              ? `
+                <button
+                  type="button"
+                  class="save vermerkt-action"
+                  onclick="vorbestellungVermerkt(${item.id})"
+                >
+                  ✓ Im Buch vermerkt
+                </button>
+              `
+              : ""
+          }
+
+          ${
+            !istAbgeholt
+              ? `
+                <button
+                  type="button"
+                  class="save"
+                  onclick="vorbestellungStatus(${item.id},true)"
+                >
+                  Als abgeholt markieren
+                </button>
+              `
+              : `
+                <button
+                  type="button"
+                  onclick="vorbestellungStatus(${item.id},false)"
+                >
+                  Wieder öffnen
+                </button>
+              `
+          }
+
+          <button
+            type="button"
+            onclick="vorbestellungLoeschen(${item.id})"
+          >
+            Löschen
+          </button>
+
+        </div>
+
+      `;
+
+
+      liste.appendChild(
+        card
+      );
+
+    }
+  );
+
+}
+
+
+async function vorbestellungenNebenCountAktualisieren(
+  tag
+){
+
+  const datum=
+    vorbestellungAdminDatumKey(
+      tag
+    );
+
+  const {
+    count,
+    error
+  }=
+    await supabaseClient
+      .from("Vorbestellungen")
+      .select(
+        "id",
+        {
+          count:"exact",
+          head:true
+        }
+      )
+      .eq(
+        "datum",
+        datum
+      );
+
+
+  if(error){
+
+    console.warn(
+      "Vorbestellungsanzahl:",
+      error
+    );
+
+    return;
+  }
+
+
+  const id=
+    tag === "morgen"
+      ? "vorbestellungen-count-morgen"
+      : "vorbestellungen-count-heute";
+
+  const el=
+    document.getElementById(
+      id
+    );
+
+  if(el){
+    el.textContent=
+      count || 0;
+  }
+
+}
+
+
+async function vorbestellungVermerkt(
+  id
+){
+
+  const {
+    error
+  }=
+    await supabaseClient
+      .from("Vorbestellungen")
+      .update({
+        vermerkt:true
+      })
+      .eq(
+        "id",
+        id
+      );
+
+  if(error){
+
+    console.error(
+      "Vorbestellung vermerkt:",
+      error
+    );
+
+    return;
+  }
+
+  vorbestellungenLaden();
+
+  adminVorbestellungenNeueLaden({
+    zeigeAlarm:false
   });
+
 }
 
 async function vorbestellungStatus(id,abgeholt){
-  const {error}=await supabaseClient.from("Vorbestellungen").update({abgeholt}).eq("id",id);
-  if(error){console.error(error);return;}
+
+  const {error}=
+    await supabaseClient
+      .from("Vorbestellungen")
+      .update({abgeholt})
+      .eq("id",id);
+
+  if(error){
+    console.error(
+      error
+    );
+    return;
+  }
+
   vorbestellungenLaden();
+
+  adminVorbestellungenNeueLaden({
+    zeigeAlarm:false
+  });
 }
 
 async function vorbestellungLoeschen(id){
