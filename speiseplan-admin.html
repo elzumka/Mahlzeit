@@ -2270,6 +2270,33 @@ button{
 
 }
 
+
+@media(max-width:760px){
+
+  .sp-preview{
+    width:100%;
+    box-sizing:border-box;
+    padding:6px 0 14px;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .sp-preview .sp-sheet{
+    width:calc(100vw - 12px);
+    min-width:calc(100vw - 12px);
+    height:auto;
+    aspect-ratio:210 / 297;
+    margin:0 auto;
+  }
+
+  .sp-preview .sp-sheet-bg,
+  .sp-preview #sp-overlay{
+    width:100%;
+    height:100%;
+  }
+
+}
+
 </style>
 </head>
 <body>
@@ -3289,7 +3316,7 @@ button{
       <div class="intro">Wähle die Kalenderwoche. Die Gerichte werden automatisch aus der zentralen Gerichte-Liste übernommen.</div>
     </div>
     <div class="sp-actions">
-      <button type="button" class="save" onclick="window.print()">PDF / Drucken</button>
+      <button type="button" class="save" onclick="sp_drucken()">PDF / Drucken</button>
       <button type="button" class="save" onclick="sp_downloadPNG()">PNG herunterladen</button>
        <button type="button" class="save" onclick="sp_saveDraft()">Entwurf speichern</button>
        <button type="button" class="save" onclick="sp_publishPlan()">Speiseplan veröffentlichen</button>
@@ -4479,7 +4506,188 @@ async function sp_erzeugePNGBlob(){
   });
 }
 
-async function sp_downloadPNG(){
+async 
+function sp_drucken(){
+
+  const sheet =
+    document.querySelector(
+      "#speiseplan-bereich .sp-sheet"
+    );
+
+  if(!sheet){
+    alert(
+      "Der Speiseplan konnte nicht für den Druck vorbereitet werden."
+    );
+    return;
+  }
+
+  const printWindow =
+    window.open(
+      "",
+      "_blank"
+    );
+
+  if(!printWindow){
+
+    alert(
+      "Das Druckfenster wurde vom Browser blockiert. Bitte Pop-ups für diese Seite erlauben."
+    );
+
+    return;
+  }
+
+  const baseHref =
+    document.baseURI;
+
+  const sheetHtml =
+    sheet.outerHTML;
+
+  printWindow.document.open();
+
+  printWindow.document.write(`
+    <!doctype html>
+    <html lang="de">
+      <head>
+
+        <meta charset="utf-8">
+
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1"
+        >
+
+        <base href="${baseHref}">
+
+        <title>Speiseplan</title>
+
+        <style>
+
+          @page{
+            size:A4 portrait;
+            margin:0;
+          }
+
+          html,
+          body{
+            width:210mm;
+            height:297mm;
+            margin:0;
+            padding:0;
+            background:#fff;
+            overflow:hidden;
+          }
+
+          body{
+            display:flex;
+            align-items:flex-start;
+            justify-content:flex-start;
+          }
+
+          .sp-sheet{
+            position:relative;
+            display:block;
+            width:210mm !important;
+            min-width:210mm !important;
+            max-width:210mm !important;
+            height:297mm !important;
+            min-height:297mm !important;
+            max-height:297mm !important;
+            margin:0 !important;
+            padding:0 !important;
+            overflow:hidden !important;
+            background:#f7eee4;
+            box-shadow:none !important;
+          }
+
+          .sp-sheet-bg{
+            position:absolute !important;
+            inset:0 !important;
+            display:block !important;
+            width:210mm !important;
+            height:297mm !important;
+            max-width:none !important;
+            margin:0 !important;
+            object-fit:fill !important;
+          }
+
+          #sp-overlay{
+            position:absolute !important;
+            inset:0 !important;
+            display:block !important;
+            width:210mm !important;
+            height:297mm !important;
+          }
+
+        </style>
+
+      </head>
+
+      <body>
+        ${sheetHtml}
+
+        <script>
+
+          (async function(){
+
+            try{
+
+              if(
+                document.fonts &&
+                document.fonts.ready
+              ){
+                await document.fonts.ready;
+              }
+
+            }catch(e){}
+
+            const images =
+              Array.from(
+                document.images
+              );
+
+            await Promise.all(
+              images.map(
+                img =>
+                  img.complete
+                    ? Promise.resolve()
+                    : new Promise(
+                        resolve=>{
+                          img.addEventListener(
+                            "load",
+                            resolve,
+                            {once:true}
+                          );
+
+                          img.addEventListener(
+                            "error",
+                            resolve,
+                            {once:true}
+                          );
+                        }
+                      )
+              )
+            );
+
+            setTimeout(
+              ()=>{
+                window.focus();
+                window.print();
+              },
+              250
+            );
+
+          })();
+
+        <\/script>
+      </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+
+}
+
+function sp_downloadPNG(){
   try{
     const blob=await sp_erzeugePNGBlob();
     const url=URL.createObjectURL(blob);
