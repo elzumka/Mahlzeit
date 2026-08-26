@@ -1816,6 +1816,124 @@ button{
 .preorder-admin-actions button{margin:0;min-height:40px;border-radius:9px}
 @media(max-width:760px){.preorder-admin-card-head{flex-direction:column}.preorder-admin-actions{display:grid;grid-template-columns:1fr}.preorder-admin-actions button{width:100%}}
 
+
+.preorder-main-tab{
+  position:relative;
+  padding-right:42px !important;
+}
+
+.admin-preorder-alert{
+  position:fixed;
+  top:86px;
+  right:18px;
+  z-index:1200;
+  width:min(420px,calc(100vw - 36px));
+  display:grid;
+  grid-template-columns:auto 1fr auto auto;
+  gap:10px;
+  align-items:center;
+  padding:13px 14px;
+  border:1px solid rgba(40,84,55,.25);
+  border-left:4px solid var(--green);
+  border-radius:12px;
+  background:var(--cream);
+  color:var(--green);
+  box-shadow:0 12px 35px rgba(0,0,0,.16);
+}
+
+.admin-preorder-alert.hidden{
+  display:none;
+}
+
+.admin-preorder-alert-icon{
+  font-size:24px;
+}
+
+.admin-preorder-alert-body{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+
+.admin-preorder-alert-body strong{
+  font-size:13px;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+
+.admin-preorder-alert-body span{
+  color:#555;
+  font-size:12px;
+  line-height:1.35;
+}
+
+.admin-preorder-alert-open{
+  margin:0;
+  min-height:38px;
+  padding:8px 11px;
+  border:0;
+  border-radius:8px;
+  background:var(--green);
+  color:var(--cream);
+  font-size:11px;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.admin-preorder-alert-close{
+  margin:0;
+  width:32px;
+  height:32px;
+  min-height:32px;
+  padding:0;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:#fff;
+  color:#666;
+  font-size:20px;
+  line-height:1;
+  cursor:pointer;
+}
+
+@media(max-width:760px){
+  .admin-primary-tabs{
+    display:flex;
+    overflow-x:auto;
+    flex-wrap:nowrap;
+    gap:5px;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .admin-primary-tabs::-webkit-scrollbar{
+    display:none;
+  }
+
+  .admin-primary-tabs .admin-tab{
+    flex:0 0 auto;
+    min-width:92px;
+  }
+
+  .admin-preorder-alert{
+    top:78px;
+    right:9px;
+    width:calc(100vw - 18px);
+    grid-template-columns:auto 1fr auto;
+    gap:8px;
+    padding:11px;
+  }
+
+  .admin-preorder-alert-open{
+    grid-column:2 / 3;
+    justify-self:start;
+  }
+
+  .admin-preorder-alert-close{
+    grid-column:3;
+    grid-row:1;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1860,6 +1978,19 @@ button{
     >0</span>
   </button>
 
+  <button
+    class="admin-tab primary preorder-main-tab"
+    type="button"
+    onclick="adminVorbestellungenOeffnen()"
+  >
+    <span class="admin-preorder-label">Vorbestellungen</span>
+    <span
+      id="admin-preorder-badge"
+      class="admin-feedback-badge"
+      hidden
+    >0</span>
+  </button>
+
 </div>
 
 <div class="admin-secondary-nav">
@@ -1872,6 +2003,34 @@ button{
   </button>
 </div>
 
+
+<div
+  id="admin-preorder-alert"
+  class="admin-preorder-alert"
+  aria-live="polite"
+  hidden
+>
+  <div class="admin-preorder-alert-icon">🍽️</div>
+  <div class="admin-preorder-alert-body">
+    <strong id="admin-preorder-alert-title">Neue Vorbestellung</strong>
+    <span id="admin-preorder-alert-text">Es ist eine neue Vorbestellung eingegangen.</span>
+  </div>
+  <button
+    type="button"
+    class="admin-preorder-alert-open"
+    onclick="adminVorbestellungenOeffnen()"
+  >
+    Öffnen
+  </button>
+  <button
+    type="button"
+    class="admin-preorder-alert-close"
+    onclick="adminVorbestellAlertSchliessen()"
+    aria-label="Hinweis schließen"
+  >
+    ×
+  </button>
+</div>
 
 <div
   class="admin-more-modal"
@@ -8540,6 +8699,247 @@ async function vorbestellungLoeschen(id){
   if(error){console.error(error);return;}
   vorbestellungenLaden();
 }
+
+
+let adminVorbestellungenOffen = null;
+let adminVorbestellAlertOffen = false;
+
+function adminVorbestellungHeuteKey(){
+
+  const d = new Date();
+
+  return [
+    d.getFullYear(),
+    String(d.getMonth()+1).padStart(2,"0"),
+    String(d.getDate()).padStart(2,"0")
+  ].join("-");
+
+}
+
+
+async function adminVorbestellungenNeueLaden(
+  {zeigeAlarm=true}={}
+){
+
+  const badge =
+    document.getElementById(
+      "admin-preorder-badge"
+    );
+
+  const {
+    count,
+    error
+  } =
+    await supabaseClient
+      .from("Vorbestellungen")
+      .select(
+        "id",
+        {
+          count:"exact",
+          head:true
+        }
+      )
+      .eq(
+        "abgeholt",
+        false
+      )
+      .gte(
+        "datum",
+        adminVorbestellungHeuteKey()
+      );
+
+  if(error){
+
+    console.warn(
+      "Vorbestellungszähler:",
+      error
+    );
+
+    return;
+  }
+
+  const anzahl = count || 0;
+
+  if(
+    !badge
+  ){
+    return;
+  }
+
+  if(
+    anzahl < 1
+  ){
+
+    badge.hidden=true;
+    adminVorbestellungenOffen=0;
+    return;
+
+  }
+
+  badge.hidden=false;
+  badge.textContent =
+    anzahl > 99
+      ? "99+"
+      : anzahl;
+
+  /*
+   * Beim allerersten Laden informieren wir ebenfalls,
+   * wenn bereits offene Bestellungen vorhanden sind.
+   * Danach nur noch bei einem Anstieg.
+   */
+  const istNeu =
+    adminVorbestellungenOffen === null
+      ? anzahl > 0
+      : anzahl > adminVorbestellungenOffen;
+
+  adminVorbestellungenOffen =
+    anzahl;
+
+  if(
+    zeigeAlarm &&
+    istNeu
+  ){
+
+    adminVorbestellAlertZeigen(
+      anzahl
+    );
+
+  }
+
+}
+
+
+function adminVorbestellAlertZeigen(
+  anzahl
+){
+
+  const alert =
+    document.getElementById(
+      "admin-preorder-alert"
+    );
+
+  const title =
+    document.getElementById(
+      "admin-preorder-alert-title"
+    );
+
+  const text =
+    document.getElementById(
+      "admin-preorder-alert-text"
+    );
+
+  if(
+    !alert ||
+    !title ||
+    !text
+  ){
+    return;
+  }
+
+  adminVorbestellAlertOffen =
+    true;
+
+  title.textContent =
+    anzahl === 1
+      ? "Neue Vorbestellung"
+      : `${anzahl} offene Vorbestellungen`;
+
+  text.textContent =
+    anzahl === 1
+      ? "Eine neue Bestellung ist eingegangen."
+      : "Bitte Vorbestellungen prüfen.";
+
+  alert.hidden =
+    false;
+
+}
+
+
+function adminVorbestellAlertSchliessen(){
+
+  const alert =
+    document.getElementById(
+      "admin-preorder-alert"
+    );
+
+  if(!alert)return;
+
+  alert.hidden=true;
+
+  adminVorbestellAlertOffen =
+    false;
+
+}
+
+
+function adminVorbestellungenOeffnen(){
+
+  const target =
+    document.querySelector(
+      '.admin-primary-tabs .admin-tab[onclick*="vorbestellungen-bereich"]'
+    );
+
+  /*
+   * Der Bereich liegt in "Mehr".
+   * Wir öffnen ihn direkt, ohne dass man den Umweg über das Menü braucht.
+   */
+  const section =
+    document.getElementById(
+      "vorbestellungen-bereich"
+    );
+
+  if(section){
+
+    const feedbackDummy =
+      document.querySelector(
+        '.admin-primary-tabs .admin-tab[onclick*="gaestefeedback-bereich"]'
+      );
+
+    zeigeBereich(
+      "vorbestellungen-bereich",
+      target || feedbackDummy
+    );
+
+    vorbestellungenAdminTag =
+      "heute";
+
+    document
+      .querySelectorAll(
+        ".preorder-admin-day"
+      )
+      .forEach(
+        (el,index)=>{
+          el.classList.toggle(
+            "active",
+            index===0
+          );
+        }
+      );
+
+    vorbestellungenLaden();
+
+    adminVorbestellAlertSchliessen();
+
+  }
+
+}
+
+
+window.addEventListener(
+  "DOMContentLoaded",
+  ()=>{
+
+    adminVorbestellungenNeueLaden();
+
+    setInterval(
+      ()=>{
+        adminVorbestellungenNeueLaden();
+      },
+      60000
+    );
+
+  }
+);
 
 </script>
 
