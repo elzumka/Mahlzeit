@@ -1639,6 +1639,231 @@ body.legal-modal-open{overflow:hidden;}
   }
 }
 
+
+.feedback-section{
+  background:var(--beige);
+}
+
+.feedback-inner{
+  max-width:980px;
+}
+
+.feedback-intro{
+  max-width:760px;
+  margin:0 auto 30px;
+  text-align:center;
+  color:#555;
+  line-height:1.6;
+}
+
+.feedback-form{
+  max-width:820px;
+  margin:0 auto;
+  padding:26px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:rgba(255,255,255,.28);
+}
+
+.feedback-type-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  margin-bottom:20px;
+}
+
+.feedback-type{
+  position:relative;
+  display:block;
+  margin:0;
+}
+
+.feedback-type input{
+  position:absolute;
+  opacity:0;
+  pointer-events:none;
+}
+
+.feedback-type span{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:52px;
+  padding:10px 12px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:#fff;
+  color:var(--green);
+  font-weight:800;
+  text-align:center;
+  cursor:pointer;
+}
+
+.feedback-type input:checked + span{
+  background:var(--green);
+  color:var(--cream);
+  border-color:var(--green);
+}
+
+.feedback-form > label{
+  display:block;
+  margin:0 0 8px;
+  color:var(--green);
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  font-size:12px;
+}
+
+.feedback-form textarea,
+.feedback-form input[type="text"]{
+  width:100%;
+  box-sizing:border-box;
+  padding:12px 13px;
+  border:1px solid #bbb;
+  border-radius:9px;
+  background:#fff;
+  font-size:16px;
+}
+
+.feedback-form textarea{
+  resize:vertical;
+  min-height:150px;
+}
+
+.feedback-form-row{
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:12px;
+  align-items:center;
+  margin-top:14px;
+}
+
+.feedback-checkbox{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:0;
+  color:#555;
+  font-size:13px;
+}
+
+.feedback-checkbox input{
+  width:16px;
+  height:16px;
+  margin:0;
+}
+
+.feedback-submit{
+  margin-top:16px;
+  border:0;
+}
+
+.feedback-submit:disabled{
+  opacity:.6;
+  cursor:wait;
+}
+
+.feedback-status{
+  min-height:24px;
+  margin-top:12px;
+  text-align:center;
+  color:var(--green);
+  font-weight:700;
+}
+
+@media(max-width:760px){
+  .feedback-form{padding:18px}
+
+  .feedback-type-grid{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:6px;
+  }
+
+  .feedback-type span{
+    min-height:44px;
+    padding:7px 4px;
+    font-size:11px;
+    line-height:1.1;
+  }
+
+  .feedback-form-row{
+    grid-template-columns:1fr;
+  }
+}
+
+@media(max-width:430px){
+  .feedback-type span{
+    font-size:10px;
+    padding:6px 3px;
+  }
+}
+
+
+.floating-feedback-button{
+  position:fixed;
+  right:18px;
+  bottom:20px;
+  z-index:950;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-height:48px;
+  padding:11px 15px;
+  border:1px solid rgba(255,255,255,.24);
+  border-radius:14px;
+  background:var(--green);
+  color:var(--cream);
+  box-shadow:0 8px 24px rgba(0,0,0,.16);
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:transform .18s ease,box-shadow .18s ease;
+}
+
+.floating-feedback-button:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 28px rgba(0,0,0,.2);
+}
+
+.floating-feedback-icon{
+  font-size:18px;
+  line-height:1;
+}
+
+.floating-feedback-label{
+  line-height:1;
+}
+
+@media(max-width:760px){
+  .floating-feedback-button{
+    right:10px;
+    bottom:12px;
+    min-height:40px;
+    padding:8px 10px;
+    border-radius:11px;
+    font-size:9px;
+  }
+
+  .floating-feedback-icon{
+    font-size:15px;
+  }
+}
+
+
+.feedback-section .section-title .rule{
+  display:none;
+}
+
+.feedback-submit{
+  display:block;
+  width:auto;
+  margin:16px auto 0;
+  position:relative;
+}
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
@@ -2091,6 +2316,100 @@ async function downloadSpeiseplanPDF(){
 
 <section class="breakfast-section" id="fruehstueck">
   <!-- Frühstücksbereich bleibt vorerst leer. -->
+</section>
+
+
+
+<button
+  type="button"
+  id="floating-feedback-button"
+  class="floating-feedback-button"
+  onclick="gaesteFeedbackOeffnen()"
+  aria-label="Feedback geben"
+>
+  <span class="floating-feedback-icon">💬</span>
+  <span class="floating-feedback-label">Feedback</span>
+</button>
+
+<section class="section feedback-section" id="gaestefeedback">
+  <div class="section-inner feedback-inner">
+
+    <div class="section-title">
+      <h2>Eure Meinung zählt</h2>
+      <div class="rule"></div>
+    </div>
+
+    <p class="feedback-intro">
+      Ihr habt einen Essenswunsch, eine Bemerkung oder eine Idee zur Verbesserung?
+      Schreibt uns – wir freuen uns über ehrliches Feedback.
+    </p>
+
+    <form
+      class="feedback-form"
+      id="gaestefeedback-form"
+      onsubmit="gaesteFeedbackSenden(event)"
+    >
+      <div class="feedback-type-grid">
+
+        <label class="feedback-type">
+          <input type="radio" name="feedback_typ" value="Essenswunsch" checked>
+          <span>Essenswunsch</span>
+        </label>
+
+        <label class="feedback-type">
+          <input type="radio" name="feedback_typ" value="Bemerkung">
+          <span>Bemerkung</span>
+        </label>
+
+        <label class="feedback-type">
+          <input type="radio" name="feedback_typ" value="Frage">
+          <span>Frage</span>
+        </label>
+
+        <label class="feedback-type">
+          <input type="radio" name="feedback_typ" value="Verbesserung">
+          <span>Verbesserung</span>
+        </label>
+
+      </div>
+
+      <label for="feedback-nachricht">Deine Nachricht</label>
+
+      <textarea
+        id="feedback-nachricht"
+        name="feedback_nachricht"
+        rows="6"
+        maxlength="2000"
+        placeholder="Was wünscht ihr euch, was können wir besser machen oder was gefällt euch besonders gut?"
+        required
+      ></textarea>
+
+      <div class="feedback-form-row">
+
+        <label class="feedback-checkbox" for="feedback-rueckmeldung">
+          <input type="checkbox" id="feedback-rueckmeldung">
+          <span>Ich möchte eine Rückmeldung</span>
+        </label>
+
+        <input
+          type="text"
+          id="feedback-kontakt"
+          placeholder="Optional: Name oder E-Mail"
+          aria-label="Optional: Name oder E-Mail"
+          autocomplete="off"
+          disabled
+        >
+
+      </div>
+
+      <button type="submit" class="button feedback-submit">
+        Nachricht senden
+      </button>
+
+      <div id="feedback-status" class="feedback-status" aria-live="polite"></div>
+    </form>
+
+  </div>
 </section>
 
 <section class="contact" id="kontakt">
@@ -2566,32 +2885,19 @@ async function ladeGerichte(){
 
   const jetzt = new Date();
 
-  const stunde =
-    jetzt.getHours();
-
-  const minute =
-    jetzt.getMinutes();
-
-  const aktuelleMinuten =
-    stunde * 60 + minute;
-
-  const wochentag =
-    jetzt.getDay();
+  const stunde = jetzt.getHours();
+  const minute = jetzt.getMinutes();
+  const aktuelleMinuten = stunde * 60 + minute;
+  const wochentag = jetzt.getDay();
 
   const container =
-    document.getElementById(
-      "gerichte-container"
-    );
+    document.getElementById("gerichte-container");
 
   const nextWeekNote =
-    document.getElementById(
-      "naechste-woche-hinweis"
-    );
+    document.getElementById("naechste-woche-hinweis");
 
   const specialNote =
-    document.getElementById(
-      "sondertage-hinweis"
-    );
+    document.getElementById("sondertage-hinweis");
 
   if(!container)return;
 
@@ -2605,66 +2911,100 @@ async function ladeGerichte(){
     specialNote.textContent="";
   }
 
-  const lokalesDatum =
-    new Date(
-      jetzt.getFullYear(),
-      jetzt.getMonth(),
-      jetzt.getDate()
-    );
-
-  const isoHeute =
-    [
-      lokalesDatum.getFullYear(),
-      String(lokalesDatum.getMonth()+1).padStart(2,"0"),
-      String(lokalesDatum.getDate()).padStart(2,"0")
-    ].join("-");
-
-  const plus7 =
-    new Date(lokalesDatum);
-
-  plus7.setDate(
-    plus7.getDate()+7
+  const heute = new Date(
+    jetzt.getFullYear(),
+    jetzt.getMonth(),
+    jetzt.getDate()
   );
 
-  const isoBis =
-    [
-      plus7.getFullYear(),
-      String(plus7.getMonth()+1).padStart(2,"0"),
-      String(plus7.getDate()).padStart(2,"0")
-    ].join("-");
+  const isoHeute = [
+    heute.getFullYear(),
+    String(heute.getMonth()+1).padStart(2,"0"),
+    String(heute.getDate()).padStart(2,"0")
+  ].join("-");
+
+  const plus7 = new Date(heute);
+  plus7.setDate(plus7.getDate()+7);
+
+  const isoBis = [
+    plus7.getFullYear(),
+    String(plus7.getMonth()+1).padStart(2,"0"),
+    String(plus7.getDate()).padStart(2,"0")
+  ].join("-");
 
 
-  const [
-    {data:specialDays},
-    {data:settings}
-  ] =
-    await Promise.all([
-      supabaseClient
+  /*
+   * Sondertage und Website-Einstellungen getrennt laden.
+   * Falls eine der beiden Abfragen ausfällt, kann der
+   * Mittagstisch trotzdem weiterhin geladen werden.
+   */
+  let specialDays = [];
+  let settings = null;
+
+  try{
+
+    const result =
+      await supabaseClient
         .from("Sonderoeffnungszeiten")
         .select("*")
         .gte("datum",isoHeute)
         .lte("datum",isoBis)
-        .order("datum",{ascending:true}),
+        .order("datum",{ascending:true});
 
-      supabaseClient
+    if(result.error){
+      console.warn(
+        "Sondertage konnten nicht geladen werden:",
+        result.error
+      );
+    }else{
+      specialDays = result.data || [];
+    }
+
+  }catch(error){
+
+    console.warn(
+      "Sondertage-Abfrage fehlgeschlagen:",
+      error
+    );
+
+  }
+
+
+  try{
+
+    const result =
+      await supabaseClient
         .from("WebsiteEinstellungen")
         .select("*")
         .eq("id",1)
-        .maybeSingle()
-    ]);
+        .maybeSingle();
+
+    if(result.error){
+      console.warn(
+        "Website-Einstellungen konnten nicht geladen werden:",
+        result.error
+      );
+    }else{
+      settings = result.data;
+    }
+
+  }catch(error){
+
+    console.warn(
+      "Website-Einstellungen-Abfrage fehlgeschlagen:",
+      error
+    );
+
+  }
 
 
   const specialToday =
-    (specialDays || []).find(
+    specialDays.find(
       item => item.datum === isoHeute
     );
 
 
-  /*
-   * Sondertage haben Vorrang vor den regulären Öffnungszeiten.
-   */
   let geoeffnetHeute = true;
-
   let vonHeute = null;
   let bisHeute = null;
 
@@ -2678,14 +3018,12 @@ async function ladeGerichte(){
 
       vonHeute =
         String(
-          specialToday.von ||
-          "11:00"
+          specialToday.von || "11:00"
         ).slice(0,5);
 
       bisHeute =
         String(
-          specialToday.bis ||
-          "14:00"
+          specialToday.bis || "14:00"
         ).slice(0,5);
 
     }
@@ -2695,10 +3033,6 @@ async function ladeGerichte(){
     const mittagAktiv =
       settings?.mittagstisch_aktiv !== false;
 
-    /*
-     * Montag–Freitag reguläre Mittagstischzeiten.
-     * Am Wochenende bleibt der Bereich geschlossen.
-     */
     if(
       wochentag === 0 ||
       wochentag === 6 ||
@@ -2711,14 +3045,12 @@ async function ladeGerichte(){
 
       vonHeute =
         String(
-          settings?.mittagstisch_von ||
-          "11:00"
+          settings?.mittagstisch_von || "11:00"
         ).slice(0,5);
 
       bisHeute =
         String(
-          settings?.mittagstisch_bis ||
-          "14:00"
+          settings?.mittagstisch_bis || "14:00"
         ).slice(0,5);
 
     }
@@ -2726,39 +3058,31 @@ async function ladeGerichte(){
   }
 
 
-  const minutenAusZeit =
-    value => {
+  const minutenAusZeit = value => {
 
-      if(!value){
-        return null;
-      }
+    if(!value)return null;
 
-      const teile =
-        String(value)
-          .split(":")
-          .map(Number);
+    const teile =
+      String(value)
+        .split(":")
+        .map(Number);
 
-      return (
-        (teile[0] || 0) * 60
-        +
-        (teile[1] || 0)
-      );
+    return (
+      (teile[0] || 0) * 60 +
+      (teile[1] || 0)
+    );
 
-    };
+  };
 
 
   const vonMinuten =
-    minutenAusZeit(
-      vonHeute
-    );
+    minutenAusZeit(vonHeute);
 
   const bisMinuten =
-    minutenAusZeit(
-      bisHeute
-    );
+    minutenAusZeit(bisHeute);
 
 
-  if(
+  const ausserhalbOeffnungszeit =
     !geoeffnetHeute ||
     (
       vonMinuten !== null &&
@@ -2767,18 +3091,25 @@ async function ladeGerichte(){
     (
       bisMinuten !== null &&
       aktuelleMinuten >= bisMinuten
-    )
+    );
+
+
+  if(
+    ausserhalbOeffnungszeit
   ){
 
     const geschlossenBild =
       (
+        specialToday?.geschlossen ||
         wochentag === 6 ||
         wochentag === 0
       )
       ? "wochenende.png"
       : "feierabend.png";
 
-    container.classList.add("status-view");
+    container.classList.add(
+      "status-view"
+    );
 
     container.innerHTML = `
       <div class="feierabend-box">
@@ -2800,50 +3131,67 @@ async function ladeGerichte(){
 
   }else{
 
-    container.classList.remove("status-view");
+    container.classList.remove(
+      "status-view"
+    );
 
     if(
       specialToday?.hinweis &&
       specialNote
     ){
+
       specialNote.textContent =
         `Heute: ${specialToday.hinweis}`;
 
-      specialNote.classList.add("show");
-    }
+      specialNote.classList.add(
+        "show"
+      );
 
+    }
 
     if(
       wochentag === 5 &&
-      aktuelleMinuten <
-        (bisMinuten ?? 840) &&
       nextWeekNote
     ){
 
       nextWeekNote.textContent =
         "Ab Freitag 14:00 Uhr ist unser Speiseplan für nächste Woche online.";
 
-      nextWeekNote.classList.add("show");
+      nextWeekNote.classList.add(
+        "show"
+      );
+
     }
 
 
-    const {
-      data,
-      error
-    } =
-      await supabaseClient
-        .from("Gerichte")
-        .select("*")
-        .eq("datum",isoHeute)
-        .eq("website_anzeigen",true)
-        .order(
-          "reihenfolge",
-          {ascending:true,nullsFirst:false}
-        )
-        .order(
-          "id",
-          {ascending:true}
-        );
+    let data = [];
+    let error = null;
+
+    try{
+
+      const result =
+        await supabaseClient
+          .from("Gerichte")
+          .select("*")
+          .eq("datum",isoHeute)
+          .eq("website_anzeigen",true)
+          .order(
+            "reihenfolge",
+            {ascending:true,nullsFirst:false}
+          )
+          .order(
+            "id",
+            {ascending:true}
+          );
+
+      data = result.data || [];
+      error = result.error;
+
+    }catch(loadError){
+
+      error = loadError;
+
+    }
 
 
     if(error){
@@ -2853,15 +3201,24 @@ async function ladeGerichte(){
         error
       );
 
+      /*
+       * Bereits vorhandene HTML-Karten bleiben sichtbar,
+       * wenn Supabase gerade kurz nicht erreichbar ist.
+       */
       return;
+
     }
 
 
-    container.classList.remove("status-view");
-    container.innerHTML="";
+    container.classList.remove(
+      "status-view"
+    );
+
+    container.innerHTML =
+      "";
 
 
-    if(!data || !data.length){
+    if(!data.length){
 
       container.innerHTML = `
         <div class="feierabend-box">
@@ -2872,6 +3229,7 @@ async function ladeGerichte(){
       `;
 
       return;
+
     }
 
 
@@ -2882,8 +3240,8 @@ async function ladeGerichte(){
           document.createElement("div");
 
         karte.className =
-          "dish"
-          + (
+          "dish" +
+          (
             gericht.ausverkauft
               ? " sold-out"
               : ""
@@ -2919,9 +3277,13 @@ async function ladeGerichte(){
 
             <div>
 
-              <h3>${gericht.gerichte || ""}</h3>
+              <h3>
+                ${gericht.gerichte || ""}
+              </h3>
 
-              <p>${gericht.beilage || ""}</p>
+              <p>
+                ${gericht.beilage || ""}
+              </p>
 
               ${
                 gericht.ausverkauft
@@ -2936,6 +3298,7 @@ async function ladeGerichte(){
             </div>
 
           </div>
+
 
           <div class="price">
 
@@ -2960,6 +3323,7 @@ async function ladeGerichte(){
             }
 
           </div>
+
         `;
 
         container.appendChild(
@@ -2971,13 +3335,12 @@ async function ladeGerichte(){
 
   }
 
-  /*
-   * Sondertage einige Tage im Voraus ankündigen.
-   */
+
   const upcoming =
-    (specialDays || []).filter(
+    specialDays.filter(
       item => item.datum !== isoHeute
     );
+
 
   if(
     specialNote &&
@@ -3036,6 +3399,7 @@ async function ladeGerichte(){
   }
 
 }
+
 
 /* --------------------------------
    HEUTIGES DATUM
@@ -4180,6 +4544,117 @@ function setTextWithin(
 
 }
 document.addEventListener("DOMContentLoaded",()=>{ ladeWebsiteTexte(); });
+
+function gaesteFeedbackRueckmeldungToggle(){
+
+  const checkbox=document.getElementById("feedback-rueckmeldung");
+  const kontakt=document.getElementById("feedback-kontakt");
+
+  if(!checkbox || !kontakt)return;
+
+  kontakt.disabled=!checkbox.checked;
+
+  if(!checkbox.checked){
+    kontakt.value="";
+  }
+}
+
+async function gaesteFeedbackSenden(event){
+
+  event.preventDefault();
+
+  const form=document.getElementById("gaestefeedback-form");
+  const status=document.getElementById("feedback-status");
+  const button=form?.querySelector('button[type="submit"]');
+
+  const typ=form?.querySelector('input[name="feedback_typ"]:checked')?.value || "Bemerkung";
+  const nachricht=document.getElementById("feedback-nachricht")?.value.trim() || "";
+  const kontakt=document.getElementById("feedback-kontakt")?.value.trim() || "";
+
+  if(!nachricht){
+    if(status)status.textContent="Bitte schreibt eine Nachricht.";
+    return;
+  }
+
+  if(button){
+    button.disabled=true;
+    button.textContent="Wird gesendet …";
+  }
+
+  try{
+
+    const {error}=
+      await supabaseClient
+        .from("GaesteFeedback")
+        .insert([{
+          typ,
+          nachricht,
+          kontakt:kontakt || null
+        }]);
+
+    if(error)throw error;
+
+    form.reset();
+    gaesteFeedbackRueckmeldungToggle();
+
+    if(status){
+      status.textContent="Danke für eure Nachricht! Wir haben sie erhalten.";
+    }
+
+  }catch(error){
+
+    console.error("Gästefeedback:",error);
+
+    if(status){
+      status.textContent=
+        "Die Nachricht konnte gerade nicht gesendet werden. Bitte versucht es später noch einmal.";
+    }
+
+  }finally{
+
+    if(button){
+      button.disabled=false;
+      button.textContent="Nachricht senden";
+    }
+  }
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+  document
+    .getElementById("feedback-rueckmeldung")
+    ?.addEventListener("change",gaesteFeedbackRueckmeldungToggle);
+});
+
+
+function gaesteFeedbackOeffnen(){
+
+  const section =
+    document.getElementById(
+      "gaestefeedback"
+    );
+
+  if(!section){
+    return;
+  }
+
+  section.scrollIntoView({
+    behavior:"smooth",
+    block:"start"
+  });
+
+  setTimeout(
+    ()=>{
+      document
+        .getElementById(
+          "feedback-nachricht"
+        )
+        ?.focus();
+    },
+    450
+  );
+
+}
+
 </script>
 
 </body>
