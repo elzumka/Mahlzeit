@@ -1800,6 +1800,22 @@ button{
   }
 }
 
+
+.preorder-admin-day-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.preorder-admin-day{margin:0;min-height:44px;border-radius:9px;border:1px solid var(--line);background:#fff;color:var(--green);font-weight:800;cursor:pointer}
+.preorder-admin-day.active{background:var(--green);color:var(--cream);border-color:var(--green)}
+.preorder-admin-summary{margin-bottom:12px;color:#666;font-size:13px}
+.preorder-admin-list{display:grid;gap:12px}
+.preorder-admin-card{border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.24);padding:16px}
+.preorder-admin-card.abgeholt{opacity:.58}
+.preorder-admin-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.preorder-admin-dish{color:var(--green);font-weight:900;text-transform:uppercase}
+.preorder-admin-date{color:#777;font-size:12px}
+.preorder-admin-meta{margin-top:8px;display:grid;gap:4px;color:#444;line-height:1.45}
+.preorder-admin-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.preorder-admin-actions button{margin:0;min-height:40px;border-radius:9px}
+@media(max-width:760px){.preorder-admin-card-head{flex-direction:column}.preorder-admin-actions{display:grid;grid-template-columns:1fr}.preorder-admin-actions button{width:100%}}
+
 </style>
 </head>
 <body>
@@ -1934,6 +1950,13 @@ button{
       >
         <strong>Gästefeedback</strong>
         <span>Wünsche, Bemerkungen &amp; Verbesserungen</span>
+      </button>
+      <button
+        type="button"
+        onclick="adminMehrBereich('vorbestellungen-bereich',this);vorbestellungenLaden()"
+      >
+        <strong>Vorbestellungen</strong>
+        <span>Bestellungen für heute &amp; morgen</span>
       </button>
 
     </div>
@@ -2718,6 +2741,28 @@ button{
     </div>
 
   </div>
+
+</section>
+
+
+<section id="vorbestellungen-bereich" class="admin-bereich">
+
+  <div class="daily-toolbar">
+    <div>
+      <span class="daily-kicker">Tagesgeschäft</span>
+      <h2>Vorbestellungen</h2>
+      <p>Vorbestellungen für heute und morgen schnell im Blick behalten.</p>
+    </div>
+  </div>
+
+  <div class="preorder-admin-day-tabs">
+    <button type="button" class="preorder-admin-day active" onclick="vorbestellungenTagWaehlen('heute')">Heute</button>
+    <button type="button" class="preorder-admin-day" onclick="vorbestellungenTagWaehlen('morgen')">Morgen</button>
+  </div>
+
+  <div class="preorder-admin-summary" id="vorbestellungen-summary">Wird geladen …</div>
+
+  <div id="vorbestellungen-liste" class="preorder-admin-list">Wird geladen …</div>
 
 </section>
 
@@ -8365,6 +8410,136 @@ window.addEventListener(
     );
   }
 );
+
+
+let vorbestellungenAdminTag="heute";
+
+function vorbestellungAdminDatumKey(tag){
+  const d=new Date();
+  if(tag==="morgen")d.setDate(d.getDate()+1);
+  return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");
+}
+
+function vorbestellungenTagWaehlen(tag){
+  vorbestellungenAdminTag=tag;
+  document.querySelectorAll(".preorder-admin-day").forEach((el,index)=>{
+    el.classList.toggle("active",tag==="heute"?index===0:index===1);
+  });
+  vorbestellungenLaden();
+}
+
+async function vorbestellungenLaden(){
+
+  const liste=document.getElementById("vorbestellungen-liste");
+  const summary=document.getElementById("vorbestellungen-summary");
+  if(!liste)return;
+
+  const datum=vorbestellungAdminDatumKey(vorbestellungenAdminTag);
+  liste.innerHTML="Wird geladen …";
+
+  const {data,error}=await supabaseClient
+    .from("Vorbestellungen")
+    .select("*")
+    .eq("datum",datum)
+    .order("erstellt_am",{ascending:true});
+
+  if(error){
+    console.error("Vorbestellungen:",error);
+    liste.innerHTML='<div class="feedback-empty">Vorbestellungen konnten nicht geladen werden.</div>';
+    return;
+  }
+
+  const offen=(data||[]).filter(item=>!item.abgeholt).length;
+  if(summary)summary.textContent=`${data?.length||0} Bestellung(en) · ${offen} noch offen`;
+
+  if(!data?.length){
+    liste.innerHTML='<div class="feedback-empty">Keine Vorbestellungen für diesen Tag.</div>';
+    return;
+  }
+
+  liste.innerHTML="";
+
+  data.forEach(item=>{
+    const card=document.createElement("article");
+    card.className="preorder-admin-card "+(item.abgeholt?"abgeholt":"");
+
+    const datumText=item.erstellt_am
+      ? new Date(item.erstellt_am).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"})
+      : "";
+
+    const positionen=Array.isArray(item.positionen)?item.positionen:[];
+    const positionenHtml=positionen.length
+      ? positionen.map(pos=>`
+          <div>
+            <strong>${pos.menge||1}× ${pos.gericht||""}</strong>
+            ${pos.beilage?` · ${pos.beilage}`:""}
+            ${pos.preis!==undefined?` · ${Number(pos.preis).toFixed(2).replace(".",",")} €`:""}
+          </div>
+        `).join("")
+      : `<div><strong>${item.menge||1}× ${item.gericht||""}</strong></div>`;
+
+    const verpackungText =
+      item.verzehr === "Kantine"
+        ? "Keine Verpackung – Verzehr in der Kantine"
+        : (
+            item.verpackung === "Kantinenverpackung"
+              ? `Kantinenverpackung · ${Number(item.verpackung_kosten||0).toFixed(2).replace(".",",")} €`
+              : "Eigene Verpackung"
+          );
+
+    const verzehrText =
+      item.verzehr === "Kantine"
+        ? "Ich esse in der Kantine"
+        : "Ich hole mein Essen ab";
+
+    const abholzeitText =
+      item.abholzeit
+        ? `ca. ${item.abholzeit} Uhr`
+        : "Keine Angabe";
+
+    card.innerHTML=`
+      <div class="preorder-admin-card-head">
+        <div class="preorder-admin-dish">Vorbestellung</div>
+        <div class="preorder-admin-date">${datumText}</div>
+      </div>
+
+      <div class="preorder-admin-meta">
+        <div><strong>Gerichte:</strong> ${positionenHtml}</div>
+        <div><strong>Portionen:</strong> ${item.menge||1}</div>
+        <div><strong>Verpackung:</strong> ${verpackungText}</div>
+        <div><strong>Verzehr:</strong> ${verzehrText}</div>
+        <div><strong>Abholzeit:</strong> ${abholzeitText}</div>
+        <div><strong>Name:</strong> ${item.name||""}</div>
+        ${item.kontakt?`<div><strong>Telefon:</strong> ${item.kontakt}</div>`:""}
+        ${item.bemerkung?`<div><strong>Bemerkung:</strong> ${item.bemerkung}</div>`:""}
+      </div>
+
+      <div class="preorder-admin-actions">
+        <button type="button" class="save" onclick="vorbestellungStatus(${item.id},${!item.abgeholt})">
+          ${item.abgeholt?"Wieder öffnen":"Als abgeholt markieren"}
+        </button>
+        <button type="button" onclick="vorbestellungLoeschen(${item.id})">
+          Löschen
+        </button>
+      </div>
+    `;
+
+    liste.appendChild(card);
+  });
+}
+
+async function vorbestellungStatus(id,abgeholt){
+  const {error}=await supabaseClient.from("Vorbestellungen").update({abgeholt}).eq("id",id);
+  if(error){console.error(error);return;}
+  vorbestellungenLaden();
+}
+
+async function vorbestellungLoeschen(id){
+  if(!confirm("Diese Vorbestellung wirklich löschen?"))return;
+  const {error}=await supabaseClient.from("Vorbestellungen").delete().eq("id",id);
+  if(error){console.error(error);return;}
+  vorbestellungenLaden();
+}
 
 </script>
 
