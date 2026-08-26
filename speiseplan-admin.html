@@ -43,54 +43,99 @@ button.save{margin-top:28px;padding:14px 24px;border:0;background:var(--green);c
 .sp-status{margin:8px 0 14px;color:var(--green);font-weight:700}
 @media(max-width:650px){h1{font-size:48px}.plan-info{grid-template-columns:1fr}.admin-tabs{overflow-x:auto}.sp-controls{grid-template-columns:1fr}}
 @media print{
-  body{
-    padding:0!important;
-    margin:0!important;
-    background:#fff!important;
-  }
-
-  .container{
-    max-width:none!important;
-    margin:0!important;
-    padding:0!important;
-  }
-
-  /* Verwaltungskopf und Navigation beim PDF-Druck ausblenden */
-  .container > h1,
-  .admin-tabs,
-  .sp-toolbar,
-  .sp-controls,
-  .sp-status,
-  #gerichte-bereich{
-    display:none!important;
-  }
-
-  #speiseplan-bereich{
-    display:block!important;
-    margin:0!important;
-    padding:0!important;
-  }
-
-  .sp-preview{
-    padding:0!important;
-    margin:0!important;
-    background:#fff!important;
-    overflow:visible!important;
-  }
-
-  .sp-sheet{
-    width:210mm!important;
-    height:297mm!important;
-    margin:0!important;
-    box-shadow:none!important;
-    page-break-after:avoid!important;
-    break-after:page!important;
-  }
 
   @page{
     size:A4 portrait;
     margin:0;
   }
+
+  html,
+  body{
+    width:210mm!important;
+    height:297mm!important;
+    margin:0!important;
+    padding:0!important;
+    background:#fff!important;
+    overflow:hidden!important;
+  }
+
+  /*
+   * Beim Drucken wird ausschließlich das fertige Speiseplanblatt
+   * angezeigt. Sämtliche Verwaltungs- und Navigationsbereiche
+   * bleiben unsichtbar.
+   */
+  body > *{
+    display:none!important;
+  }
+
+  body > .container{
+    display:block!important;
+    width:210mm!important;
+    height:297mm!important;
+    max-width:none!important;
+    margin:0!important;
+    padding:0!important;
+  }
+
+  .container > *{
+    display:none!important;
+  }
+
+  #speiseplan-bereich{
+    display:block!important;
+    position:static!important;
+    width:210mm!important;
+    height:297mm!important;
+    margin:0!important;
+    padding:0!important;
+    background:#fff!important;
+  }
+
+  #speiseplan-bereich > *{
+    display:none!important;
+  }
+
+  #speiseplan-bereich .sp-preview{
+    display:block!important;
+    width:210mm!important;
+    height:297mm!important;
+    margin:0!important;
+    padding:0!important;
+    background:#fff!important;
+    overflow:visible!important;
+  }
+
+  #speiseplan-bereich .sp-sheet{
+    display:block!important;
+    position:relative!important;
+    width:210mm!important;
+    min-width:210mm!important;
+    height:297mm!important;
+    min-height:297mm!important;
+    margin:0!important;
+    padding:0!important;
+    box-shadow:none!important;
+    overflow:hidden!important;
+    page-break-after:avoid!important;
+    break-after:avoid-page!important;
+  }
+
+  #speiseplan-bereich .sp-sheet-bg{
+    display:block!important;
+    width:210mm!important;
+    height:297mm!important;
+    max-width:none!important;
+    margin:0!important;
+  }
+
+  #speiseplan-bereich #sp-overlay{
+    display:block!important;
+    position:absolute!important;
+    inset:0!important;
+    width:210mm!important;
+    height:297mm!important;
+  }
+
 }
 
 .hero-admin-grid{
