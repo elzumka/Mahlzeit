@@ -1800,33 +1800,6 @@ body.legal-modal-open{overflow:hidden;}
 }
 
 
-.floating-feedback-button{
-  position:fixed;
-  right:18px;
-  bottom:20px;
-  z-index:950;
-  display:flex;
-  align-items:center;
-  gap:8px;
-  min-height:48px;
-  padding:11px 15px;
-  border:1px solid rgba(255,255,255,.24);
-  border-radius:14px;
-  background:var(--green);
-  color:var(--cream);
-  box-shadow:0 8px 24px rgba(0,0,0,.16);
-  font-size:12px;
-  font-weight:800;
-  letter-spacing:.06em;
-  text-transform:uppercase;
-  cursor:pointer;
-  transition:transform .18s ease,box-shadow .18s ease;
-}
-
-.floating-feedback-button:hover{
-  transform:translateY(-2px);
-  box-shadow:0 10px 28px rgba(0,0,0,.2);
-}
 
 .floating-feedback-icon{
   font-size:18px;
@@ -1837,20 +1810,6 @@ body.legal-modal-open{overflow:hidden;}
   line-height:1;
 }
 
-@media(max-width:760px){
-  .floating-feedback-button{
-    right:10px;
-    bottom:12px;
-    min-height:40px;
-    padding:8px 10px;
-    border-radius:11px;
-    font-size:9px;
-  }
-
-  .floating-feedback-icon{
-    font-size:15px;
-  }
-}
 
 
 .feedback-section .section-title .rule{
@@ -2275,6 +2234,85 @@ body.legal-modal-open{overflow:hidden;}
     padding:20px 12px 24px;
   }
 
+}
+
+
+
+
+/* Floating service buttons: one shared vertical stack */
+.floating-service-buttons{
+  position:fixed;
+  right:18px;
+  bottom:20px;
+  z-index:950;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:10px;
+}
+
+.floating-service-button{
+  position:static;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  min-width:128px;
+  min-height:46px;
+  margin:0;
+  padding:9px 13px;
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:13px;
+  color:var(--cream);
+  box-shadow:0 8px 24px rgba(0,0,0,.16);
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:transform .18s ease,box-shadow .18s ease;
+}
+
+.floating-service-button:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 28px rgba(0,0,0,.2);
+}
+
+.floating-preorder-button{
+  background:var(--green);
+}
+
+.floating-feedback-button{
+  background:#6e3f2e;
+}
+
+.floating-service-icon{
+  font-size:16px;
+  line-height:1;
+}
+
+.floating-service-label{
+  line-height:1;
+}
+
+@media(max-width:760px){
+  .floating-service-buttons{
+    right:10px;
+    bottom:12px;
+    gap:7px;
+  }
+
+  .floating-service-button{
+    min-width:112px;
+    min-height:40px;
+    padding:8px 10px;
+    border-radius:10px;
+    font-size:9px;
+  }
+
+  .floating-service-icon{
+    font-size:14px;
+  }
 }
 
 </style>
@@ -2731,18 +2769,6 @@ async function downloadSpeiseplanPDF(){
   <!-- Frühstücksbereich bleibt vorerst leer. -->
 </section>
 
-
-
-<button
-  type="button"
-  id="floating-feedback-button"
-  class="floating-feedback-button"
-  onclick="gaesteFeedbackOeffnen()"
-  aria-label="Feedback geben"
->
-  <span class="floating-feedback-icon">💬</span>
-  <span class="floating-feedback-label">Feedback</span>
-</button>
 
 
 <!-- Vorbestellen und Gästefeedback sind bewusst nicht Teil der langen Hauptseite.
@@ -5318,37 +5344,6 @@ document.addEventListener("DOMContentLoaded",()=>{
     .getElementById("feedback-rueckmeldung")
     ?.addEventListener("change",gaesteFeedbackRueckmeldungToggle);
 });
-
-
-function gaesteFeedbackOeffnen(){
-
-  const section =
-    document.getElementById(
-      "gaestefeedback"
-    );
-
-  if(!section){
-    return;
-  }
-
-  section.scrollIntoView({
-    behavior:"smooth",
-    block:"start"
-  });
-
-  setTimeout(
-    ()=>{
-      document
-        .getElementById(
-          "feedback-nachricht"
-        )
-        ?.focus();
-    },
-    450
-  );
-
-}
-
 
 
 let vorbestellungTag="heute";
