@@ -2332,20 +2332,6 @@ button{
         <strong>Website Texte</strong>
         <span>Alle festen Texte bearbeiten</span>
       </button>
-      <button
-        type="button"
-        onclick="adminMehrBereich('gaestefeedback-bereich',this);gaesteFeedbackLaden()"
-      >
-        <strong>Gästefeedback</strong>
-        <span>Wünsche, Bemerkungen &amp; Verbesserungen</span>
-      </button>
-      <button
-        type="button"
-        onclick="adminMehrBereich('vorbestellungen-bereich',this);vorbestellungenLaden()"
-      >
-        <strong>Vorbestellungen</strong>
-        <span>Bestellungen für heute &amp; morgen</span>
-      </button>
 
     </div>
 
@@ -9304,6 +9290,28 @@ async function vorbestellungVermerkt(
       "Vorbestellung vermerkt:",
       error
     );
+
+    const missingColumn =
+      error.code === "42703" ||
+      String(
+        error.message || ""
+      ).toLowerCase().includes(
+        "vermerkt"
+      );
+
+    if(missingColumn){
+
+      alert(
+        "Die Funktion „Im Buch vermerkt“ braucht noch die neue Spalte „vermerkt“ in Supabase. Bitte einmal das bereitgestellte SQL ausführen."
+      );
+
+    }else{
+
+      alert(
+        "Die Bestellung konnte nicht als vermerkt gespeichert werden."
+      );
+
+    }
 
     return;
   }
