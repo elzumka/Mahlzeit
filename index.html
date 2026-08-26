@@ -1864,6 +1864,416 @@ body.legal-modal-open{overflow:hidden;}
   position:relative;
 }
 
+
+.feedback-contact-hint{
+  grid-column:1 / -1;
+  margin-top:-4px;
+  color:#777;
+  font-size:12px;
+  line-height:1.4;
+}
+
+@media(max-width:760px){
+  .feedback-contact-hint{
+    grid-column:auto;
+  }
+}
+
+
+.feedback-checkbox em{
+  font-style:normal;
+  font-weight:600;
+  color:#888;
+}
+
+.feedback-contact-hint strong{
+  color:var(--green);
+}
+
+
+.preorder-section{background:var(--cream)}
+.preorder-inner{max-width:980px}
+.preorder-intro{max-width:820px;margin:0 auto 10px;text-align:center;color:#555;line-height:1.6}
+.preorder-note{max-width:820px;margin:0 auto 28px;padding:12px 16px;border-radius:10px;background:rgba(40,84,55,.07);color:#555;line-height:1.5;text-align:center;font-size:14px}
+.preorder-day-switch{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.preorder-day-button{display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--green);font-weight:800;cursor:pointer}
+.preorder-day-button.active{background:var(--green);color:var(--cream);border-color:var(--green)}
+.preorder-day-button small{opacity:.75;font-size:11px}
+.preorder-dish-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:18px}
+.preorder-dish-button{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:5px;min-height:78px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--green);text-align:left;cursor:pointer}
+.preorder-dish-button.active{border-color:var(--green);background:rgba(40,84,55,.08);box-shadow:inset 0 0 0 1px var(--green)}
+.preorder-dish-button strong{font-size:14px;text-transform:uppercase;letter-spacing:.03em}
+.preorder-dish-button span{color:#666;font-size:12px;line-height:1.35}
+.preorder-selected{margin-bottom:14px;padding:11px 13px;border-radius:9px;border:1px dashed var(--line);color:#666;min-height:20px}
+.preorder-form{max-width:820px;margin:0 auto;padding:22px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.28)}
+.preorder-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.preorder-form label{display:block;margin:0 0 7px;color:var(--green);font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+.preorder-form input,.preorder-form select,.preorder-form textarea{width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid #bbb;border-radius:9px;background:#fff;font-size:16px}
+.preorder-form textarea{resize:vertical;min-height:90px}
+.preorder-submit{margin-top:14px;border:0}
+.preorder-status{min-height:24px;margin-top:12px;text-align:center;color:var(--green);font-weight:700}
+@media(max-width:760px){.preorder-form{padding:16px}.preorder-dish-grid{grid-template-columns:1fr}.preorder-form-grid{grid-template-columns:1fr}.preorder-day-button{min-height:44px;font-size:12px}}
+
+
+.preorder-cart{
+  display:grid;
+  gap:8px;
+  margin-bottom:14px;
+}
+
+.preorder-cart-empty{
+  color:#777;
+  text-align:center;
+}
+
+.preorder-cart-item{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto auto;
+  align-items:center;
+  gap:10px;
+  padding:10px 12px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:#fff;
+}
+
+.preorder-cart-item strong{
+  color:var(--green);
+  text-transform:uppercase;
+  font-size:13px;
+}
+
+.preorder-cart-item small{
+  display:block;
+  margin-top:3px;
+  color:#666;
+  line-height:1.35;
+}
+
+.preorder-qty{
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
+
+.preorder-qty button,
+.preorder-remove{
+  width:32px;
+  height:32px;
+  min-height:32px;
+  padding:0;
+  border-radius:8px;
+  border:1px solid var(--line);
+  background:#fff;
+  color:var(--green);
+  font-weight:900;
+  cursor:pointer;
+}
+
+.preorder-qty-value{
+  min-width:24px;
+  text-align:center;
+  font-weight:800;
+}
+
+.preorder-remove{
+  color:#a13d35;
+}
+
+.preorder-cart-total{
+  margin-top:2px;
+  padding:10px 12px;
+  border-radius:9px;
+  background:rgba(40,84,55,.07);
+  color:var(--green);
+  font-weight:900;
+  text-align:right;
+}
+
+.preorder-label{
+  color:var(--green);
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+
+.preorder-option{
+  display:flex;
+  align-items:flex-start;
+  gap:9px;
+  margin:0;
+  padding:10px 12px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:#fff;
+  cursor:pointer;
+}
+
+.preorder-option input{
+  width:16px;
+  height:16px;
+  min-height:16px;
+  margin-top:2px;
+}
+
+.preorder-option span{
+  color:#444;
+  font-size:13px;
+  line-height:1.35;
+}
+
+.preorder-option small{
+  display:block;
+  margin-top:2px;
+  color:#777;
+  font-size:11px;
+}
+
+.preorder-required-note{
+  display:inline-block;
+  margin-left:5px;
+  color:#a13d35;
+  font-size:10px;
+  font-weight:900;
+  text-transform:uppercase;
+}
+
+@media(max-width:760px){
+  .preorder-cart-item{
+    grid-template-columns:minmax(0,1fr) auto;
+  }
+  .preorder-remove{
+    grid-column:2;
+    grid-row:1;
+  }
+  .preorder-qty{
+    grid-column:1 / -1;
+  }
+}
+
+
+.preorder-location{
+  display:grid;
+  gap:8px;
+  margin:14px 0;
+}
+
+.preorder-pickup-time{
+  margin:14px 0;
+}
+
+.preorder-pickup-time > label{
+  display:block;
+  margin:0 0 7px;
+  color:var(--green);
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+
+.optional-label{
+  color:#888;
+  margin-left:4px;
+}
+
+.preorder-pickup-time select{
+  width:100%;
+  box-sizing:border-box;
+}
+
+.preorder-help{
+  display:block;
+  margin-top:5px;
+  color:#777;
+  font-size:11px;
+  line-height:1.4;
+}
+
+.preorder-payment-note{
+  margin:14px 0 4px;
+  padding:11px 13px;
+  border-radius:9px;
+  background:rgba(40,84,55,.07);
+  color:#555;
+  font-size:13px;
+  line-height:1.45;
+}
+
+.preorder-payment-note strong{
+  color:var(--green);
+}
+
+
+
+.preorder-packaging-inline{
+  display:grid;
+  gap:8px;
+  margin:0 0 2px 25px;
+  padding:10px 0 2px 13px;
+  border-left:2px solid var(--line);
+}
+
+.preorder-packaging-inline.hidden{
+  display:none;
+}
+
+.preorder-location{
+  display:grid;
+  gap:8px;
+  margin:14px 0;
+}
+
+
+
+/* ----------------------------------------------------------
+   VORBESTELLEN + FEEDBACK ALS KOMPAKTE SCHWEBENDE BUTTONS
+   ---------------------------------------------------------- */
+
+.floating-service-buttons{
+  position:fixed;
+  right:18px;
+  bottom:20px;
+  z-index:950;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.floating-service-button{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  min-height:46px;
+  padding:9px 13px;
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:13px;
+  color:var(--cream);
+  box-shadow:0 8px 24px rgba(0,0,0,.16);
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:transform .18s ease,box-shadow .18s ease;
+}
+
+.floating-service-button:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 28px rgba(0,0,0,.2);
+}
+
+.floating-preorder-button{
+  background:var(--green);
+}
+
+.floating-feedback-button{
+  background:#6e3f2e;
+}
+
+.floating-service-icon{
+  font-size:16px;
+  line-height:1;
+}
+
+.floating-service-label{
+  line-height:1;
+}
+
+.service-modal{
+  position:fixed;
+  inset:0;
+  z-index:1200;
+  display:none;
+}
+
+.service-modal.open{
+  display:block;
+}
+
+.service-modal-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(25,38,31,.5);
+  backdrop-filter:blur(4px);
+}
+
+.service-modal-box{
+  position:relative;
+  width:min(980px,calc(100vw - 24px));
+  max-height:calc(100vh - 24px);
+  overflow:auto;
+  margin:12px auto;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:var(--cream);
+  box-shadow:0 22px 80px rgba(0,0,0,.2);
+}
+
+.service-modal-box .section{
+  padding-top:28px;
+  padding-bottom:28px;
+}
+
+.service-modal-box .section-inner{
+  max-width:none;
+}
+
+.service-modal-close{
+  position:sticky;
+  top:10px;
+  float:right;
+  z-index:5;
+  margin:10px 10px 0 0;
+  width:40px;
+  height:40px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:#fff;
+  color:var(--green);
+  font-size:26px;
+  line-height:1;
+  cursor:pointer;
+}
+
+.service-modal-box .section-title{
+  padding-right:58px;
+}
+
+@media(max-width:760px){
+
+  .floating-service-buttons{
+    right:10px;
+    bottom:12px;
+    gap:6px;
+  }
+
+  .floating-service-button{
+    min-height:40px;
+    padding:8px 10px;
+    border-radius:10px;
+    font-size:9px;
+  }
+
+  .floating-service-icon{
+    font-size:14px;
+  }
+
+  .service-modal-box{
+    width:calc(100vw - 10px);
+    max-height:calc(100vh - 10px);
+    margin:5px auto;
+    border-radius:13px;
+  }
+
+  .service-modal-box .section{
+    padding:20px 12px 24px;
+  }
+
+}
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
@@ -2331,6 +2741,277 @@ async function downloadSpeiseplanPDF(){
   <span class="floating-feedback-label">Feedback</span>
 </button>
 
+
+<!-- Vorbestellen und Gästefeedback sind bewusst nicht Teil der langen Hauptseite.
+     Sie werden über die schwebenden Buttons geöffnet. -->
+
+<div class="floating-service-buttons">
+
+  <button
+    type="button"
+    class="floating-service-button floating-preorder-button"
+    onclick="serviceModalOeffnen('vorbestell-modal')"
+    aria-label="Vorbestellung öffnen"
+  >
+    <span class="floating-service-icon">🍽️</span>
+    <span class="floating-service-label">Vorbestellen</span>
+  </button>
+
+  <button
+    type="button"
+    class="floating-service-button floating-feedback-button"
+    onclick="serviceModalOeffnen('feedback-modal')"
+    aria-label="Feedback öffnen"
+  >
+    <span class="floating-service-icon">💬</span>
+    <span class="floating-service-label">Feedback</span>
+  </button>
+
+</div>
+
+<div
+  class="service-modal"
+  id="vorbestell-modal"
+  aria-hidden="true"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="vorbestell-modal-title"
+>
+  <div class="service-modal-backdrop" onclick="serviceModalSchliessen('vorbestell-modal')"></div>
+
+  <div class="service-modal-box">
+
+    <button
+      type="button"
+      class="service-modal-close"
+      onclick="serviceModalSchliessen('vorbestell-modal')"
+      aria-label="Vorbestellung schließen"
+    >
+      ×
+    </button>
+
+    <div id="vorbestell-modal-content">
+<section class="section preorder-section" id="vorbestellen">
+  <div class="section-inner preorder-inner">
+
+    <div class="section-title">
+      <h2>Vorbestellen</h2>
+      <div class="rule"></div>
+    </div>
+
+    <p class="preorder-intro">
+      Ihr möchtet euer Essen sicher haben? Wir berücksichtigen alle Vorbestellungen,
+      die <strong>vor 11:00 Uhr</strong> bei uns eingehen.
+    </p>
+
+    <p class="preorder-note">
+      Bitte bestellt nur vor, wenn ihr euer Essen auch wirklich abholen bzw. erscheinen könnt.
+      So helfen uns Vorbestellungen dabei, besser zu planen und unnötige Lebensmittelverschwendung zu vermeiden.
+    </p>
+
+    <div class="preorder-day-switch">
+      <button type="button" class="preorder-day-button active" id="preorder-day-heute" onclick="vorbestellungTagWaehlen('heute')">
+        <span>Heute</span><small id="preorder-heute-datum"></small>
+      </button>
+      <button type="button" class="preorder-day-button" id="preorder-day-morgen" onclick="vorbestellungTagWaehlen('morgen')">
+        <span>Morgen</span><small id="preorder-morgen-datum"></small>
+      </button>
+    </div>
+
+    <div id="preorder-gerichts-buttons" class="preorder-dish-grid">Wird geladen …</div>
+
+    <form id="vorbestell-form" class="preorder-form" onsubmit="vorbestellungSenden(event)">
+      <input type="hidden" id="preorder-datum">
+
+      <div class="preorder-selected preorder-cart" id="preorder-auswahl">
+        Noch kein Gericht ausgewählt.
+      </div>
+
+      <div class="preorder-form-grid">
+
+        <div>
+          <label for="preorder-name">Name</label>
+          <input
+            type="text"
+            id="preorder-name"
+            maxlength="120"
+            placeholder="Vor- und Nachname"
+            required
+          >
+        </div>
+
+        <div>
+          <label for="preorder-kontakt">
+            Telefonnummer
+            <span id="preorder-telefon-pflicht" class="preorder-required-note"></span>
+          </label>
+          <input
+            type="tel"
+            id="preorder-kontakt"
+            maxlength="40"
+            placeholder="Telefonnummer (optional)"
+            inputmode="tel"
+          >
+        </div>
+
+      </div>
+
+      <div class="preorder-location">
+
+        <span class="preorder-label">
+          Abholung / Verzehr
+        </span>
+
+        <label class="preorder-option">
+          <input
+            type="radio"
+            name="preorder_verzehr"
+            value="Abholen"
+            checked
+            onchange="vorbestellungVerzehrUmschalten()"
+          >
+          <span>
+            Ich hole mein Essen ab
+            <small>Vorbestellung zur Abholung</small>
+          </span>
+        </label>
+
+        <div
+          id="preorder-verpackung-wrapper"
+          class="preorder-packaging-inline"
+        >
+          <span class="preorder-label">
+            Verpackung <span class="preorder-required-note">(erforderlich)</span>
+          </span>
+
+          <label class="preorder-option">
+            <input
+              type="radio"
+              name="preorder_verpackung"
+              value="Kantinenverpackung"
+              checked
+            >
+            <span>
+              Verpackung von uns
+              <small>+ 0,50 € pro Portion</small>
+            </span>
+          </label>
+
+          <label class="preorder-option">
+            <input
+              type="radio"
+              name="preorder_verpackung"
+              value="Eigene Verpackung"
+            >
+            <span>
+              Eigene Verpackung
+              <small>Wird von euch mitgebracht</small>
+            </span>
+          </label>
+        </div>
+
+        <label class="preorder-option">
+          <input
+            type="radio"
+            name="preorder_verzehr"
+            value="Kantine"
+            onchange="vorbestellungVerzehrUmschalten()"
+          >
+          <span>
+            Ich esse in der Kantine
+            <small>Das Essen bleibt vor Ort · keine Verpackung nötig</small>
+          </span>
+        </label>
+
+      </div>
+
+      <div class="preorder-pickup-time">
+
+        <label for="preorder-abholzeit">
+          Ungefähre Abholzeit
+          <span class="preorder-required-note optional-label">(optional)</span>
+        </label>
+
+        <select id="preorder-abholzeit">
+          <option value="">Keine Angabe</option>
+          <option value="11:00">ca. 11:00 Uhr</option>
+          <option value="11:15">ca. 11:15 Uhr</option>
+          <option value="11:30">ca. 11:30 Uhr</option>
+          <option value="11:45">ca. 11:45 Uhr</option>
+          <option value="12:00">ca. 12:00 Uhr</option>
+          <option value="12:15">ca. 12:15 Uhr</option>
+          <option value="12:30">ca. 12:30 Uhr</option>
+          <option value="12:45">ca. 12:45 Uhr</option>
+          <option value="13:00">ca. 13:00 Uhr</option>
+          <option value="13:15">ca. 13:15 Uhr</option>
+          <option value="13:30">ca. 13:30 Uhr</option>
+          <option value="13:45">ca. 13:45 Uhr</option>
+        </select>
+
+        <small class="preorder-help">
+          Hilft uns bei der Planung und ist freiwillig.
+        </small>
+
+      </div>
+
+      <div class="preorder-payment-note">
+        <strong>Hinweis:</strong>
+        Bezahlt wird bei uns ganz einfach vor Ort im Laden.
+      </div>
+
+      <label for="preorder-bemerkung">Bemerkung (optional)</label>
+
+      <textarea
+        id="preorder-bemerkung"
+        rows="3"
+        maxlength="500"
+        placeholder="z. B. bitte ohne Zwiebeln"
+      ></textarea>
+
+      <button
+        type="submit"
+        class="button preorder-submit"
+      >
+        Vorbestellung senden
+      </button>
+
+      <div
+        id="preorder-status"
+        class="preorder-status"
+        aria-live="polite"
+      ></div>
+    </form>
+
+  </div>
+</section>
+
+    </div>
+
+  </div>
+</div>
+
+<div
+  class="service-modal"
+  id="feedback-modal"
+  aria-hidden="true"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="feedback-modal-title"
+>
+  <div class="service-modal-backdrop" onclick="serviceModalSchliessen('feedback-modal')"></div>
+
+  <div class="service-modal-box">
+
+    <button
+      type="button"
+      class="service-modal-close"
+      onclick="serviceModalSchliessen('feedback-modal')"
+      aria-label="Feedback schließen"
+    >
+      ×
+    </button>
+
+    <div id="feedback-modal-content">
 <section class="section feedback-section" id="gaestefeedback">
   <div class="section-inner feedback-inner">
 
@@ -2388,17 +3069,22 @@ async function downloadSpeiseplanPDF(){
 
         <label class="feedback-checkbox" for="feedback-rueckmeldung">
           <input type="checkbox" id="feedback-rueckmeldung">
-          <span>Ich möchte eine Rückmeldung</span>
+          <span>Ich möchte eine Rückmeldung <em>(optional)</em></span>
         </label>
 
         <input
           type="text"
           id="feedback-kontakt"
-          placeholder="Optional: Name oder E-Mail"
-          aria-label="Optional: Name oder E-Mail"
+          placeholder="E-Mail-Adresse oder Telefonnummer"
+          aria-label="E-Mail-Adresse oder Telefonnummer"
           autocomplete="off"
+          inputmode="email"
           disabled
         >
+        <small class="feedback-contact-hint">
+          <strong>Optional:</strong> Nur ausfüllen, wenn ihr eine Rückmeldung möchtet.
+          E-Mail-Adresse oder Telefonnummer reicht völlig aus.
+        </small>
 
       </div>
 
@@ -2411,6 +3097,11 @@ async function downloadSpeiseplanPDF(){
 
   </div>
 </section>
+
+    </div>
+
+  </div>
+</div>
 
 <section class="contact" id="kontakt">
   <div>
@@ -4654,6 +5345,429 @@ function gaesteFeedbackOeffnen(){
   );
 
 }
+
+
+
+let vorbestellungTag="heute";
+let vorbestellGerichte=[];
+let vorbestellungWarenkorb={};
+
+function vorbestellungDatumKey(tag){
+  const d=new Date();
+  if(tag==="morgen")d.setDate(d.getDate()+1);
+  return [
+    d.getFullYear(),
+    String(d.getMonth()+1).padStart(2,"0"),
+    String(d.getDate()).padStart(2,"0")
+  ].join("-");
+}
+
+function vorbestellungDatumText(tag){
+  const d=new Date();
+  if(tag==="morgen")d.setDate(d.getDate()+1);
+  return d.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"});
+}
+
+function vorbestellungTagWaehlen(tag){
+  vorbestellungTag=tag;
+  document.getElementById("preorder-day-heute")?.classList.toggle("active",tag==="heute");
+  document.getElementById("preorder-day-morgen")?.classList.toggle("active",tag==="morgen");
+  document.getElementById("preorder-datum").value=vorbestellungDatumKey(tag);
+  vorbestellungWarenkorb={};
+  vorbestellGerichteLaden();
+  const s=document.getElementById("preorder-status"); if(s)s.textContent="";
+}
+
+function vorbestellGerichteLaden(){
+  const container=document.getElementById("preorder-gerichts-buttons");
+  if(!container)return;
+  const datum=vorbestellungDatumKey(vorbestellungTag);
+  container.innerHTML="<div>Gerichte werden geladen …</div>";
+
+  supabaseClient
+    .from("Gerichte").select("*")
+    .eq("datum",datum).eq("website_anzeigen",true)
+    .order("reihenfolge",{ascending:true,nullsFirst:false})
+    .order("id",{ascending:true})
+    .then(({data,error})=>{
+      if(error){
+        console.error("Vorbestellungen:",error);
+        container.innerHTML="<div>Gerichte konnten gerade nicht geladen werden.</div>";
+        return;
+      }
+
+      vorbestellGerichte=data||[];
+
+      if(!vorbestellGerichte.length){
+        container.innerHTML="<div>Für diesen Tag sind noch keine Gerichte eingetragen.</div>";
+        vorbestellungWarenkorbRendern();
+        return;
+      }
+
+      container.innerHTML="";
+      vorbestellGerichte.forEach(gericht=>{
+        const button=document.createElement("button");
+        button.type="button";
+        button.className="preorder-dish-button";
+
+        const preis=Number(gericht.preis).toFixed(2).replace(".",",");
+        button.innerHTML=`
+          <strong>${gericht.gerichte||""}</strong>
+          ${gericht.beilage?`<span>${gericht.beilage}</span>`:""}
+          <span>${preis} € · Auswählen</span>
+        `;
+
+        button.addEventListener("click",()=>{
+          if(!vorbestellungWarenkorb[gericht.id]){
+            vorbestellungWarenkorb[gericht.id]={gericht,menge:1};
+          }else{
+            vorbestellungWarenkorb[gericht.id].menge+=1;
+          }
+          vorbestellungWarenkorbRendern();
+        });
+
+        container.appendChild(button);
+      });
+
+      vorbestellungWarenkorbRendern();
+    });
+}
+
+function vorbestellungWarenkorbRendern(){
+  const container=document.getElementById("preorder-auswahl");
+  if(!container)return;
+
+  const items=Object.values(vorbestellungWarenkorb);
+
+  if(!items.length){
+    container.innerHTML='<div class="preorder-cart-empty">Noch kein Gericht ausgewählt. Ihr könnt mehrere Gerichte kombinieren.</div>';
+    vorbestellungKontaktnummerPflichtPruefen(0);
+    return;
+  }
+
+  let gesamtPortionen=0;
+  let gesamtPreis=0;
+
+  container.innerHTML="";
+
+  items.forEach(item=>{
+    const preis=Number(item.gericht.preis)||0;
+    gesamtPortionen+=item.menge;
+    gesamtPreis+=preis*item.menge;
+
+    const row=document.createElement("div");
+    row.className="preorder-cart-item";
+    row.innerHTML=`
+      <div>
+        <strong>${item.gericht.gerichte||""}</strong>
+        ${item.gericht.beilage?`<small>${item.gericht.beilage}</small>`:""}
+      </div>
+
+      <div class="preorder-qty">
+        <button type="button" onclick="vorbestellungMengeAendern(${item.gericht.id},-1)">−</button>
+        <span class="preorder-qty-value">${item.menge}</span>
+        <button type="button" onclick="vorbestellungMengeAendern(${item.gericht.id},1)">+</button>
+      </div>
+
+      <button
+        type="button"
+        class="preorder-remove"
+        onclick="vorbestellungAusWarenkorbEntfernen(${item.gericht.id})"
+        aria-label="Gericht entfernen"
+      >×</button>
+    `;
+    container.appendChild(row);
+  });
+
+  const total=document.createElement("div");
+  total.className="preorder-cart-total";
+  total.textContent=`${gesamtPortionen} Portion${gesamtPortionen===1?"":"en"} · ${gesamtPreis.toFixed(2).replace(".",",")} € zzgl. Verpackung`;
+  container.appendChild(total);
+
+  vorbestellungKontaktnummerPflichtPruefen(gesamtPortionen);
+}
+
+function vorbestellungMengeAendern(id,delta){
+  const item=vorbestellungWarenkorb[id];
+  if(!item)return;
+  item.menge+=delta;
+  if(item.menge<=0)delete vorbestellungWarenkorb[id];
+  vorbestellungWarenkorbRendern();
+}
+
+function vorbestellungAusWarenkorbEntfernen(id){
+  delete vorbestellungWarenkorb[id];
+  vorbestellungWarenkorbRendern();
+}
+
+function vorbestellungPortionenGesamt(){
+  return Object.values(vorbestellungWarenkorb)
+    .reduce((sum,item)=>sum+item.menge,0);
+}
+
+function vorbestellungKontaktnummerPflichtPruefen(portionen){
+  const input=document.getElementById("preorder-kontakt");
+  const note=document.getElementById("preorder-telefon-pflicht");
+
+  const pflicht=portionen>=5;
+
+  if(input){
+    input.required=pflicht;
+    input.placeholder=pflicht
+      ? "Telefonnummer – ab 5 Portionen erforderlich"
+      : "Telefonnummer (optional)";
+  }
+
+  if(note){
+    note.textContent=pflicht
+      ? "(ab 5 Portionen erforderlich)"
+      : "(optional)";
+  }
+}
+
+function vorbestellungVerzehrUmschalten(){
+
+  const verzehr =
+    document.querySelector(
+      'input[name="preorder_verzehr"]:checked'
+    )?.value || "Abholen";
+
+  const wrapper =
+    document.getElementById(
+      "preorder-verpackung-wrapper"
+    );
+
+  if(!wrapper){
+    return;
+  }
+
+  const abholen =
+    verzehr === "Abholen";
+
+  wrapper.classList.toggle(
+    "hidden",
+    !abholen
+  );
+
+  const packagingInputs =
+    wrapper.querySelectorAll(
+      'input[name="preorder_verpackung"]'
+    );
+
+  packagingInputs.forEach(
+    input=>{
+      input.required=abholen;
+    }
+  );
+
+  if(!abholen){
+
+    packagingInputs.forEach(
+      input=>{
+        input.checked=false;
+      }
+    );
+
+  }else if(
+    !wrapper.querySelector(
+      'input[name="preorder_verpackung"]:checked'
+    )
+  ){
+
+    if(packagingInputs[0]){
+      packagingInputs[0].checked=true;
+    }
+
+  }
+
+}
+async function vorbestellungSenden(event){
+  event.preventDefault();
+
+  const status=document.getElementById("preorder-status");
+  const button=document.querySelector(".preorder-submit");
+
+  const name=document.getElementById("preorder-name").value.trim();
+  const kontakt=document.getElementById("preorder-kontakt").value.trim();
+  const bemerkung=document.getElementById("preorder-bemerkung").value.trim();
+  const datum=document.getElementById("preorder-datum").value;
+
+  const portionen=vorbestellungPortionenGesamt();
+
+  if(!portionen){
+    if(status)status.textContent="Bitte mindestens ein Gericht auswählen.";
+    return;
+  }
+
+  if(!name){
+    if(status)status.textContent="Bitte einen Namen angeben, damit wir die Vorbestellung zuordnen können.";
+    return;
+  }
+
+  if(portionen>=5 && !kontakt){
+    if(status)status.textContent="Bei 5 oder mehr Portionen brauchen wir bitte eine Telefonnummer für eine kurze Rücksprache.";
+    document.getElementById("preorder-kontakt")?.focus();
+    return;
+  }
+
+  const jetzt=new Date();
+  const heuteKey=[
+    jetzt.getFullYear(),
+    String(jetzt.getMonth()+1).padStart(2,"0"),
+    String(jetzt.getDate()).padStart(2,"0")
+  ].join("-");
+
+  if(datum===heuteKey && (jetzt.getHours()*60+jetzt.getMinutes())>=660){
+    if(status)status.textContent="Für heute nehmen wir Vorbestellungen nur bis 11:00 Uhr an. Für morgen könnt ihr gern weiter vorbestellen.";
+    return;
+  }
+
+  const verzehr=
+    document.querySelector('input[name="preorder_verzehr"]:checked')?.value ||
+    "Abholen";
+
+  const verpackung=
+    verzehr === "Abholen"
+      ? (
+          document.querySelector('input[name="preorder_verpackung"]:checked')?.value ||
+          ""
+        )
+      : null;
+
+  if(
+    verzehr === "Abholen" &&
+    !verpackung
+  ){
+
+    if(status){
+      status.textContent =
+        "Bitte eine Verpackung auswählen.";
+    }
+
+    return;
+  }
+
+  const abholzeit=
+    document.getElementById(
+      "preorder-abholzeit"
+    )?.value ||
+    null;
+
+  const positionen=
+    Object.values(vorbestellungWarenkorb).map(item=>({
+      gericht_id:item.gericht.id,
+      gericht:item.gericht.gerichte||"",
+      beilage:item.gericht.beilage||"",
+      preis:Number(item.gericht.preis)||0,
+      menge:item.menge
+    }));
+
+  const verpackungKosten=
+    (
+      verzehr === "Abholen" &&
+      verpackung === "Kantinenverpackung"
+    )
+      ? Number((portionen*0.50).toFixed(2))
+      : 0;
+
+  if(button){
+    button.disabled=true;
+    button.textContent="Wird gesendet …";
+  }
+
+  try{
+    const {error}=await supabaseClient
+      .from("Vorbestellungen")
+      .insert([{
+        datum,
+        name,
+        kontakt:kontakt||null,
+        menge:portionen,
+        bemerkung:bemerkung||null,
+        verpackung,
+        verpackung_kosten:verpackungKosten,
+        verzehr,
+        abholzeit,
+        positionen
+      }]);
+
+    if(error)throw error;
+
+    document.getElementById("vorbestell-form").reset();
+    vorbestellungWarenkorb={};
+    vorbestellungWarenkorbRendern();
+
+    if(status)status.textContent="Danke! Eure Vorbestellung ist eingegangen.";
+  }catch(error){
+    console.error("Vorbestellung:",error);
+    if(status)status.textContent="Die Vorbestellung konnte gerade nicht gesendet werden. Bitte versucht es später noch einmal.";
+  }finally{
+    if(button){button.disabled=false;button.textContent="Vorbestellung senden";}
+  }
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+  document.getElementById("preorder-heute-datum").textContent=vorbestellungDatumText("heute");
+  document.getElementById("preorder-morgen-datum").textContent=vorbestellungDatumText("morgen");
+  vorbestellungTagWaehlen("heute");
+  vorbestellungVerzehrUmschalten();
+});
+
+function serviceModalOeffnen(id){
+
+  const modal=document.getElementById(id);
+  if(!modal)return;
+
+  document.querySelectorAll(".service-modal.open").forEach(
+    el=>{
+      el.classList.remove("open");
+      el.setAttribute("aria-hidden","true");
+    }
+  );
+
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden","false");
+
+  document.body.classList.add("service-modal-open");
+
+  const focusTarget =
+    modal.querySelector("textarea, input:not([type='hidden']), select, button");
+
+  if(focusTarget){
+    setTimeout(
+      ()=>focusTarget.focus(),
+      150
+    );
+  }
+}
+
+function serviceModalSchliessen(id){
+
+  const modal=document.getElementById(id);
+  if(!modal)return;
+
+  modal.classList.remove("open");
+  modal.setAttribute("aria-hidden","true");
+
+  if(!document.querySelector(".service-modal.open")){
+    document.body.classList.remove("service-modal-open");
+  }
+}
+
+document.addEventListener(
+  "keydown",
+  event=>{
+    if(event.key==="Escape"){
+      document.querySelectorAll(".service-modal.open").forEach(
+        modal=>{
+          modal.classList.remove("open");
+          modal.setAttribute("aria-hidden","true");
+        }
+      );
+      document.body.classList.remove("service-modal-open");
+    }
+  }
+);
 
 </script>
 
