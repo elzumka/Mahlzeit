@@ -1614,6 +1614,192 @@ button{
 
 }
 
+
+.feedback-admin-toolbar{
+  display:flex;
+  justify-content:flex-end;
+  margin-bottom:12px;
+}
+
+.feedback-admin-list{
+  display:grid;
+  gap:12px;
+}
+
+.feedback-admin-card{
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:rgba(255,255,255,.24);
+  padding:18px;
+}
+
+.feedback-admin-card.erledigt{opacity:.62}
+
+.feedback-admin-card-head{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:flex-start;
+}
+
+.feedback-admin-type{
+  display:inline-block;
+  padding:6px 9px;
+  border-radius:8px;
+  background:var(--green);
+  color:var(--cream);
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+.feedback-admin-date{
+  color:#777;
+  font-size:12px;
+}
+
+.feedback-admin-message{
+  margin-top:12px;
+  white-space:pre-wrap;
+  line-height:1.55;
+  color:#333;
+}
+
+.feedback-admin-contact{
+  margin-top:10px;
+  font-size:13px;
+  color:#666;
+}
+
+.feedback-admin-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:14px;
+}
+
+.feedback-admin-actions button{
+  margin:0;
+  min-height:40px;
+  border-radius:9px;
+}
+
+.feedback-empty{
+  padding:30px;
+  text-align:center;
+  color:#666;
+  border:1px dashed var(--line);
+  border-radius:12px;
+}
+
+@media(max-width:760px){
+  .feedback-admin-card-head{flex-direction:column}
+  .feedback-admin-actions{display:grid;grid-template-columns:1fr}
+  .feedback-admin-actions button{width:100%}
+}
+
+
+.feedback-main-tab{
+  position:relative;
+  padding-right:38px !important;
+}
+
+.admin-feedback-label{
+  display:inline-block;
+}
+
+.admin-feedback-badge{
+  position:absolute;
+  top:7px;
+  right:8px;
+  min-width:20px;
+  height:20px;
+  padding:0 5px;
+  box-sizing:border-box;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:999px;
+  background:#b9473d;
+  color:#fff;
+  font-size:10px;
+  font-weight:900;
+  line-height:1;
+}
+
+.admin-feedback-badge.pulse{
+  animation:adminFeedbackPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes adminFeedbackPulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.12)}
+}
+
+.admin-secondary-nav{
+  display:flex;
+  justify-content:flex-end;
+  margin:-5px 0 14px;
+}
+
+.admin-secondary-button{
+  margin:0;
+  padding:7px 12px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:transparent;
+  color:#666;
+  font-size:11px;
+  font-weight:800;
+  cursor:pointer;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+}
+
+.admin-secondary-button:hover{
+  border-color:var(--green);
+  color:var(--green);
+}
+
+.feedback-admin-card.neu{
+  border-left:4px solid var(--green);
+  box-shadow:0 4px 14px rgba(40,84,55,.08);
+}
+
+.feedback-admin-new-label{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  margin-top:8px;
+  padding:5px 8px;
+  border-radius:7px;
+  background:rgba(185,71,61,.1);
+  color:#a13d35;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+@media(max-width:760px){
+  .feedback-main-tab{
+    padding-right:26px !important;
+  }
+
+  .admin-feedback-badge{
+    top:5px;
+    right:4px;
+    min-width:17px;
+    height:17px;
+    font-size:9px;
+  }
+
+  .admin-secondary-nav{
+    margin:-3px 0 9px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1646,13 +1832,28 @@ button{
   </button>
 
   <button
-    class="admin-tab primary more-button"
+    class="admin-tab primary feedback-main-tab"
     type="button"
+    onclick="zeigeBereich('gaestefeedback-bereich',this);gaesteFeedbackLaden();gaesteFeedbackNeueLaden()"
+  >
+    <span class="admin-feedback-label">Feedback</span>
+    <span
+      id="admin-feedback-badge"
+      class="admin-feedback-badge"
+      hidden
+    >0</span>
+  </button>
+
+</div>
+
+<div class="admin-secondary-nav">
+  <button
+    type="button"
+    class="admin-secondary-button"
     onclick="adminMehrOeffnen()"
   >
     Mehr
   </button>
-
 </div>
 
 
@@ -1726,6 +1927,13 @@ button{
       >
         <strong>Website Texte</strong>
         <span>Alle festen Texte bearbeiten</span>
+      </button>
+      <button
+        type="button"
+        onclick="adminMehrBereich('gaestefeedback-bereich',this);gaesteFeedbackLaden()"
+      >
+        <strong>Gästefeedback</strong>
+        <span>Wünsche, Bemerkungen &amp; Verbesserungen</span>
       </button>
 
     </div>
@@ -2512,6 +2720,29 @@ button{
   </div>
 
 </section>
+
+<section id="gaestefeedback-bereich" class="admin-bereich">
+
+  <div class="daily-toolbar">
+    <div>
+      <span class="daily-kicker">Rückmeldungen</span>
+      <h2>Gästefeedback</h2>
+      <p>Neue Wünsche und Hinweise schnell ansehen und als erledigt markieren.</p>
+    </div>
+  </div>
+
+  <div class="feedback-admin-toolbar">
+    <button type="button" class="save" onclick="gaesteFeedbackLaden()">
+      Aktualisieren
+    </button>
+  </div>
+
+  <div id="gaeste-feedback-liste" class="feedback-admin-list">
+    Wird geladen …
+  </div>
+
+</section>
+
 <section id="speiseplan-bereich" class="admin-bereich">
   <div class="sp-toolbar">
     <div>
@@ -7814,6 +8045,326 @@ function adminSchnellSpeiseplan(){
   );
 
 }
+
+
+async function gaesteFeedbackLaden(){
+
+  const liste =
+    document.getElementById(
+      "gaeste-feedback-liste"
+    );
+
+  if(!liste){
+    return;
+  }
+
+  liste.innerHTML =
+    "Wird geladen …";
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("GaesteFeedback")
+      .select("*")
+      .order(
+        "erstellt_am",
+        {ascending:false}
+      );
+
+
+  if(error){
+
+    console.error(
+      "Gästefeedback:",
+      error
+    );
+
+    liste.innerHTML =
+      '<div class="feedback-empty">Feedback konnte nicht geladen werden.</div>';
+
+    return;
+  }
+
+
+  if(!data?.length){
+
+    liste.innerHTML =
+      '<div class="feedback-empty">Noch keine Rückmeldungen vorhanden.</div>';
+
+    gaesteFeedbackBadgeSetzen(0);
+
+    return;
+  }
+
+
+  const neueAnzahl =
+    data.filter(
+      item =>
+        item.erledigt === false
+    ).length;
+
+
+  gaesteFeedbackBadgeSetzen(
+    neueAnzahl
+  );
+
+
+  liste.innerHTML =
+    "";
+
+
+  data.forEach(
+    item => {
+
+      const card =
+        document.createElement(
+          "article"
+        );
+
+      const neu =
+        item.erledigt === false;
+
+      card.className =
+        "feedback-admin-card " +
+        (
+          neu
+            ? "neu "
+            : ""
+        ) +
+        (
+          item.erledigt
+            ? "erledigt"
+            : ""
+        );
+
+
+      const datum =
+        item.erstellt_am
+          ? new Date(
+              item.erstellt_am
+            ).toLocaleString(
+              "de-DE",
+              {
+                dateStyle:"short",
+                timeStyle:"short"
+              }
+            )
+          : "";
+
+
+      card.innerHTML = `
+
+        <div class="feedback-admin-card-head">
+
+          <div class="feedback-admin-type">
+            ${item.typ || "Bemerkung"}
+          </div>
+
+          <div class="feedback-admin-date">
+            ${datum}
+          </div>
+
+        </div>
+
+        ${
+          neu
+            ? `
+              <div class="feedback-admin-new-label">
+                ● Neu
+              </div>
+            `
+            : ""
+        }
+
+        <div class="feedback-admin-message">
+          ${item.nachricht || ""}
+        </div>
+
+        ${
+          item.kontakt
+            ? `
+              <div class="feedback-admin-contact">
+                Rückmeldung an: ${item.kontakt}
+              </div>
+            `
+            : ""
+        }
+
+        <div class="feedback-admin-actions">
+
+          <button
+            type="button"
+            class="save"
+            onclick="gaesteFeedbackStatus(${item.id},${!item.erledigt})"
+          >
+            ${
+              item.erledigt
+                ? "Wieder öffnen"
+                : "Als gelesen / erledigt"
+            }
+          </button>
+
+          <button
+            type="button"
+            onclick="gaesteFeedbackLoeschen(${item.id})"
+          >
+            Löschen
+          </button>
+
+        </div>
+
+      `;
+
+      liste.appendChild(
+        card
+      );
+
+    }
+  );
+
+}
+
+
+async function gaesteFeedbackNeueLaden(){
+
+  const {
+    count,
+    error
+  } =
+    await supabaseClient
+      .from("GaesteFeedback")
+      .select(
+        "id",
+        {
+          count:"exact",
+          head:true
+        }
+      )
+      .eq(
+        "erledigt",
+        false
+      );
+
+
+  if(error){
+
+    console.warn(
+      "Neue Feedback-Anzahl:",
+      error
+    );
+
+    return;
+  }
+
+
+  gaesteFeedbackBadgeSetzen(
+    count || 0
+  );
+
+}
+
+
+function gaesteFeedbackBadgeSetzen(
+  anzahl
+){
+
+  const badge =
+    document.getElementById(
+      "admin-feedback-badge"
+    );
+
+  if(!badge){
+    return;
+  }
+
+
+  if(
+    !anzahl ||
+    anzahl < 1
+  ){
+
+    badge.hidden =
+      true;
+
+    badge.classList.remove(
+      "pulse"
+    );
+
+    return;
+  }
+
+
+  const sichtbar =
+    Math.min(
+      Number(anzahl),
+      99
+    );
+
+
+  badge.hidden =
+    false;
+
+  badge.textContent =
+    sichtbar;
+
+  badge.classList.add(
+    "pulse"
+  );
+
+}
+
+async function gaesteFeedbackStatus(id,erledigt){
+
+  const {error}=
+    await supabaseClient
+      .from("GaesteFeedback")
+      .update({erledigt})
+      .eq("id",id);
+
+  if(error){
+    console.error(error);
+    return;
+  }
+
+  gaesteFeedbackLaden();
+  gaesteFeedbackNeueLaden();
+}
+
+async function gaesteFeedbackLoeschen(id){
+
+  if(!confirm("Diese Rückmeldung wirklich löschen?")){
+    return;
+  }
+
+  const {error}=
+    await supabaseClient
+      .from("GaesteFeedback")
+      .delete()
+      .eq("id",id);
+
+  if(error){
+    console.error(error);
+    return;
+  }
+
+  gaesteFeedbackLaden();
+}
+
+
+window.addEventListener(
+  "DOMContentLoaded",
+  ()=>{
+    gaesteFeedbackNeueLaden();
+
+    setInterval(
+      gaesteFeedbackNeueLaden,
+      60000
+    );
+  }
+);
 
 </script>
 
