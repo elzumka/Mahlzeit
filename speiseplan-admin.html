@@ -2297,6 +2297,107 @@ button{
 
 }
 
+
+/* Wochentage in der Gerichte-Verwaltung deutlich hervorheben */
+.gericht-tageskopf{
+  margin:18px 0 8px;
+  padding:10px 14px;
+  border-radius:10px;
+  background:var(--green);
+  color:var(--cream);
+  border-left:6px solid #b8c7aa;
+  box-shadow:0 3px 0 rgba(40,84,55,.12);
+}
+
+.gericht-tageskopf strong{
+  display:block;
+  font-family:"Barlow Condensed",sans-serif;
+  font-size:27px;
+  line-height:1;
+  letter-spacing:.03em;
+  text-transform:uppercase;
+}
+
+@media(max-width:760px){
+  .gericht-tageskopf{
+    margin:14px 0 6px;
+    padding:9px 12px;
+  }
+
+  .gericht-tageskopf strong{
+    font-size:23px;
+  }
+}
+
+
+.gericht-edit{
+  display:grid;
+  grid-template-columns:minmax(0,1.4fr) minmax(0,1.4fr) 110px;
+  gap:7px;
+  margin-top:10px;
+}
+
+.gericht-edit input{
+  width:100%;
+  box-sizing:border-box;
+  margin:0;
+  padding:9px 10px;
+  font-size:14px;
+  border:1px solid #bbb;
+  background:#fff;
+  border-radius:8px;
+}
+
+.gericht-edit-actions{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+  margin-top:8px;
+}
+
+.gericht-edit-actions button{
+  margin:0 !important;
+  min-height:38px;
+  padding:8px 12px;
+  border-radius:8px;
+}
+
+@media(max-width:760px){
+  .gericht-edit{
+    grid-template-columns:1fr;
+  }
+
+  .gericht-edit-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
+}
+
+
+.klassiker-heute-button{
+  margin:0;
+  border:1px solid var(--line);
+  background:#fff;
+  color:var(--green);
+  border-radius:10px;
+  padding:9px 11px;
+  font-size:11px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.klassiker-heute-button.klassiker-heute-inaktiv{
+  background:#b84b3a;
+  border-color:#b84b3a;
+  color:#fff;
+}
+
+@media(max-width:760px){
+  .klassiker-heute-button{
+    min-height:44px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -3643,6 +3744,56 @@ async function gerichteLaden(){
                                 : ""
                             }
                           </small>
+
+                          <div
+                            class="gericht-edit"
+                            id="gericht-edit-${gericht.id}"
+                            style="display:none"
+                          >
+                            <input
+                              type="text"
+                              id="edit-name-${gericht.id}"
+                              value="${htmlAttr(gericht.gerichte || "")}"
+                              placeholder="Gericht"
+                            >
+
+                            <input
+                              type="text"
+                              id="edit-beilage-${gericht.id}"
+                              value="${htmlAttr(gericht.beilage || "")}"
+                              placeholder="Beilage"
+                            >
+
+                            <input
+                              type="number"
+                              step="0.01"
+                              id="edit-preis-${gericht.id}"
+                              value="${gericht.preis ?? ""}"
+                              placeholder="Preis"
+                            >
+                          </div>
+
+                          <div
+                            class="gericht-edit-actions"
+                            id="gericht-edit-actions-${gericht.id}"
+                            style="display:none"
+                          >
+                            <button
+                              type="button"
+                              class="save"
+                              onclick="gerichtAenderungSpeichern(${gericht.id})"
+                            >
+                              Speichern
+                            </button>
+
+                            <button
+                              type="button"
+                              onclick="gerichtBearbeitenAbbrechen(${gericht.id})"
+                            >
+                              Abbrechen
+                            </button>
+                          </div>
+
                         </div>
                       </div>
 
@@ -3673,7 +3824,7 @@ async function gerichteLaden(){
 
                         <button
                           type="button"
-                          onclick="gerichtLoeschen(${gericht.id})"
+                          onclick="gerichtLoeschen(${gericht.id},this)"
                         >
                           Löschen
                         </button>
@@ -3772,6 +3923,49 @@ async function gerichtAenderungSpeichern(
 
 }
 
+
+
+function htmlAttr(value){
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/"/g,"&quot;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;");
+}
+
+function gerichtBearbeiten(id){
+
+  const edit =
+    document.getElementById(
+      `gericht-edit-${id}`
+    );
+
+  const actions =
+    document.getElementById(
+      `gericht-edit-actions-${id}`
+    );
+
+  if(edit)edit.style.display="grid";
+  if(actions)actions.style.display="flex";
+
+}
+
+function gerichtBearbeitenAbbrechen(id){
+
+  const edit =
+    document.getElementById(
+      `gericht-edit-${id}`
+    );
+
+  const actions =
+    document.getElementById(
+      `gericht-edit-actions-${id}`
+    );
+
+  if(edit)edit.style.display="none";
+  if(actions)actions.style.display="none";
+
+}
 
 async function gerichtAusverkauftUmschalten(
     id,
@@ -3921,7 +4115,75 @@ async function gerichtAusverkauftUmschalten(
 
 function datumFormatieren(datum){const [y,m,d]=datum.split('-').map(Number);const obj=new Date(y,m-1,d);return ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'][obj.getDay()]+', '+String(d).padStart(2,'0')+'.'+String(m).padStart(2,'0')+'.'+y;}
 function preisFormatieren(preis){return Number(preis).toFixed(2).replace('.',',')+' €';}
-async function gerichtLoeschen(id,button){if(!confirm('Dieses Gericht wirklich löschen?'))return;const {error}=await supabaseClient.from('Gerichte').delete().eq('id',id);if(error){console.error(error);document.getElementById('meldung').textContent='Fehler beim Löschen.';return;}button.closest('.gericht-eintrag')?.remove();document.getElementById('meldung').textContent='Gericht wurde gelöscht.';}
+async function gerichtLoeschen(
+  id,
+  button
+){
+
+  if(
+    !confirm(
+      "Dieses Gericht wirklich löschen?"
+    )
+  ){
+    return;
+  }
+
+  if(button){
+    button.disabled=true;
+    button.textContent="Löschen …";
+  }
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from("Gerichte")
+      .delete()
+      .eq(
+        "id",
+        id
+      );
+
+  if(error){
+
+    console.error(
+      "Gericht löschen:",
+      error
+    );
+
+    const meldung =
+      document.getElementById(
+        "meldung"
+      );
+
+    if(meldung){
+      meldung.textContent =
+        "Fehler beim Löschen des Gerichts.";
+    }
+
+    if(button){
+      button.disabled=false;
+      button.textContent="Löschen";
+    }
+
+    return;
+  }
+
+  button?.closest(
+    ".gericht-eintrag"
+  )?.remove();
+
+  const meldung =
+    document.getElementById(
+      "meldung"
+    );
+
+  if(meldung){
+    meldung.textContent =
+      "Gericht wurde gelöscht.";
+  }
+
+}
 
 
 /* =========================
@@ -7435,6 +7697,93 @@ function websiteEinstellungenAutoSpeichern(){
    TÄGLICHE KLASSIKER
    ========================================================== */
 
+async function klassikerHeuteAbweichungenLaden(){
+
+  const datum =
+    adminLokalesDatumISO();
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("KlassikerTagesabweichungen")
+      .select("*")
+      .eq(
+        "datum",
+        datum
+      );
+
+  if(error){
+    console.warn(
+      "Klassiker-Tagesabweichungen:",
+      error
+    );
+    return;
+  }
+
+  const overrides = {};
+
+  (data || []).forEach(
+    item=>{
+      overrides[item.klassiker_id] =
+        item;
+    }
+  );
+
+  document
+    .querySelectorAll(
+      ".klassiker-heute-button"
+    )
+    .forEach(
+      button=>{
+
+        const id =
+          String(
+            button.id
+              .replace(
+                "klassiker-heute-",
+                ""
+              )
+          );
+
+        const override =
+          overrides[id];
+
+        if(
+          override &&
+          override.verfuegbar === false
+        ){
+
+          button.classList.add(
+            "klassiker-heute-inaktiv"
+          );
+
+          button.textContent =
+            "Heute wieder verfügbar";
+
+          button.dataset.verfuegbar =
+            "false";
+
+        }else{
+
+          button.classList.remove(
+            "klassiker-heute-inaktiv"
+          );
+
+          button.textContent =
+            "Heute nicht verfügbar";
+
+          button.dataset.verfuegbar =
+            "true";
+
+        }
+
+      }
+    );
+
+}
+
 async function klassikerLaden(){
 
   const liste =
@@ -7547,6 +7896,15 @@ async function klassikerLaden(){
               }
             </button>
 
+            <button
+              type="button"
+              class="klassiker-heute-button"
+              id="klassiker-heute-${item.id}"
+              onclick="klassikerHeuteUmschalten(${item.id})"
+            >
+              Heute nicht verfügbar
+            </button>
+
           </div>
 
         </div>
@@ -7559,6 +7917,8 @@ async function klassikerLaden(){
 
     }
   );
+
+  klassikerHeuteAbweichungenLaden();
 
 }
 
@@ -7650,6 +8010,92 @@ function klassikerBearbeiten(
 
 }
 
+
+async function klassikerHeuteUmschalten(
+  id
+){
+
+  const button =
+    document.getElementById(
+      `klassiker-heute-${id}`
+    );
+
+  const bisherNichtVerfuegbar =
+    button?.dataset.verfuegbar === "false";
+
+  const datum =
+    adminLokalesDatumISO();
+
+  if(button){
+    button.disabled=true;
+  }
+
+  if(
+    bisherNichtVerfuegbar
+  ){
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("KlassikerTagesabweichungen")
+        .delete()
+        .eq("klassiker_id",id)
+        .eq("datum",datum);
+
+    if(error){
+
+      console.error(
+        "Klassiker wieder aktiv:",
+        error
+      );
+
+      alert(
+        "Die heutige Abweichung konnte nicht entfernt werden."
+      );
+
+    }
+
+  }else{
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("KlassikerTagesabweichungen")
+        .upsert(
+          [{
+            klassiker_id:id,
+            datum,
+            verfuegbar:false
+          }],
+          {
+            onConflict:"klassiker_id,datum"
+          }
+        );
+
+    if(error){
+
+      console.error(
+        "Klassiker heute deaktivieren:",
+        error
+      );
+
+      alert(
+        "Der Klassiker konnte für heute nicht deaktiviert werden."
+      );
+
+    }
+
+  }
+
+  await klassikerHeuteAbweichungenLaden();
+
+  if(button){
+    button.disabled=false;
+  }
+
+}
 
 function klassikerFormSchliessen(){
 
@@ -8525,14 +8971,7 @@ async function websiteTexteSpeichern(){
 }
 
 
-window.addEventListener(
-  "DOMContentLoaded",
-  ()=>{
-    adminAktualisiereKontext(
-      "Gerichte"
-    );
-  }
-);
+
 
 
 function adminMehrOeffnen(){
@@ -9060,6 +9499,58 @@ function vorbestellungenTagWaehlen(tag){
     el.classList.toggle("active",tag==="heute"?index===0:index===1);
   });
   vorbestellungenLaden();
+}
+
+async function vorbestellungenNebenCountAktualisieren(
+  tag
+){
+
+  const datum =
+    vorbestellungAdminDatumKey(
+      tag
+    );
+
+  const {
+    count,
+    error
+  } =
+    await supabaseClient
+      .from("Vorbestellungen")
+      .select(
+        "id",
+        {
+          count:"exact",
+          head:true
+        }
+      )
+      .eq(
+        "datum",
+        datum
+      );
+
+  if(error){
+    console.warn(
+      "Vorbestellungsanzahl:",
+      error
+    );
+    return;
+  }
+
+  const id =
+    tag === "morgen"
+      ? "vorbestellungen-count-morgen"
+      : "vorbestellungen-count-heute";
+
+  const el =
+    document.getElementById(
+      id
+    );
+
+  if(el){
+    el.textContent =
+      count || 0;
+  }
+
 }
 
 async function vorbestellungenLaden(){
