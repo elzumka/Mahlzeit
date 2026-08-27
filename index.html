@@ -4027,23 +4027,7 @@ async function ladeGerichte(){
 
           ${preis} €
 
-          ${
-            !gericht.ausverkauft
-              ? `
-                <button
-                  type="button"
-                  class="dish-share"
-                  onclick='teileGericht(${JSON.stringify({
-                    name:gericht.gerichte || "",
-                    beilage:gericht.beilage || "",
-                    preis:preis
-                  })})'
-                >
-                  TEILEN
-                </button>
-              `
-              : ""
-          }
+
 
         </div>
 
