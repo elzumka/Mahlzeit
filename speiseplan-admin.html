@@ -3353,7 +3353,23 @@ const SUPABASE_URL="https://kpomtfkngyaojimwaosw.supabase.co";
 const SUPABASE_KEY="sb_publishable_NhBrxE_DK7laWTa3HG1BvQ_JZeBj5NK";
 const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-function zeigeBereich(id,button){document.querySelectorAll('.admin-bereich').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.admin-tab').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');button.classList.add('active');}
+function adminLokalesDatumISO(dateValue = new Date()){
+  const d = new Date(dateValue);
+  return [
+    d.getFullYear(),
+    String(d.getMonth()+1).padStart(2,"0"),
+    String(d.getDate()).padStart(2,"0")
+  ].join("-");
+}
+
+function zeigeBereich(id,button){
+  const bereich=document.getElementById(id);
+  if(!bereich)return;
+  document.querySelectorAll('.admin-bereich').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.admin-tab').forEach(x=>x.classList.remove('active'));
+  bereich.classList.add('active');
+  if(button)button.classList.add('active');
+}
 
 async function gerichtSpeichern(){
     const datum = document.getElementById('datum').value;
@@ -3410,67 +3426,122 @@ async function gerichteLaden(){
 
     const liste =
         document.getElementById(
-            'gerichte-liste'
-        );
-
-    const heute =
-        new Date().toLocaleDateString(
-            'en-CA'
+            "gerichte-liste"
         );
 
     if(!liste)return;
 
+    const heute =
+        adminLokalesDatumISO();
+
     liste.innerHTML =
-        '<h2>Gespeicherte Gerichte</h2><p>Wird geladen …</p>';
+        "<h2>Gespeicherte Gerichte</h2><p>Wird geladen …</p>";
 
     const {
         data,
         error
     } =
         await supabaseClient
-            .from('Gerichte')
-            .select('*')
+            .from("Gerichte")
+            .select("*")
             .gte(
-                'datum',
+                "datum",
                 heute
-            )
-            .order('datum',{ascending:true})
-            .order('reihenfolge',{ascending:true,nullsFirst:false})
-            .order('id',{ascending:true});
+            );
+
 
     if(error){
 
-        console.error(error);
+        console.error(
+            "Gerichte laden:",
+            error
+        );
 
         liste.innerHTML =
-            '<h2>Gespeicherte Gerichte</h2>' +
-            '<p>Fehler beim Laden der Gerichte.</p>';
+            "<h2>Gespeicherte Gerichte</h2>" +
+            `<p style="color:#b84b3a;font-weight:700;">
+              Gerichte konnten nicht geladen werden: ${
+                error.message || "Unbekannter Fehler"
+              }
+            </p>`;
 
         return;
     }
+
+
+    const dataSortiert =
+        (data || []).sort(
+            (a,b)=>{
+
+                const datumA =
+                    String(a.datum || "");
+
+                const datumB =
+                    String(b.datum || "");
+
+                if(
+                    datumA !== datumB
+                ){
+                    return datumA.localeCompare(
+                        datumB
+                    );
+                }
+
+                const reihenA =
+                    Number.isFinite(
+                        Number(
+                            a.reihenfolge
+                        )
+                    )
+                      ? Number(a.reihenfolge)
+                      : Number.MAX_SAFE_INTEGER;
+
+                const reihenB =
+                    Number.isFinite(
+                        Number(
+                            b.reihenfolge
+                        )
+                    )
+                      ? Number(b.reihenfolge)
+                      : Number.MAX_SAFE_INTEGER;
+
+                if(
+                    reihenA !== reihenB
+                ){
+                    return reihenA - reihenB;
+                }
+
+                return (
+                    Number(a.id || 0) -
+                    Number(b.id || 0)
+                );
+
+            }
+        );
+
 
     liste.innerHTML =
-        '<h2>Gespeicherte Gerichte</h2>';
+        "<h2>Gespeicherte Gerichte</h2>";
 
-    if(!data || !data.length){
+
+    if(!dataSortiert.length){
 
         liste.innerHTML +=
-            '<p>Keine aktuellen oder zukünftigen Gerichte gespeichert.</p>';
+            "<p>Keine aktuellen oder zukünftigen Gerichte gespeichert.</p>";
 
         return;
     }
 
 
-    /*
-     * Nach Datum bündeln.
-     */
     const gruppen = {};
 
-    data.forEach(
-        gericht => {
+    dataSortiert.forEach(
+        gericht=>{
 
-            if(!gruppen[gericht.datum]){
-                gruppen[gericht.datum] = [];
+            if(
+                !gruppen[gericht.datum]
+            ){
+                gruppen[gericht.datum]=[];
             }
 
             gruppen[gericht.datum].push(
@@ -3481,70 +3552,116 @@ async function gerichteLaden(){
     );
 
 
-    Object.keys(gruppen).forEach(
-        datum => {
+    Object.keys(
+        gruppen
+    ).forEach(
+        datum=>{
 
             const gruppe =
                 document.createElement(
-                    'div'
+                    "div"
                 );
 
             gruppe.className =
-                'gerichte-tag-gruppe';
+                "gericht-tagesgruppe";
 
 
-            const tagKopf =
+            const kopf =
                 document.createElement(
-                    'div'
+                    "div"
                 );
 
-            tagKopf.className =
-                'gerichte-tag-kopf';
+            kopf.className =
+                "gericht-tageskopf";
 
-
-            const datumObj =
-                new Date(
-                    datum+"T00:00:00"
-                );
-
-            const wochenTag =
-                [
-                    'Sonntag',
-                    'Montag',
-                    'Dienstag',
-                    'Mittwoch',
-                    'Donnerstag',
-                    'Freitag',
-                    'Samstag'
-                ][
-                    datumObj.getDay()
-                ];
-
-            const datumText =
-                `${String(
-                    datumObj.getDate()
-                ).padStart(2,'0')}.${String(
-                    datumObj.getMonth()+1
-                ).padStart(2,'0')}.${datumObj.getFullYear()}`;
-
-
-            tagKopf.innerHTML = `
-                <strong>${wochenTag}</strong>
-                <span>${datumText} · ${gruppen[datum].length} Gericht(e)</span>
-            `;
+            kopf.innerHTML =
+                `<strong>${datum}</strong>`;
 
             gruppe.appendChild(
-                tagKopf
+                kopf
             );
 
 
             gruppen[datum].forEach(
-                gericht => {
+                gericht=>{
+
+                    const eintrag =
+                        document.createElement(
+                            "div"
+                        );
+
+                    eintrag.className =
+                        "gericht-eintrag";
+
+                    eintrag.dataset.id =
+                        gericht.id;
+
+
+                    const sold =
+                        gericht.ausverkauft;
+
+
+                    eintrag.innerHTML=`
+                      <div class="gericht-inhalt">
+                        <div>
+                          <strong>
+                            ${gericht.gerichte || ""}
+                          </strong>
+
+                          ${
+                            gericht.beilage
+                              ? `<div>${gericht.beilage}</div>`
+                              : ""
+                          }
+
+                          <small>
+                            ${Number(gericht.preis || 0).toFixed(2).replace(".",",")} €
+                            ${
+                              gericht.vegetarisch
+                                ? " · Vegetarisch"
+                                : ""
+                            }
+                          </small>
+                        </div>
+                      </div>
+
+                      <div class="gericht-aktionen">
+
+                        <button
+                          type="button"
+                          onclick="gerichtBearbeiten(${gericht.id})"
+                        >
+                          Bearbeiten
+                        </button>
+
+                        <button
+                          type="button"
+                          class="${
+                            sold
+                              ? "ausverkauft-aktiv"
+                              : ""
+                          }"
+                          onclick="gerichtAusverkauftUmschalten(${gericht.id},${!sold})"
+                        >
+                          ${
+                            sold
+                              ? "Ausverkauft"
+                              : "Ausverkauft"
+                          }
+                        </button>
+
+                        <button
+                          type="button"
+                          onclick="gerichtLoeschen(${gericht.id})"
+                        >
+                          Löschen
+                        </button>
+
+                      </div>
+                    `;
 
                     gruppe.appendChild(
-                        gerichtKarteErstellen(
-                            gericht
-                        )
+                        eintrag
                     );
 
                 }
@@ -3557,213 +3674,8 @@ async function gerichteLaden(){
 
         }
     );
-}
-
-
-function gerichtKarteErstellen(
-    gericht
-){
-
-    const e =
-        document.createElement(
-            'div'
-        );
-
-    e.className =
-        'gericht-eintrag'
-        + (
-            gericht.ausverkauft
-                ? ' sold'
-                : ''
-        );
-
-    e.dataset.id =
-        gericht.id;
-
-
-    const preisText =
-        preisFormatieren(
-            gericht.preis
-        );
-
-
-    e.innerHTML = `
-
-        <div class="gericht-haupt">
-
-            <div class="gericht-name">
-                ${gericht.gerichte || ''}
-            </div>
-
-            <div class="gericht-beilage">
-                ${gericht.beilage || ''}
-            </div>
-
-            <div class="gericht-meta">
-
-                <span class="gericht-preis">
-                    ${preisText}
-                </span>
-
-                ${
-                    gericht.vegetarisch
-                        ? '<span class="gericht-badge veg">Vegetarisch</span>'
-                        : ''
-                }
-
-                ${
-                    gericht.ausverkauft
-                        ? '<span class="gericht-badge sold">Ausverkauft</span>'
-                        : ''
-                }
-
-                ${
-                    gericht.website_anzeigen
-                        ? '<span class="gericht-badge">Website</span>'
-                        : ''
-                }
-
-                ${
-                    gericht.speiseplan_anzeigen
-                        ? '<span class="gericht-badge">Speiseplan</span>'
-                        : ''
-                }
-
-            </div>
-
-            <div
-                class="gericht-edit"
-                id="gericht-edit-${gericht.id}"
-                style="display:none"
-            >
-                <input
-                    type="text"
-                    id="edit-name-${gericht.id}"
-                    value="${htmlAttr(gericht.gerichte || '')}"
-                    placeholder="Gericht"
-                >
-
-                <input
-                    type="text"
-                    id="edit-beilage-${gericht.id}"
-                    value="${htmlAttr(gericht.beilage || '')}"
-                    placeholder="Beilage"
-                >
-
-                <input
-                    type="number"
-                    step="0.01"
-                    id="edit-preis-${gericht.id}"
-                    value="${gericht.preis ?? ''}"
-                    placeholder="Preis"
-                >
-            </div>
-
-            <div
-                class="gericht-edit-actions"
-                id="gericht-edit-actions-${gericht.id}"
-                style="display:none"
-            >
-                <button
-                    type="button"
-                    class="save"
-                    onclick="gerichtAenderungSpeichern(${gericht.id})"
-                >
-                    Speichern
-                </button>
-
-                <button
-                    type="button"
-                    onclick="gerichtBearbeitenAbbrechen(${gericht.id})"
-                >
-                    Abbrechen
-                </button>
-            </div>
-
-        </div>
-
-        <div class="gericht-aktionen">
-
-            <button
-                type="button"
-                onclick="gerichtBearbeiten(${gericht.id})"
-            >
-                Bearbeiten
-            </button>
-
-            <button
-                type="button"
-                class="${gericht.ausverkauft ? 'ausverkauft-button' : 'verfuegbar-button'}"
-                onclick="gerichtAusverkauftUmschalten(${gericht.id},${!gericht.ausverkauft})"
-            >
-                ${
-                    gericht.ausverkauft
-                        ? 'Wieder verfügbar'
-                        : 'Ausverkauft'
-                }
-            </button>
-
-            <button
-                type="button"
-                class="loeschen-button"
-                onclick="gerichtLoeschen(${gericht.id},this)"
-            >
-                Löschen
-            </button>
-
-        </div>
-    `;
-
-    return e;
-}
-
-
-function htmlAttr(value){
-
-    return String(
-        value ?? ""
-    )
-    .replace(/&/g,"&amp;")
-    .replace(/"/g,"&quot;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;");
 
 }
-
-
-function gerichtBearbeiten(
-    id
-){
-
-    document.getElementById(
-        `gericht-edit-${id}`
-    ).style.display =
-        'grid';
-
-    document.getElementById(
-        `gericht-edit-actions-${id}`
-    ).style.display =
-        'flex';
-
-}
-
-
-function gerichtBearbeitenAbbrechen(
-    id
-){
-
-    document.getElementById(
-        `gericht-edit-${id}`
-    ).style.display =
-        'none';
-
-    document.getElementById(
-        `gericht-edit-actions-${id}`
-    ).style.display =
-        'none';
-
-}
-
 
 async function gerichtAenderungSpeichern(
     id
@@ -4687,7 +4599,7 @@ function sp_drucken(){
 
 }
 
-function sp_downloadPNG(){
+async function sp_downloadPNG(){
   try{
     const blob=await sp_erzeugePNGBlob();
     const url=URL.createObjectURL(blob);
@@ -9132,30 +9044,31 @@ function vorbestellungenTagWaehlen(tag){
 
 async function vorbestellungenLaden(){
 
-  const liste=
+  const liste =
     document.getElementById(
       "vorbestellungen-liste"
     );
 
-  const summary=
+  const summary =
     document.getElementById(
       "vorbestellungen-summary"
     );
 
   if(!liste)return;
 
-  const datum=
+  const datum =
     vorbestellungAdminDatumKey(
       vorbestellungenAdminTag
     );
 
-  liste.innerHTML=
+  liste.innerHTML =
     "Wird geladen …";
+
 
   const {
     data,
     error
-  }=
+  } =
     await supabaseClient
       .from("Vorbestellungen")
       .select("*")
@@ -9172,51 +9085,62 @@ async function vorbestellungenLaden(){
   if(error){
 
     console.error(
-      "Vorbestellungen:",
+      "Vorbestellungen laden:",
       error
     );
 
-    liste.innerHTML=
-      '<div class="feedback-empty">Vorbestellungen konnten nicht geladen werden.</div>';
+    liste.innerHTML =
+      `<div class="feedback-empty" style="color:#b84b3a;font-weight:700;">
+        Vorbestellungen konnten nicht geladen werden: ${
+          error.message || "Unbekannter Fehler"
+        }
+      </div>`;
+
+    if(summary){
+      summary.textContent="";
+    }
 
     return;
   }
 
 
-  const bestellungen=
+  const bestellungen =
     (data || []).sort(
       (a,b)=>{
-        const aVermerkt =
-          a.vermerkt === true;
-        const bVermerkt =
-          b.vermerkt === true;
 
-        if(aVermerkt !== bVermerkt){
-          return aVermerkt ? 1 : -1;
+        const av =
+          a.vermerkt === true ||
+          a.abgeholt === true;
+
+        const bv =
+          b.vermerkt === true ||
+          b.abgeholt === true;
+
+        if(
+          av !== bv
+        ){
+          return av ? 1 : -1;
         }
 
         return new Date(
           a.erstellt_am || 0
-        ) - new Date(
+        ) -
+        new Date(
           b.erstellt_am || 0
         );
+
       }
     );
 
-  const offen=
+
+  const offen =
     bestellungen.filter(
       item =>
         !item.abgeholt
     ).length;
 
-  const neu=
-    bestellungen.filter(
-      item =>
-        !item.vermerkt &&
-        !item.abgeholt
-    ).length;
 
-  const vermerkt=
+  const vermerkt =
     bestellungen.filter(
       item =>
         item.vermerkt &&
@@ -9226,7 +9150,7 @@ async function vorbestellungenLaden(){
 
   if(summary){
 
-    summary.textContent=
+    summary.textContent =
       `${bestellungen.length} Vorbestellung${
         bestellungen.length===1 ? "" : "en"
       } · ${offen} offen${
@@ -9238,42 +9162,33 @@ async function vorbestellungenLaden(){
   }
 
 
-  const countId=
+  const countId =
     vorbestellungenAdminTag === "morgen"
       ? "vorbestellungen-count-morgen"
       : "vorbestellungen-count-heute";
 
-  const countEl=
+
+  const countEl =
     document.getElementById(
       countId
     );
 
   if(countEl){
-    countEl.textContent=
+    countEl.textContent =
       bestellungen.length;
   }
 
 
-  if(
+  vorbestellungenNebenCountAktualisieren(
     vorbestellungenAdminTag === "heute"
-  ){
-
-    vorbestellungenNebenCountAktualisieren(
-      "morgen"
-    );
-
-  }else{
-
-    vorbestellungenNebenCountAktualisieren(
-      "heute"
-    );
-
-  }
+      ? "morgen"
+      : "heute"
+  );
 
 
   if(!bestellungen.length){
 
-    liste.innerHTML=
+    liste.innerHTML =
       '<div class="feedback-empty">Keine Vorbestellungen für diesen Tag.</div>';
 
     return;
@@ -9286,24 +9201,24 @@ async function vorbestellungenLaden(){
   bestellungen.forEach(
     item=>{
 
-      const card=
+      const card =
         document.createElement(
           "article"
         );
 
 
-      const istAbgeholt=
+      const istAbgeholt =
         item.abgeholt === true;
 
-      const istVermerkt=
+      const istVermerkt =
         item.vermerkt === true;
 
-      const istNeu=
+      const istNeu =
         !istVermerkt &&
         !istAbgeholt;
 
 
-      card.className=
+      card.className =
         "preorder-admin-card" +
         (
           istNeu
@@ -9322,7 +9237,7 @@ async function vorbestellungenLaden(){
         );
 
 
-      const datumText=
+      const datumText =
         item.erstellt_am
           ? new Date(
               item.erstellt_am
@@ -9336,15 +9251,7 @@ async function vorbestellungenLaden(){
           : "";
 
 
-      const stateLabel=
-        istAbgeholt
-          ? '<span class="preorder-admin-state state-abgeholt">Abgeholt</span>'
-          : istVermerkt
-            ? '<span class="preorder-admin-state state-vermerkt">Im Buch vermerkt</span>'
-            : '<span class="preorder-admin-state state-neu">Neu</span>';
-
-
-      const positionen=
+      const positionen =
         Array.isArray(
           item.positionen
         )
@@ -9352,7 +9259,7 @@ async function vorbestellungenLaden(){
           : [];
 
 
-      const positionenHtml=
+      const positionenHtml =
         positionen.length
           ? positionen.map(
               pos=>`
@@ -9373,7 +9280,7 @@ async function vorbestellungenLaden(){
             `;
 
 
-      const verpackungText=
+      const verpackungText =
         item.verzehr === "Kantine"
           ? "Kantine · keine Verpackung"
           : item.verpackung === "Kantinenverpackung"
@@ -9383,19 +9290,27 @@ async function vorbestellungenLaden(){
             : "Eigene Verpackung";
 
 
-      const verzehrText=
+      const verzehrText =
         item.verzehr === "Kantine"
           ? "Kantine"
           : "Abholung";
 
 
-      const abholzeitText=
+      const abholzeitText =
         item.abholzeit
           ? `ca. ${String(item.abholzeit).slice(0,5)} Uhr`
           : "keine Angabe";
 
 
-      card.innerHTML=`
+      const stateLabel =
+        istAbgeholt
+          ? '<span class="preorder-admin-state state-abgeholt">Abgeholt</span>'
+          : istVermerkt
+            ? '<span class="preorder-admin-state state-vermerkt">Im Buch vermerkt</span>'
+            : '<span class="preorder-admin-state state-neu">Neu</span>';
+
+
+      card.innerHTML = `
 
         <div class="preorder-admin-card-head">
           <div>
@@ -9406,11 +9321,9 @@ async function vorbestellungenLaden(){
           </div>
         </div>
 
-
         <div class="preorder-admin-dishes">
           ${positionenHtml}
         </div>
-
 
         ${
           item.bemerkung
@@ -9422,7 +9335,6 @@ async function vorbestellungenLaden(){
             `
             : ""
         }
-
 
         <div class="preorder-admin-primary-meta">
 
@@ -9437,7 +9349,6 @@ async function vorbestellungenLaden(){
           </div>
 
         </div>
-
 
         <div class="preorder-admin-secondary-meta">
 
@@ -9464,7 +9375,6 @@ async function vorbestellungenLaden(){
           }
 
         </div>
-
 
         <div class="preorder-admin-actions">
 
@@ -9514,7 +9424,6 @@ async function vorbestellungenLaden(){
 
       `;
 
-
       liste.appendChild(
         card
       );
@@ -9523,64 +9432,6 @@ async function vorbestellungenLaden(){
   );
 
 }
-
-
-async function vorbestellungenNebenCountAktualisieren(
-  tag
-){
-
-  const datum=
-    vorbestellungAdminDatumKey(
-      tag
-    );
-
-  const {
-    count,
-    error
-  }=
-    await supabaseClient
-      .from("Vorbestellungen")
-      .select(
-        "id",
-        {
-          count:"exact",
-          head:true
-        }
-      )
-      .eq(
-        "datum",
-        datum
-      );
-
-
-  if(error){
-
-    console.warn(
-      "Vorbestellungsanzahl:",
-      error
-    );
-
-    return;
-  }
-
-
-  const id=
-    tag === "morgen"
-      ? "vorbestellungen-count-morgen"
-      : "vorbestellungen-count-heute";
-
-  const el=
-    document.getElementById(
-      id
-    );
-
-  if(el){
-    el.textContent=
-      count || 0;
-  }
-
-}
-
 
 async function vorbestellungVermerkt(
   id
@@ -9914,6 +9765,8 @@ function adminVorbestellungenOeffnen(){
 window.addEventListener(
   "DOMContentLoaded",
   ()=>{
+
+    gerichteLaden();
 
     adminVorbestellungenNeueLaden();
 
