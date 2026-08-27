@@ -3965,7 +3965,10 @@ async function ladeGerichte(){
       karte.className =
         "dish" +
         (
-          gericht.ausverkauft
+          gericht.ausverkauft === true ||
+          gericht.ausverkauft === "true" ||
+          gericht.ausverkauft === 1 ||
+          gericht.ausverkauft === "1"
             ? " sold-out"
             : ""
         );
@@ -5696,6 +5699,10 @@ setInterval(
   60000
 );
 
+</script>
+
+</body>
+</html>
 </script>
 
 </body>
