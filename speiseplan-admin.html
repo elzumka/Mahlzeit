@@ -3574,8 +3574,29 @@ async function gerichteLaden(){
             kopf.className =
                 "gericht-tageskopf";
 
+            const gruppenDatum =
+                new Date(
+                    `${datum}T00:00:00`
+                );
+
+            const gruppenWochentage = [
+                "Sonntag",
+                "Montag",
+                "Dienstag",
+                "Mittwoch",
+                "Donnerstag",
+                "Freitag",
+                "Samstag"
+            ];
+
+            const datumAnzeige =
+                `${gruppenWochentage[gruppenDatum.getDay()]}, ` +
+                `${String(gruppenDatum.getDate()).padStart(2,"0")}.` +
+                `${String(gruppenDatum.getMonth()+1).padStart(2,"0")}.` +
+                `${gruppenDatum.getFullYear()}`;
+
             kopf.innerHTML =
-                `<strong>${datum}</strong>`;
+                `<strong>${datumAnzeige}</strong>`;
 
             gruppe.appendChild(
                 kopf
@@ -9043,50 +9064,45 @@ function vorbestellungenTagWaehlen(tag){
 
 async function vorbestellungenLaden(){
 
-  const liste =
-    document.getElementById(
-      "vorbestellungen-liste"
-    );
-
-  const summary =
-    document.getElementById(
-      "vorbestellungen-summary"
-    );
-
+  const liste=document.getElementById("vorbestellungen-liste");
+  const summary=document.getElementById("vorbestellungen-summary");
   if(!liste)return;
 
-  const datum =
-    vorbestellungAdminDatumKey(
-      vorbestellungenAdminTag
-    );
+  const datum=vorbestellungAdminDatumKey(vorbestellungenAdminTag);
+  liste.innerHTML="Wird geladen …";
 
-  liste.innerHTML =
-    "Wird geladen …";
-
-
-  const {
-    data,
-    error
-  } =
+  let result =
     await supabaseClient
       .from("Vorbestellungen")
       .select("*")
-      .eq(
-        "datum",
-        datum
-      )
-      .order(
-        "erstellt_am",
-        {ascending:true}
-      );
+      .eq("datum",datum)
+      .order("erstellt_am",{ascending:true});
 
+  /*
+   * Falls die optionale Spalte "vermerkt" noch nicht vorhanden ist
+   * oder die Tabelle eine ältere Struktur hat, laden wir die
+   * Vorbestellungen trotzdem. So bleibt die Anzeige funktionsfähig.
+   */
+  if(result.error){
+    console.warn(
+      "Vorbestellungen Standardabfrage fehlgeschlagen:",
+      result.error
+    );
+
+    result =
+      await supabaseClient
+        .from("Vorbestellungen")
+        .select(
+          "id,datum,name,kontakt,menge,bemerkung,verpackung,verpackung_kosten,verzehr,abholzeit,positionen,abgeholt,erstellt_am"
+        )
+        .eq("datum",datum)
+        .order("erstellt_am",{ascending:true});
+  }
+
+  const {data,error}=result;
 
   if(error){
-
-    console.error(
-      "Vorbestellungen laden:",
-      error
-    );
+    console.error("Vorbestellungen laden:",error);
 
     liste.innerHTML =
       `<div class="feedback-empty" style="color:#b84b3a;font-weight:700;">
@@ -9095,341 +9111,167 @@ async function vorbestellungenLaden(){
         }
       </div>`;
 
-    if(summary){
-      summary.textContent="";
-    }
-
+    if(summary)summary.textContent="";
     return;
   }
 
+  const bestellungen=(data||[]).sort((a,b)=>{
+    const av=(a.vermerkt===true || a.abgeholt===true);
+    const bv=(b.vermerkt===true || b.abgeholt===true);
 
-  const bestellungen =
-    (data || []).sort(
-      (a,b)=>{
+    if(av!==bv)return av ? 1 : -1;
 
-        const av =
-          a.vermerkt === true ||
-          a.abgeholt === true;
+    return new Date(a.erstellt_am||0)-new Date(b.erstellt_am||0);
+  });
 
-        const bv =
-          b.vermerkt === true ||
-          b.abgeholt === true;
-
-        if(
-          av !== bv
-        ){
-          return av ? 1 : -1;
-        }
-
-        return new Date(
-          a.erstellt_am || 0
-        ) -
-        new Date(
-          b.erstellt_am || 0
-        );
-
-      }
-    );
-
-
-  const offen =
-    bestellungen.filter(
-      item =>
-        !item.abgeholt
-    ).length;
-
-
-  const vermerkt =
-    bestellungen.filter(
-      item =>
-        item.vermerkt &&
-        !item.abgeholt
-    ).length;
-
+  const offen=bestellungen.filter(item=>!item.abgeholt).length;
+  const vermerkt=bestellungen.filter(item=>item.vermerkt && !item.abgeholt).length;
 
   if(summary){
-
     summary.textContent =
-      `${bestellungen.length} Vorbestellung${
-        bestellungen.length===1 ? "" : "en"
-      } · ${offen} offen${
-        vermerkt
-          ? ` · ${vermerkt} im Buch vermerkt`
-          : ""
-      }`;
-
+      `${bestellungen.length} Vorbestellung${bestellungen.length===1?"":"en"} · `+
+      `${offen} offen`+
+      (vermerkt ? ` · ${vermerkt} im Buch vermerkt` : "");
   }
 
-
-  const countId =
-    vorbestellungenAdminTag === "morgen"
+  const countId=
+    vorbestellungenAdminTag==="morgen"
       ? "vorbestellungen-count-morgen"
       : "vorbestellungen-count-heute";
 
-
-  const countEl =
-    document.getElementById(
-      countId
-    );
-
-  if(countEl){
-    countEl.textContent =
-      bestellungen.length;
-  }
-
+  const countEl=document.getElementById(countId);
+  if(countEl)countEl.textContent=bestellungen.length;
 
   vorbestellungenNebenCountAktualisieren(
-    vorbestellungenAdminTag === "heute"
-      ? "morgen"
-      : "heute"
+    vorbestellungenAdminTag==="heute" ? "morgen" : "heute"
   );
 
-
   if(!bestellungen.length){
-
-    liste.innerHTML =
+    liste.innerHTML=
       '<div class="feedback-empty">Keine Vorbestellungen für diesen Tag.</div>';
-
     return;
   }
 
-
   liste.innerHTML="";
 
+  bestellungen.forEach(item=>{
 
-  bestellungen.forEach(
-    item=>{
+    const card=document.createElement("article");
 
-      const card =
-        document.createElement(
-          "article"
-        );
+    const istAbgeholt=item.abgeholt===true;
+    const istVermerkt=item.vermerkt===true;
+    const istNeu=!istVermerkt && !istAbgeholt;
 
+    card.className=
+      "preorder-admin-card"+
+      (istNeu?" neu":"")+
+      (istVermerkt?" vermerkt":"")+
+      (istAbgeholt?" abgeholt":"");
 
-      const istAbgeholt =
-        item.abgeholt === true;
+    const datumText=
+      item.erstellt_am
+        ? new Date(item.erstellt_am).toLocaleString(
+            "de-DE",
+            {dateStyle:"short",timeStyle:"short"}
+          )
+        : "";
 
-      const istVermerkt =
-        item.vermerkt === true;
+    const positionen=
+      Array.isArray(item.positionen)
+        ? item.positionen
+        : [];
 
-      const istNeu =
-        !istVermerkt &&
-        !istAbgeholt;
-
-
-      card.className =
-        "preorder-admin-card" +
-        (
-          istNeu
-            ? " neu"
-            : ""
-        ) +
-        (
-          istVermerkt
-            ? " vermerkt"
-            : ""
-        ) +
-        (
-          istAbgeholt
-            ? " abgeholt"
-            : ""
-        );
-
-
-      const datumText =
-        item.erstellt_am
-          ? new Date(
-              item.erstellt_am
-            ).toLocaleString(
-              "de-DE",
-              {
-                dateStyle:"short",
-                timeStyle:"short"
-              }
-            )
-          : "";
-
-
-      const positionen =
-        Array.isArray(
-          item.positionen
-        )
-          ? item.positionen
-          : [];
-
-
-      const positionenHtml =
-        positionen.length
-          ? positionen.map(
-              pos=>`
-                <div class="preorder-admin-dish-line">
-                  ${pos.menge || 1}× ${pos.gericht || ""}
-                  ${
-                    pos.beilage
-                      ? `<small> · ${pos.beilage}</small>`
-                      : ""
-                  }
-                </div>
-              `
-            ).join("")
-          : `
-              <div class="preorder-admin-dish-line">
-                ${item.menge || 1}× ${item.gericht || ""}
-              </div>
-            `;
-
-
-      const verpackungText =
-        item.verzehr === "Kantine"
-          ? "Kantine · keine Verpackung"
-          : item.verpackung === "Kantinenverpackung"
-            ? `Unsere Verpackung · ${Number(
-                item.verpackung_kosten || 0
-              ).toFixed(2).replace(".",",")} €`
-            : "Eigene Verpackung";
-
-
-      const verzehrText =
-        item.verzehr === "Kantine"
-          ? "Kantine"
-          : "Abholung";
-
-
-      const abholzeitText =
-        item.abholzeit
-          ? `ca. ${String(item.abholzeit).slice(0,5)} Uhr`
-          : "keine Angabe";
-
-
-      const stateLabel =
-        istAbgeholt
-          ? '<span class="preorder-admin-state state-abgeholt">Abgeholt</span>'
-          : istVermerkt
-            ? '<span class="preorder-admin-state state-vermerkt">Im Buch vermerkt</span>'
-            : '<span class="preorder-admin-state state-neu">Neu</span>';
-
-
-      card.innerHTML = `
-
-        <div class="preorder-admin-card-head">
-          <div>
-            ${stateLabel}
-            <div class="preorder-admin-date" style="margin-top:7px">
-              Bestellung ${datumText}
+    const positionenHtml=
+      positionen.length
+        ? positionen.map(pos=>`
+            <div class="preorder-admin-dish-line">
+              ${pos.menge||1}× ${pos.gericht||""}
+              ${pos.beilage?`<small> · ${pos.beilage}</small>`:""}
             </div>
+          `).join("")
+        : `<div class="preorder-admin-dish-line">${item.menge||1}× ${item.gericht||""}</div>`;
+
+    const verpackungText=
+      item.verzehr==="Kantine"
+        ? "Kantine · keine Verpackung"
+        : item.verpackung==="Kantinenverpackung"
+          ? `Unsere Verpackung · ${Number(item.verpackung_kosten||0).toFixed(2).replace(".",",")} €`
+          : "Eigene Verpackung";
+
+    const verzehrText=
+      item.verzehr==="Kantine" ? "Kantine" : "Abholung";
+
+    const abholzeitText=
+      item.abholzeit
+        ? `ca. ${String(item.abholzeit).slice(0,5)} Uhr`
+        : "keine Angabe";
+
+    const stateLabel=
+      istAbgeholt
+        ? '<span class="preorder-admin-state state-abgeholt">Abgeholt</span>'
+        : istVermerkt
+          ? '<span class="preorder-admin-state state-vermerkt">Im Buch vermerkt</span>'
+          : '<span class="preorder-admin-state state-neu">Neu</span>';
+
+    card.innerHTML=`
+      <div class="preorder-admin-card-head">
+        <div>
+          ${stateLabel}
+          <div class="preorder-admin-date" style="margin-top:7px">
+            Bestellung ${datumText}
           </div>
         </div>
+      </div>
 
-        <div class="preorder-admin-dishes">
-          ${positionenHtml}
-        </div>
+      <div class="preorder-admin-dishes">${positionenHtml}</div>
 
+      ${
+        item.bemerkung
+          ? `<div class="preorder-admin-note">
+               <strong>Anmerkung:</strong> ${item.bemerkung}
+             </div>`
+          : ""
+      }
+
+      <div class="preorder-admin-primary-meta">
+        <div><strong>Verpackung:</strong> ${verpackungText}</div>
+        <div><strong>Abholzeit:</strong> ${abholzeitText}</div>
+      </div>
+
+      <div class="preorder-admin-secondary-meta">
+        <span><strong>Verzehr:</strong> ${verzehrText}</span>
+        <span><strong>Portionen:</strong> ${item.menge||1}</span>
+        <span><strong>Name:</strong> ${item.name||""}</span>
+        ${item.kontakt?`<span><strong>Tel.:</strong> ${item.kontakt}</span>`:""}
+      </div>
+
+      <div class="preorder-admin-actions">
         ${
-          item.bemerkung
-            ? `
-              <div class="preorder-admin-note">
-                <strong>Anmerkung:</strong>
-                ${item.bemerkung}
-              </div>
-            `
+          !istVermerkt && !istAbgeholt
+            ? `<button type="button" class="save vermerkt-action" onclick="vorbestellungVermerkt(${item.id})">
+                 ✓ Im Buch vermerkt
+               </button>`
             : ""
         }
 
-        <div class="preorder-admin-primary-meta">
+        ${
+          !istAbgeholt
+            ? `<button type="button" class="save" onclick="vorbestellungStatus(${item.id},true)">
+                 Als abgeholt markieren
+               </button>`
+            : `<button type="button" onclick="vorbestellungStatus(${item.id},false)">
+                 Wieder öffnen
+               </button>`
+        }
 
-          <div>
-            <strong>Verpackung:</strong>
-            ${verpackungText}
-          </div>
+        <button type="button" onclick="vorbestellungLoeschen(${item.id})">
+          Löschen
+        </button>
+      </div>
+    `;
 
-          <div>
-            <strong>Abholzeit:</strong>
-            ${abholzeitText}
-          </div>
-
-        </div>
-
-        <div class="preorder-admin-secondary-meta">
-
-          <span>
-            <strong>Verzehr:</strong> ${verzehrText}
-          </span>
-
-          <span>
-            <strong>Portionen:</strong> ${item.menge || 1}
-          </span>
-
-          <span>
-            <strong>Name:</strong> ${item.name || ""}
-          </span>
-
-          ${
-            item.kontakt
-              ? `
-                <span>
-                  <strong>Tel.:</strong> ${item.kontakt}
-                </span>
-              `
-              : ""
-          }
-
-        </div>
-
-        <div class="preorder-admin-actions">
-
-          ${
-            !istVermerkt && !istAbgeholt
-              ? `
-                <button
-                  type="button"
-                  class="save vermerkt-action"
-                  onclick="vorbestellungVermerkt(${item.id})"
-                >
-                  ✓ Im Buch vermerkt
-                </button>
-              `
-              : ""
-          }
-
-          ${
-            !istAbgeholt
-              ? `
-                <button
-                  type="button"
-                  class="save"
-                  onclick="vorbestellungStatus(${item.id},true)"
-                >
-                  Als abgeholt markieren
-                </button>
-              `
-              : `
-                <button
-                  type="button"
-                  onclick="vorbestellungStatus(${item.id},false)"
-                >
-                  Wieder öffnen
-                </button>
-              `
-          }
-
-          <button
-            type="button"
-            onclick="vorbestellungLoeschen(${item.id})"
-          >
-            Löschen
-          </button>
-
-        </div>
-
-      `;
-
-      liste.appendChild(
-        card
-      );
-
-    }
-  );
-
+    liste.appendChild(card);
+  });
 }
 
 async function vorbestellungVermerkt(
