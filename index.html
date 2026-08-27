@@ -2315,6 +2315,15 @@ body.legal-modal-open{overflow:hidden;}
   }
 }
 
+
+#gerichte-container.status-view{
+  display:block;
+}
+
+#gerichte-container.status-view .dish{
+  display:flex;
+}
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
@@ -3605,113 +3614,147 @@ async function ladeGerichte(){
 
   const jetzt = new Date();
 
-  const stunde = jetzt.getHours();
-  const minute = jetzt.getMinutes();
-  const aktuelleMinuten = stunde * 60 + minute;
-  const wochentag = jetzt.getDay();
+  const aktuelleMinuten =
+    jetzt.getHours() * 60 +
+    jetzt.getMinutes();
+
+  const wochentag =
+    jetzt.getDay();
 
   const container =
-    document.getElementById("gerichte-container");
+    document.getElementById(
+      "gerichte-container"
+    );
 
   const nextWeekNote =
-    document.getElementById("naechste-woche-hinweis");
+    document.getElementById(
+      "naechste-woche-hinweis"
+    );
 
   const specialNote =
-    document.getElementById("sondertage-hinweis");
+    document.getElementById(
+      "sondertage-hinweis"
+    );
 
-  if(!container)return;
+  if(!container){
+    return;
+  }
+
+  /*
+   * Montag bis Donnerstag:
+   * 00:00–13:59 Uhr = Tagesgerichte
+   * ab 14:00 Uhr = Feierabendbild
+   *
+   * Freitag bis Sonntag:
+   * immer Wochenendbild
+   *
+   * Damit beginnt am Montag um 00:00 Uhr
+   * automatisch wieder ein neuer Zyklus.
+   */
+
+  const istWochenende =
+    wochentag === 5 ||
+    wochentag === 6 ||
+    wochentag === 0;
+
+  const istFeierabend =
+    !istWochenende &&
+    aktuelleMinuten >= (14 * 60);
+
 
   if(nextWeekNote){
-    nextWeekNote.classList.remove("show");
+    nextWeekNote.classList.remove(
+      "show"
+    );
     nextWeekNote.textContent="";
   }
 
   if(specialNote){
-    specialNote.classList.remove("show");
+    specialNote.classList.remove(
+      "show"
+    );
     specialNote.textContent="";
   }
 
-  const heute = new Date(
-    jetzt.getFullYear(),
-    jetzt.getMonth(),
-    jetzt.getDate()
-  );
 
-  const isoHeute = [
-    heute.getFullYear(),
-    String(heute.getMonth()+1).padStart(2,"0"),
-    String(heute.getDate()).padStart(2,"0")
-  ].join("-");
-
-  const plus7 = new Date(heute);
-  plus7.setDate(plus7.getDate()+7);
-
-  const isoBis = [
-    plus7.getFullYear(),
-    String(plus7.getMonth()+1).padStart(2,"0"),
-    String(plus7.getDate()).padStart(2,"0")
-  ].join("-");
-
-
-  /*
-   * Sondertage und Website-Einstellungen getrennt laden.
-   * Falls eine der beiden Abfragen ausfällt, kann der
-   * Mittagstisch trotzdem weiterhin geladen werden.
-   */
-  let specialDays = [];
-  let settings = null;
-
-  try{
-
-    const result =
-      await supabaseClient
-        .from("Sonderoeffnungszeiten")
-        .select("*")
-        .gte("datum",isoHeute)
-        .lte("datum",isoBis)
-        .order("datum",{ascending:true});
-
-    if(result.error){
-      console.warn(
-        "Sondertage konnten nicht geladen werden:",
-        result.error
-      );
-    }else{
-      specialDays = result.data || [];
-    }
-
-  }catch(error){
-
-    console.warn(
-      "Sondertage-Abfrage fehlgeschlagen:",
-      error
+  const heute =
+    new Date(
+      jetzt.getFullYear(),
+      jetzt.getMonth(),
+      jetzt.getDate()
     );
 
-  }
 
+  const isoHeute =
+    [
+      heute.getFullYear(),
+      String(
+        heute.getMonth()+1
+      ).padStart(2,"0"),
+      String(
+        heute.getDate()
+      ).padStart(2,"0")
+    ].join("-");
+
+
+  const plus7 =
+    new Date(
+      heute
+    );
+
+  plus7.setDate(
+    plus7.getDate()+7
+  );
+
+
+  const isoBis =
+    [
+      plus7.getFullYear(),
+      String(
+        plus7.getMonth()+1
+      ).padStart(2,"0"),
+      String(
+        plus7.getDate()
+      ).padStart(2,"0")
+    ].join("-");
+
+
+  let specialDays = [];
 
   try{
 
     const result =
       await supabaseClient
-        .from("WebsiteEinstellungen")
+        .from(
+          "Sonderoeffnungszeiten"
+        )
         .select("*")
-        .eq("id",1)
-        .maybeSingle();
+        .gte(
+          "datum",
+          isoHeute
+        )
+        .lte(
+          "datum",
+          isoBis
+        )
+        .order(
+          "datum",
+          {
+            ascending:true
+          }
+        );
 
-    if(result.error){
-      console.warn(
-        "Website-Einstellungen konnten nicht geladen werden:",
-        result.error
-      );
-    }else{
-      settings = result.data;
+    if(
+      !result.error
+    ){
+      specialDays =
+        result.data || [];
     }
 
   }catch(error){
 
     console.warn(
-      "Website-Einstellungen-Abfrage fehlgeschlagen:",
+      "Sondertage konnten nicht geladen werden:",
       error
     );
 
@@ -3720,112 +3763,48 @@ async function ladeGerichte(){
 
   const specialToday =
     specialDays.find(
-      item => item.datum === isoHeute
-    );
-
-
-  let geoeffnetHeute = true;
-  let vonHeute = null;
-  let bisHeute = null;
-
-  if(specialToday){
-
-    if(specialToday.geschlossen){
-
-      geoeffnetHeute = false;
-
-    }else{
-
-      vonHeute =
-        String(
-          specialToday.von || "11:00"
-        ).slice(0,5);
-
-      bisHeute =
-        String(
-          specialToday.bis || "14:00"
-        ).slice(0,5);
-
-    }
-
-  }else{
-
-    const mittagAktiv =
-      settings?.mittagstisch_aktiv !== false;
-
-    if(
-      wochentag === 0 ||
-      wochentag === 6 ||
-      !mittagAktiv
-    ){
-
-      geoeffnetHeute = false;
-
-    }else{
-
-      vonHeute =
-        String(
-          settings?.mittagstisch_von || "11:00"
-        ).slice(0,5);
-
-      bisHeute =
-        String(
-          settings?.mittagstisch_bis || "14:00"
-        ).slice(0,5);
-
-    }
-
-  }
-
-
-  const minutenAusZeit = value => {
-
-    if(!value)return null;
-
-    const teile =
-      String(value)
-        .split(":")
-        .map(Number);
-
-    return (
-      (teile[0] || 0) * 60 +
-      (teile[1] || 0)
-    );
-
-  };
-
-
-  const vonMinuten =
-    minutenAusZeit(vonHeute);
-
-  const bisMinuten =
-    minutenAusZeit(bisHeute);
-
-
-  const ausserhalbOeffnungszeit =
-    !geoeffnetHeute ||
-    (
-      vonMinuten !== null &&
-      aktuelleMinuten < vonMinuten
-    ) ||
-    (
-      bisMinuten !== null &&
-      aktuelleMinuten >= bisMinuten
+      item =>
+        item.datum === isoHeute
     );
 
 
   if(
-    ausserhalbOeffnungszeit
+    specialToday?.hinweis &&
+    specialNote
   ){
 
-    const geschlossenBild =
-      (
-        specialToday?.geschlossen ||
-        wochentag === 6 ||
-        wochentag === 0
-      )
-      ? "wochenende.png"
-      : "feierabend.png";
+    specialNote.textContent =
+      `Heute: ${specialToday.hinweis}`;
+
+    specialNote.classList.add(
+      "show"
+    );
+
+  }
+
+
+  if(
+    wochentag === 5 &&
+    nextWeekNote
+  ){
+
+    nextWeekNote.textContent =
+      "Ab Freitag 14:00 Uhr ist unser Speiseplan für nächste Woche online.";
+
+    nextWeekNote.classList.add(
+      "show"
+    );
+
+  }
+
+
+  /*
+   * Freitag bis Sonntag:
+   * Wochenendbild zeigen.
+   */
+  if(
+    istWochenende
+  ){
 
     container.classList.add(
       "status-view"
@@ -3834,8 +3813,8 @@ async function ladeGerichte(){
     container.innerHTML = `
       <div class="feierabend-box">
         <img
-          src="${geschlossenBild}"
-          alt="Heute außerhalb der Öffnungszeit"
+          src="wochenende.png"
+          alt="Wochenende"
         >
         ${
           specialToday?.hinweis
@@ -3849,277 +3828,235 @@ async function ladeGerichte(){
       </div>
     `;
 
-  }else{
-
-    container.classList.remove(
-      "status-view"
-    );
-
-    if(
-      specialToday?.hinweis &&
-      specialNote
-    ){
-
-      specialNote.textContent =
-        `Heute: ${specialToday.hinweis}`;
-
-      specialNote.classList.add(
-        "show"
-      );
-
-    }
-
-    if(
-      wochentag === 5 &&
-      nextWeekNote
-    ){
-
-      nextWeekNote.textContent =
-        "Ab Freitag 14:00 Uhr ist unser Speiseplan für nächste Woche online.";
-
-      nextWeekNote.classList.add(
-        "show"
-      );
-
-    }
-
-
-    let data = [];
-    let error = null;
-
-    try{
-
-      const result =
-        await supabaseClient
-          .from("Gerichte")
-          .select("*")
-          .eq("datum",isoHeute)
-          .eq("website_anzeigen",true)
-          .order(
-            "reihenfolge",
-            {ascending:true,nullsFirst:false}
-          )
-          .order(
-            "id",
-            {ascending:true}
-          );
-
-      data = result.data || [];
-      error = result.error;
-
-    }catch(loadError){
-
-      error = loadError;
-
-    }
-
-
-    if(error){
-
-      console.error(
-        "Fehler beim Laden der Gerichte:",
-        error
-      );
-
-      /*
-       * Bereits vorhandene HTML-Karten bleiben sichtbar,
-       * wenn Supabase gerade kurz nicht erreichbar ist.
-       */
-      return;
-
-    }
-
-
-    container.classList.remove(
-      "status-view"
-    );
-
-    container.innerHTML =
-      "";
-
-
-    if(!data.length){
-
-      container.innerHTML = `
-        <div class="feierabend-box">
-          <p style="color:var(--green);font-weight:700;">
-            Heute sind keine Gerichte eingetragen.
-          </p>
-        </div>
-      `;
-
-      return;
-
-    }
-
-
-    data.forEach(
-      gericht => {
-
-        const karte =
-          document.createElement("div");
-
-        karte.className =
-          "dish" +
-          (
-            gericht.ausverkauft
-              ? " sold-out"
-              : ""
-          );
-
-
-        const preis =
-          Number(
-            gericht.preis
-          )
-          .toFixed(2)
-          .replace(
-            ".",
-            ","
-          );
-
-
-        karte.innerHTML = `
-
-          <div class="dish-info">
-
-            ${
-              gericht.vegetarisch
-                ? `
-                  <img
-                    src="vegetarisch.png"
-                    class="veggie-icon"
-                    alt="Vegetarisch"
-                  >
-                `
-                : ""
-            }
-
-            <div>
-
-              <h3>
-                ${gericht.gerichte || ""}
-              </h3>
-
-              <p>
-                ${gericht.beilage || ""}
-              </p>
-
-              ${
-                gericht.ausverkauft
-                  ? `
-                    <div class="sold-out-label">
-                      AUSVERKAUFT
-                    </div>
-                  `
-                  : ""
-              }
-
-            </div>
-
-          </div>
-
-
-          <div class="price">
-
-            ${preis} €
-
-            ${
-              !gericht.ausverkauft
-                ? `
-                  <button
-                    type="button"
-                    class="dish-share"
-                    onclick='teileGericht(${JSON.stringify({
-                      name:gericht.gerichte || "",
-                      beilage:gericht.beilage || "",
-                      preis:preis
-                    })})'
-                  >
-                    TEILEN
-                  </button>
-                `
-                : ""
-            }
-
-          </div>
-
-        `;
-
-        container.appendChild(
-          karte
-        );
-
-      }
-    );
+    return;
 
   }
 
 
-  const upcoming =
-    specialDays.filter(
-      item => item.datum !== isoHeute
-    );
-
-
+  /*
+   * Montag bis Donnerstag ab 14:00:
+   * Feierabendbild zeigen.
+   */
   if(
-    specialNote &&
-    upcoming.length
+    istFeierabend
   ){
 
-    const first =
-      upcoming[0];
-
-    const d =
-      new Date(
-        first.datum + "T00:00:00"
-      );
-
-    const datumText =
-      d.toLocaleDateString(
-        "de-DE",
-        {
-          weekday:"long",
-          day:"2-digit",
-          month:"2-digit"
-        }
-      );
-
-    let text =
-      `Hinweis für ${datumText}: `;
-
-    if(first.geschlossen){
-
-      text +=
-        first.hinweis ||
-        "Wir haben an diesem Tag geschlossen.";
-
-    }else{
-
-      text +=
-        first.hinweis ||
-        `Geänderte Öffnungszeit ${first.von || "11:00"}–${first.bis || "14:00"} Uhr.`;
-
-    }
-
-    if(upcoming.length > 1){
-
-      text +=
-        " Weitere Sondertage folgen in den nächsten Tagen.";
-
-    }
-
-    specialNote.textContent =
-      text;
-
-    specialNote.classList.add(
-      "show"
+    container.classList.add(
+      "status-view"
     );
+
+    container.innerHTML = `
+      <div class="feierabend-box">
+        <img
+          src="feierabend.png"
+          alt="Feierabend"
+        >
+        ${
+          specialToday?.hinweis
+            ? `
+              <div class="special-today-message">
+                ${specialToday.hinweis}
+              </div>
+            `
+            : ""
+        }
+      </div>
+    `;
+
+    return;
 
   }
 
-}
 
+  /*
+   * 00:00–13:59 Uhr von Montag bis Donnerstag:
+   * aktuelle Tagesgerichte laden.
+   */
+  container.classList.remove(
+    "status-view"
+  );
+
+  let data = [];
+  let error = null;
+
+  try{
+
+    const result =
+      await supabaseClient
+        .from(
+          "Gerichte"
+        )
+        .select("*")
+        .eq(
+          "datum",
+          isoHeute
+        )
+        .eq(
+          "website_anzeigen",
+          true
+        )
+        .order(
+          "reihenfolge",
+          {
+            ascending:true,
+            nullsFirst:false
+          }
+        )
+        .order(
+          "id",
+          {
+            ascending:true
+          }
+        );
+
+    data =
+      result.data || [];
+
+    error =
+      result.error;
+
+  }catch(loadError){
+
+    error =
+      loadError;
+
+  }
+
+
+  if(error){
+
+    console.error(
+      "Fehler beim Laden der Gerichte:",
+      error
+    );
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    "";
+
+
+  if(!data.length){
+
+    container.innerHTML = `
+      <div class="feierabend-box">
+        <p style="color:var(--green);font-weight:700;">
+          Heute sind keine Gerichte eingetragen.
+        </p>
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  data.forEach(
+    gericht => {
+
+      const karte =
+        document.createElement(
+          "div"
+        );
+
+      karte.className =
+        "dish" +
+        (
+          gericht.ausverkauft
+            ? " sold-out"
+            : ""
+        );
+
+
+      const preis =
+        Number(
+          gericht.preis
+        )
+        .toFixed(2)
+        .replace(
+          ".",
+          ","
+        );
+
+
+      karte.innerHTML = `
+
+        <div class="dish-info">
+
+          ${
+            gericht.vegetarisch
+              ? `
+                <img
+                  src="vegetarisch.png"
+                  class="veggie-icon"
+                  alt="Vegetarisch"
+                >
+              `
+              : ""
+          }
+
+          <div>
+
+            <h3>
+              ${gericht.gerichte || ""}
+            </h3>
+
+            <p>
+              ${gericht.beilage || ""}
+            </p>
+
+            ${
+              gericht.ausverkauft
+                ? `
+                  <div class="sold-out-label">
+                    AUSVERKAUFT
+                  </div>
+                `
+                : ""
+            }
+
+          </div>
+
+        </div>
+
+
+        <div class="price">
+
+          ${preis} €
+
+          ${
+            !gericht.ausverkauft
+              ? `
+                <button
+                  type="button"
+                  class="dish-share"
+                  onclick='teileGericht(${JSON.stringify({
+                    name:gericht.gerichte || "",
+                    beilage:gericht.beilage || "",
+                    preis:preis
+                  })})'
+                >
+                  TEILEN
+                </button>
+              `
+              : ""
+          }
+
+        </div>
+
+      `;
+
+      container.appendChild(
+        karte
+      );
+
+    }
+  );
+
+}
 
 /* --------------------------------
    HEUTIGES DATUM
@@ -5765,6 +5702,14 @@ document.addEventListener(
       document.body.classList.remove("service-modal-open");
     }
   }
+);
+
+
+setInterval(
+  ()=>{
+    ladeGerichte();
+  },
+  60000
 );
 
 </script>
