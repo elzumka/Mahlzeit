@@ -7708,7 +7708,7 @@ async function klassikerHeuteAbweichungenLaden(){
   } =
     await supabaseClient
       .from("KlassikerTagesabweichungen")
-      .select("*")
+      .select("klassiker_id,datum,verfuegbar")
       .eq(
         "datum",
         datum
@@ -7722,11 +7722,11 @@ async function klassikerHeuteAbweichungenLaden(){
     return;
   }
 
-  const overrides = {};
+  const overrides={};
 
   (data || []).forEach(
     item=>{
-      overrides[item.klassiker_id] =
+      overrides[String(item.klassiker_id)] =
         item;
     }
   );
@@ -7739,50 +7739,35 @@ async function klassikerHeuteAbweichungenLaden(){
       button=>{
 
         const id =
-          String(
-            button.id
-              .replace(
-                "klassiker-heute-",
-                ""
-              )
+          button.id.replace(
+            "klassiker-heute-",
+            ""
           );
 
-        const override =
-          overrides[id];
+        const disabled =
+          overrides[id] &&
+          overrides[id].verfuegbar === false;
 
-        if(
-          override &&
-          override.verfuegbar === false
-        ){
+        button.classList.toggle(
+          "klassiker-heute-inaktiv",
+          Boolean(disabled)
+        );
 
-          button.classList.add(
-            "klassiker-heute-inaktiv"
-          );
+        button.dataset.verfuegbar =
+          disabled
+            ? "false"
+            : "true";
 
-          button.textContent =
-            "Heute wieder verfügbar";
-
-          button.dataset.verfuegbar =
-            "false";
-
-        }else{
-
-          button.classList.remove(
-            "klassiker-heute-inaktiv"
-          );
-
-          button.textContent =
-            "Heute nicht verfügbar";
-
-          button.dataset.verfuegbar =
-            "true";
-
-        }
+        button.textContent =
+          disabled
+            ? "Heute wieder verfügbar"
+            : "Heute nicht verfügbar";
 
       }
     );
 
 }
+
 
 async function klassikerLaden(){
 
@@ -8020,7 +8005,7 @@ async function klassikerHeuteUmschalten(
       `klassiker-heute-${id}`
     );
 
-  const bisherNichtVerfuegbar =
+  const aktuellNichtVerfuegbar =
     button?.dataset.verfuegbar === "false";
 
   const datum =
@@ -8030,37 +8015,22 @@ async function klassikerHeuteUmschalten(
     button.disabled=true;
   }
 
-  if(
-    bisherNichtVerfuegbar
-  ){
+  let error=null;
 
-    const {
-      error
-    } =
+  if(aktuellNichtVerfuegbar){
+
+    const result =
       await supabaseClient
         .from("KlassikerTagesabweichungen")
         .delete()
         .eq("klassiker_id",id)
         .eq("datum",datum);
 
-    if(error){
-
-      console.error(
-        "Klassiker wieder aktiv:",
-        error
-      );
-
-      alert(
-        "Die heutige Abweichung konnte nicht entfernt werden."
-      );
-
-    }
+    error=result.error;
 
   }else{
 
-    const {
-      error
-    } =
+    const result =
       await supabaseClient
         .from("KlassikerTagesabweichungen")
         .upsert(
@@ -8074,18 +8044,20 @@ async function klassikerHeuteUmschalten(
           }
         );
 
-    if(error){
+    error=result.error;
 
-      console.error(
-        "Klassiker heute deaktivieren:",
-        error
-      );
+  }
 
-      alert(
-        "Der Klassiker konnte für heute nicht deaktiviert werden."
-      );
+  if(error){
 
-    }
+    console.error(
+      "Klassiker Tagesabweichung:",
+      error
+    );
+
+    alert(
+      "Die Tagesänderung konnte nicht gespeichert werden."
+    );
 
   }
 
