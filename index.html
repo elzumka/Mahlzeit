@@ -4636,6 +4636,76 @@ async function ladeKlassiker(){
     data=klassischeKlassikerFallback();
   }
 
+  /*
+   * Tagesabweichungen haben Vorrang vor den normalen Klassikern.
+   * Ein Klassiker kann dadurch für heute deaktiviert werden,
+   * ohne die dauerhafte Stammdaten-Anlage zu verändern.
+   */
+  if(Array.isArray(data) && data.length){
+
+    const heute =
+      new Date();
+
+    const isoHeute = [
+      heute.getFullYear(),
+      String(heute.getMonth()+1).padStart(2,"0"),
+      String(heute.getDate()).padStart(2,"0")
+    ].join("-");
+
+    try{
+
+      const overrideResult =
+        await supabaseClient
+          .from("KlassikerTagesabweichungen")
+          .select("klassiker_id,datum,verfuegbar")
+          .eq("datum",isoHeute);
+
+      if(
+        !overrideResult.error &&
+        Array.isArray(overrideResult.data)
+      ){
+
+        const nichtVerfuegbar =
+          new Set(
+            overrideResult.data
+              .filter(
+                item =>
+                  item.verfuegbar === false
+              )
+              .map(
+                item =>
+                  String(item.klassiker_id)
+              )
+          );
+
+        data =
+          data.filter(
+            item =>
+              !nichtVerfuegbar.has(
+                String(item.id)
+              )
+          );
+
+      }else if(overrideResult.error){
+
+        console.warn(
+          "Klassiker-Tagesabweichungen konnten nicht geladen werden:",
+          overrideResult.error
+        );
+
+      }
+
+    }catch(error){
+
+      console.warn(
+        "Klassiker-Tagesabweichungen-Abfrage fehlgeschlagen:",
+        error
+      );
+
+    }
+
+  }
+
   const fragment =
     document.createDocumentFragment();
 
@@ -5699,10 +5769,6 @@ setInterval(
   60000
 );
 
-</script>
-
-</body>
-</html>
 </script>
 
 </body>
