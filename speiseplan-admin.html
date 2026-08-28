@@ -2422,6 +2422,12 @@ button{
 @media(max-width:700px){
   .tv-extra-grid{grid-template-columns:1fr}
 }
+
+.admin-primary-tabs .tv-main-tab{
+  display:flex !important;
+  align-items:center;
+  justify-content:center;
+}
 </style>
 </head>
 <body>
@@ -2435,6 +2441,14 @@ button{
     onclick="zeigeBereich('gerichte-bereich',this)"
   >
     Gerichte
+  </button>
+
+  <button
+    class="admin-tab primary tv-main-tab"
+    type="button"
+    onclick="zeigeBereich('tv-zusatzangebote-bereich',this);tvZusatzangeboteLaden()"
+  >
+    <strong>TV-Anzeige</strong>
   </button>
 
   <button
@@ -5543,7 +5557,7 @@ async function tvZusatzangeboteLaden(){
     if(msg) msg.textContent="";
   }catch(e){
     console.error("TV Zusatzangebote laden:",e);
-    if(msg) msg.textContent="Die TV-Inhalte sind noch nicht eingerichtet. Bitte einmal das SQL ausführen.";
+    if(msg) msg.textContent="TV-Inhalte konnten nicht geladen werden. Bitte die Supabase-Tabelle und deren Zugriffsrechte prüfen.";
   }
 }
 
@@ -5587,7 +5601,7 @@ async function tvZusatzangeboteSpeichern(){
     if(msg) msg.textContent="Gespeichert.";
   }catch(e){
     console.error("TV Zusatzangebote speichern:",e);
-    if(msg) msg.textContent="Fehler beim Speichern.";
+    if(msg) msg.textContent="Fehler beim Speichern. Bitte die Supabase-Berechtigungen der Tabelle prüfen.";
   }
 }
 
