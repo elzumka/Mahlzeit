@@ -2,338 +2,279 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Mahlzeit! - Mittagstisch heute</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mahlzeit! – Mittagstisch heute</title>
 <style>
-  *{box-sizing:border-box}
-  html,body{margin:0;width:100%;height:100%;background:#111;overflow:hidden}
-  body{display:flex;align-items:center;justify-content:center}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111}
+body{display:flex;align-items:center;justify-content:center}
+.tv-screen{
+  position:relative;width:100vw;height:100vh;max-width:177.7778vh;max-height:56.25vw;
+  aspect-ratio:16/9;background:#f5eee5 url("digitale-anzeige-vorlage-exakt.png") center/100% 100% no-repeat;
+  overflow:hidden
+}
+.layer{position:absolute;inset:0;color:#222;font-family:Arial,Helvetica,sans-serif}
 
-  .tv-screen{
-    position:relative;
-    width:100vw;
-    height:100vh;
-    max-width:177.7778vh;
-    max-height:56.25vw;
-    aspect-ratio:16/9;
-    background:#f5eee5 url("digitale-anzeige-vorlage.png") center/100% 100% no-repeat;
-    overflow:hidden;
-  }
+/* Exakt über den sechs linken Platzhaltern der Illustrator-Datei */
+.daily{
+  position:absolute;left:9.75%;top:22.8%;width:43.1%;height:58.7%;
+  display:grid;grid-template-rows:repeat(6,1fr)
+}
+.dish{
+  display:grid;grid-template-columns:7.0% minmax(0,1fr) 15.5%;column-gap:1.25%;
+  align-items:start;padding-top:1.0%;min-width:0
+}
+.dish-icon{
+  width:75%;height:auto;aspect-ratio:1/1;object-fit:contain;justify-self:start
+}
+.dish-main{min-width:0}
+.dish-name{
+  font-family:"Arial Rounded MT Bold",Arial,sans-serif;font-size:1.68vw;line-height:1;
+  font-weight:800;text-transform:uppercase;white-space:nowrap;overflow:hidden
+}
+.dish-desc{
+  margin-top:.20em;font-family:"Source Sans Variable","Century Gothic",Arial,sans-serif;
+  font-size:1.02vw;line-height:1.04;text-transform:uppercase;letter-spacing:.045em;white-space:nowrap;overflow:hidden
+}
+.dish-price{
+  font-family:"Arial Rounded MT Bold",Arial,sans-serif;font-size:1.52vw;line-height:1;
+  font-weight:800;text-align:right;white-space:nowrap;padding-top:.12em
+}
+.dish.sold-out{opacity:.45}
+.sold-label{
+  display:inline-block;margin-top:.15em;padding:.10em .42em;border:1px solid #555;border-radius:99px;
+  font-size:.60vw;font-weight:800;letter-spacing:.08em
+}
 
-  .layer{
-    position:absolute;
-    inset:0;
-    font-family:Arial,Helvetica,sans-serif;
-    color:#1f2620;
-  }
+/* Exakte drei rechten Flächen der Illustrator-Datei */
+.klassiker-box,.schnitzel-box,.dessert-box{
+  position:absolute;left:60.5%;width:33.5%;color:#222
+}
+.klassiker-box{top:24.2%;height:18.9%;padding:4.1% 3.0% 1%}
+.schnitzel-box{top:43.8%;height:17.0%;padding:4.0% 3.0% 1%}
+.dessert-box{top:63.8%;height:17.1%;padding:3.8% 3.0% 1%}
 
-  .loading{
-    position:absolute;
-    inset:0;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:2.1vw;
-    color:#31583d;
-    letter-spacing:.03em;
-  }
+.classic-grid{display:grid;grid-template-columns:1fr 1fr;gap:8%;height:100%}
+.classic-title{
+  display:flex;gap:.18em;font-family:"Arial Rounded MT Bold",Arial,sans-serif;
+  font-size:1.10vw;font-weight:800;text-transform:uppercase;line-height:1
+}
+.classic-desc{
+  margin-top:.15em;font-family:"Source Sans Variable","Century Gothic",Arial,sans-serif;
+  font-size:.97vw;line-height:1.04;text-transform:uppercase
+}
+.classic-price{
+  margin-top:.10em;font-family:"Arial Rounded MT Bold",Arial,sans-serif;
+  font-size:1.08vw;font-weight:800;text-align:right
+}
+.menu-item{display:grid;grid-template-columns:1fr auto;gap:.5em}
+.menu-copy{font-family:"Source Sans Variable","Century Gothic",Arial,sans-serif;font-size:1.00vw;line-height:1.12;text-transform:uppercase}
+.menu-copy strong{font-family:"Arial Rounded MT Bold",Arial,sans-serif;font-size:1.08vw}
+.menu-price{font-family:"Arial Rounded MT Bold",Arial,sans-serif;font-size:1.08vw;font-weight:800;white-space:nowrap}
+.dessert-columns{
+  display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(4,auto);
+  grid-auto-flow:column;column-gap:8%;font-family:"Source Sans Variable","Century Gothic",Arial,sans-serif;
+  font-size:.94vw;line-height:1.42;text-transform:uppercase;letter-spacing:.045em
+}
+.dessert-columns div::before{content:"- "}
 
-  /* Tagesgerichte – großer Hauptbereich links */
-  .today-dishes{
-    position:absolute;
-    left:7.1%;
-    top:27.5%;
-    width:51.5%;
-    height:61%;
-    display:flex;
-    flex-direction:column;
-    gap:1.9%;
-    overflow:hidden;
-  }
-
-  .dish{
-    display:grid;
-    grid-template-columns:3.2% minmax(0,1fr) auto;
-    column-gap:1.6%;
-    align-items:start;
-    min-height:0;
-    padding:0;
-  }
-
-  .dish-icon{
-    width:100%;
-    aspect-ratio:1;
-    margin-top:.2em;
-    opacity:.9;
-    object-fit:contain;
-  }
-
-  .dish-main{
-    min-width:0;
-    padding-right:1em;
-  }
-
-  .dish-name{
-    font-size:2.05vw;
-    line-height:1.02;
-    font-weight:800;
-    letter-spacing:.015em;
-    text-transform:uppercase;
-  }
-
-  .dish-desc{
-    margin-top:.32em;
-    font-size:1.28vw;
-    line-height:1.05;
-    letter-spacing:.02em;
-    text-transform:uppercase;
-  }
-
-  .dish-price{
-    white-space:nowrap;
-    font-size:1.72vw;
-    line-height:1;
-    font-weight:800;
-    padding-top:.18em;
-  }
-
-  .dish.sold-out{
-    opacity:.48;
-    order:99;
-  }
-
-  .sold-label{
-    display:inline-block;
-    margin-top:.22em;
-    padding:.18em .45em;
-    border:1px solid #5b655d;
-    border-radius:999px;
-    font-size:.76vw;
-    line-height:1;
-    letter-spacing:.08em;
-    font-weight:800;
-  }
-
-  /* Rechte Boxen */
-  .side-box{
-    position:absolute;
-    left:61.7%;
-    width:32.5%;
-    display:flex;
-    flex-direction:column;
-    color:#1f2620;
-  }
-
-  .klassiker-box{top:23.1%;height:28.0%;padding:5.2% 3.8% 1.5%}
-  .schnitzel-box{top:39.1%;height:27.8%;padding:5.0% 3.8% 1.5%}
-  .dessert-box{top:54.9%;height:25.0%;padding:5.2% 3.8% 1.5%}
-
-  .side-item{
-    display:grid;
-    grid-template-columns:minmax(0,1fr) auto;
-    gap:.5em;
-    margin-bottom:.75em;
-    font-size:1.20vw;
-    line-height:1.05;
-  }
-
-  .side-item strong{
-    font-size:1.29vw;
-    text-transform:uppercase;
-    font-weight:800;
-  }
-
-  .side-desc{
-    margin-top:.18em;
-    font-size:1.03vw;
-    line-height:1.05;
-    text-transform:uppercase;
-  }
-
-  .side-price{
-    white-space:nowrap;
-    font-weight:800;
-    font-size:1.16vw;
-    align-self:start;
-  }
-
-  .empty-note{
-    font-size:1.0vw;
-    opacity:.55;
-  }
-
-  .status{
-    position:absolute;
-    left:6.9%;
-    bottom:3.4%;
-    color:#31583d;
-    font-size:.8vw;
-    letter-spacing:.04em;
-    opacity:.55;
-  }
-
-  @media(max-aspect-ratio:16/9){
-    .tv-screen{width:100vw;height:auto}
-  }
-  @media(min-aspect-ratio:16/9){
-    .tv-screen{width:auto;height:100vh}
-  }
+#message{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  color:#31583d;font-size:1.45vw
+}
+@media(max-aspect-ratio:16/9){.tv-screen{width:100vw;height:auto}}
+@media(min-aspect-ratio:16/9){.tv-screen{width:auto;height:100vh}}
 </style>
 </head>
 <body>
-  <main class="tv-screen" aria-label="Mittagstisch heute">
-    <div class="layer">
-      <div id="loading" class="loading">Speiseplan wird geladen …</div>
-      <section id="today-dishes" class="today-dishes" hidden></section>
-      <section id="klassiker" class="side-box klassiker-box" hidden></section>
-      <section id="schnitzel" class="side-box schnitzel-box" hidden></section>
-      <section id="dessert" class="side-box dessert-box" hidden></section>
-    </div>
-  </main>
+<main class="tv-screen">
+  <div class="layer">
+    <div id="message">Mittagstisch wird geladen …</div>
+    <section id="daily" class="daily" hidden></section>
+    <section id="klassiker" class="klassiker-box" hidden></section>
+    <section id="schnitzel" class="schnitzel-box" hidden></section>
+    <section id="dessert" class="dessert-box" hidden></section>
+  </div>
+</main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL = 'https://kpomtfkngyaojimwaosw.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_NhBrxE_DK7laWTa3HG1BvQ_JZeBj5NK';
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_URL='https://kpomtfkngyaojimwaosw.supabase.co';
+const SUPABASE_KEY='sb_publishable_NhBrxE_DK7laWTa3HG1BvQ_JZeBj5NK';
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-function isoHeute(){
+function esc(v){
+  return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;")
+    .replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+}
+function money(v){
+  const n=Number(v);
+  return Number.isFinite(n)?n.toFixed(2).replace(".",",")+" €":"";
+}
+function sold(v){return v===true||v==="true"||v===1||v==="1"}
+function todayISO(){
   const d=new Date();
-  return [
-    d.getFullYear(),
-    String(d.getMonth()+1).padStart(2,"0"),
-    String(d.getDate()).padStart(2,"0")
-  ].join("-");
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 }
 
-function preis(value){
-  const n=Number(value);
-  return Number.isFinite(n) ? n.toFixed(2).replace(".",",")+" €" : "";
-}
-
-function esc(value){
-  return String(value ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-
-function isSold(item){
-  return item.ausverkauft===true ||
-         item.ausverkauft==="true" ||
-         item.ausverkauft===1 ||
-         item.ausverkauft==="1";
-}
-
-async function ladeAnzeige(){
-  const loading=document.getElementById("loading");
-  const today=document.getElementById("today-dishes");
+async function ladeTV(){
+  const message=document.getElementById("message");
+  const daily=document.getElementById("daily");
   const klassiker=document.getElementById("klassiker");
   const schnitzel=document.getElementById("schnitzel");
   const dessert=document.getElementById("dessert");
 
-  const datum=isoHeute();
+  const [{data:gerichte,error:gerErr},{data:klassikerData,error:klErr}]=await Promise.all([
+    supabaseClient.from("Gerichte").select("*").eq("datum",todayISO()).eq("website_anzeigen",true)
+      .order("reihenfolge",{ascending:true,nullsFirst:false}).order("id",{ascending:true}),
+    supabaseClient.from("Klassiker").select("*").eq("aktiv",true)
+      .order("sortierung",{ascending:true}).order("id",{ascending:true})
+  ]);
 
-  const [{
-    data:gerichte,
-    error:gerichteError
-  },{data:klassikerData,error:klassikerError}] =
-    await Promise.all([
-      supabaseClient
-        .from("Gerichte")
-        .select("*")
-        .eq("datum",datum)
-        .eq("website_anzeigen",true)
-        .order("reihenfolge",{ascending:true,nullsFirst:false})
-        .order("id",{ascending:true}),
-      supabaseClient
-        .from("Klassiker")
-        .select("*")
-        .eq("aktiv",true)
-        .order("sortierung",{ascending:true})
-        .order("id",{ascending:true})
-    ]);
-
-  if(gerichteError){
-    console.error("Gerichte:",gerichteError);
-    loading.textContent="Speiseplan konnte nicht geladen werden.";
+  if(gerErr){
+    console.error("TV Gerichte:",gerErr);
+    message.textContent="Tagesgerichte konnten nicht geladen werden.";
     return;
   }
 
-  if(klassikerError){
-    console.warn("Klassiker:",klassikerError);
+  const items=[...(gerichte||[])].sort((a,b)=>sold(a.ausverkauft)-sold(b.ausverkauft));
+
+  const icons={
+    veggie:"vegetarian.png"
+  };
+
+  function symbol(item){
+    return item.vegetarisch ? icons.veggie : "";
   }
 
-  const items=[...(gerichte||[])];
-  items.sort((a,b)=>isSold(a)-isSold(b));
-
-  today.innerHTML = items.map(item=>{
-    const sold=isSold(item);
-    return `
-      <article class="dish ${sold ? "sold-out" : ""}">
-        <div></div>
-        <div class="dish-main">
-          <div class="dish-name">${esc(item.gerichte||"")}</div>
-          <div class="dish-desc">${esc(item.beilage||"")}</div>
-          ${sold ? '<div class="sold-label">AUSVERKAUFT</div>' : ''}
-        </div>
-        <div class="dish-price">${preis(item.preis)}</div>
-      </article>
-    `;
+  daily.innerHTML=items.slice(0,6).map(item=>{
+    const isSold=sold(item.ausverkauft);
+    const ico=symbol(item);
+    return `<article class="dish ${isSold?"sold-out":""}">
+      <div>${ico?`<img class="dish-icon" src="${ico}" alt="" onerror="this.style.display='none'">`:""}</div>
+      <div class="dish-main">
+        <div class="dish-name">${esc(item.gerichte||"")}</div>
+        <div class="dish-desc">${esc(item.beilage||"")}</div>
+        ${isSold?'<div class="sold-label">AUSVERKAUFT</div>':""}
+      </div>
+      <div class="dish-price">${money(item.preis)}</div>
+    </article>`;
   }).join("");
 
-  today.hidden=false;
-  loading.hidden=true;
+  daily.hidden=false;
+  message.hidden=true;
 
-  const klass=(klassikerData||[]).filter(item =>
-    !/schnitzel/i.test(item.name||"")
-  );
+  const c=klassikerData||[];
 
-  klassiker.innerHTML = klass.length
-    ? klass.map(item=>`
-        <div class="side-item">
-          <div>
-            <strong>${esc(item.name)}</strong>
-            <div class="side-desc">${esc(item.beschreibung||"")}</div>
-          </div>
-          <div class="side-price">${preis(item.preis)}</div>
-        </div>
-      `).join("")
-    : '<div class="empty-note">Keine Angaben</div>';
-  klassiker.hidden=false;
-
-  const schn=(klassikerData||[]).find(item =>
-    /schnitzel/i.test(item.name||"")
-  );
-
-  schnitzel.innerHTML = schn
-    ? `
-      <div class="side-item">
-        <div>
-          <strong>${esc(schn.name)}</strong>
-          <div class="side-desc">${esc(schn.beschreibung||"")}</div>
-        </div>
-        <div class="side-price">${preis(schn.preis)}</div>
-      </div>`
-    : '<div class="empty-note">Keine Angaben</div>';
-  schnitzel.hidden=false;
+  const kraut =
+    c.find(
+      x => /kräuterquark/i.test(x.name||"")
+    );
 
   /*
-   * Für Beilagen & Desserts gibt es in der aktuellen Datenstruktur
-   * noch keinen eigenen Bereich. Die Vorlage bleibt dafür vorbereitet.
+   * Wurstgulasch wird anhand von Name UND Beschreibung erkannt.
+   * Dadurch funktioniert es auch dann, wenn im Datensatz "Nudeln"
+   * nur als Beilage/Beschreibung steht.
    */
-  dessert.innerHTML =
-    '<div class="empty-note">Über die Verwaltung ergänzbar.</div>';
+  const wurstgulasch =
+    c.find(
+      x =>
+        /wurstgulasch|wu-?gu/i.test(x.name||"") ||
+        /wurstgulasch|wu-?gu/i.test(x.beschreibung||"")
+    );
+
+  const schn =
+    c.find(
+      x => /schnitzel/i.test(x.name||"")
+    );
+
+  const wurstBeschreibung =
+    wurstgulasch?.beschreibung || "";
+
+  const wurstBasispreis =
+    wurstgulasch?.preis;
+
+  const kaesePreis =
+    wurstgulasch?.preis_mit_kaese ??
+    wurstgulasch?.preis_käse ??
+    wurstgulasch?.kaese_preis ??
+    null;
+
+  /*
+   * Wenn kein separates Käse-Preisfeld existiert, zeigen wir nur
+   * den tatsächlich hinterlegten Preis. So wird nichts erfunden.
+   */
+  const wurstPreisZeile =
+    kaesePreis !== null && kaesePreis !== undefined
+      ? `
+          <div class="classic-title">
+            <span>NUDELN</span>
+          </div>
+          <div class="classic-desc">WURSTGULASCH</div>
+          <div class="classic-price">${money(wurstBasispreis)}</div>
+
+          <div class="classic-title" style="margin-top:.28em">
+            <span>MIT KÄSE</span>
+          </div>
+          <div class="classic-price">${money(kaesePreis)}</div>
+        `
+      : `
+          <div class="classic-title">
+            <span>NUDELN</span>
+          </div>
+          <div class="classic-desc">
+            ${esc(
+              wurstBeschreibung
+                .replace(/^nudeln\s*[-·:]?\s*/i,"")
+                .trim() || "WURSTGULASCH"
+            )}
+          </div>
+          <div class="classic-price">${money(wurstBasispreis)}</div>
+        `;
+
+  klassiker.innerHTML=`
+    <div class="classic-grid">
+      <div>
+        ${kraut?`
+          <div class="classic-title">
+            <span>◦</span>
+            <span>${esc(kraut.name)}</span>
+          </div>
+          <div class="classic-desc">${esc(kraut.beschreibung||"")}</div>
+          <div class="classic-price">${money(kraut.preis)}</div>
+        `:""}
+      </div>
+
+      <div>
+        ${wurstgulasch ? wurstPreisZeile : ""}
+      </div>
+    </div>`;
+
+  klassiker.hidden=false;
+
+  schnitzel.innerHTML=schn?`
+    <div class="menu-item">
+      <div class="menu-copy">
+        <strong>${esc(schn.name)}</strong><br>
+        ${esc(schn.beschreibung||"")}
+      </div>
+      <div class="menu-price">${money(schn.preis)}</div>
+    </div>`:"";
+
+  schnitzel.hidden=!schn;
+
+  /* Platzhalter-Inhalte entsprechen der sichtbaren Vorlage und können
+     später durch eigene Daten aus der Verwaltung ersetzt werden. */
+  dessert.innerHTML=`<div class="dessert-columns">
+    <div>Möhren Rohkost</div><div>Weißkraut</div><div>Salat</div><div>Rote Beete</div>
+    <div>Schokopudding</div><div>Rote Grütze</div><div>Quarkspeise</div><div>Milchreis</div>
+  </div>`;
   dessert.hidden=false;
 }
 
-ladeAnzeige();
-setInterval(ladeAnzeige, 60000);
-document.addEventListener("visibilitychange",()=>{
-  if(!document.hidden) ladeAnzeige();
-});
+ladeTV();
+setInterval(ladeTV,60000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)ladeTV()});
 </script>
 </body>
 </html>
