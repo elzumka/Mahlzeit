@@ -1358,15 +1358,15 @@ footer p {
 .dish-info {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 3px;
 }
 
-.veggie-icon {
-  width: 18px;
-  height: 18px;
+#gerichte-container .veggie-icon {
+  width: 17px;
+  height: 17px;
   object-fit: contain;
-  flex: 0 0 18px;
-  margin-left: 0;
+  flex: 0 0 17px;
+  margin: 0 !important;
   opacity: .78;
 }
 
@@ -3897,7 +3897,7 @@ async function ladeGerichte(){
         .from(
           "Gerichte"
         )
-        .select("*")
+        .select("id,datum,gerichte,beilage,preis,vegetarisch,ausverkauft,website_anzeigen,reihenfolge")
         .eq(
           "datum",
           isoHeute
@@ -4023,7 +4023,12 @@ async function ladeGerichte(){
             </p>
 
             ${
-              gericht.ausverkauft
+              (
+                gericht.ausverkauft === true ||
+                gericht.ausverkauft === "true" ||
+                gericht.ausverkauft === 1 ||
+                gericht.ausverkauft === "1"
+              )
                 ? `
                   <div class="sold-out-label">
                     AUSVERKAUFT
@@ -5784,3 +5789,9 @@ setInterval(
 
 </body>
 </html>
+window.addEventListener(
+  "focus",
+  ()=>{
+    ladeGerichte();
+  }
+);
