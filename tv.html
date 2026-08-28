@@ -180,24 +180,41 @@ function addTVText(svg,x,y,value,font,size,opts={}){
   svg.appendChild(el);
 }
 
-async function ladeTVZusatzangebote(){
-  const {data,error}=await supabaseClient
-    .from("TV_Zusatzangebote")
-    .select("*")
-    .eq("aktiv",true)
-    .order("typ",{ascending:true})
-    .order("position",{ascending:true});
 
-  if(error){
-    console.warn("TV Zusatzangebote:",error);
-    return;
+const TV_CACHE_KEY="mahlzeit-tv-cache-v1";
+const TV_CACHE_MAX_AGE=7*24*60*60*1000;
+
+function tvCacheLesen(){
+  try{
+    const raw=localStorage.getItem(TV_CACHE_KEY);
+    if(!raw)return null;
+    const parsed=JSON.parse(raw);
+    if(!parsed || !parsed.timestamp)return null;
+    return parsed;
+  }catch(e){
+    console.warn("TV-Cache konnte nicht gelesen werden:",e);
+    return null;
   }
+}
 
+function tvCacheSpeichern(gerichte,zusatzangebote){
+  try{
+    localStorage.setItem(TV_CACHE_KEY,JSON.stringify({
+      timestamp:Date.now(),
+      gerichte:gerichte||[],
+      zusatzangebote:zusatzangebote||[]
+    }));
+  }catch(e){
+    console.warn("TV-Cache konnte nicht gespeichert werden:",e);
+  }
+}
+
+function tvZusatzangeboteRendern(data){
   const old=document.getElementById("tv-dynamische-zusatzangebote");
-  if(old) old.remove();
+  if(old)old.remove();
 
   const svg=document.getElementById("template");
-  if(!svg) return;
+  if(!svg)return;
 
   const g=document.createElementNS("http://www.w3.org/2000/svg","g");
   g.setAttribute("id","tv-dynamische-zusatzangebote");
@@ -205,7 +222,9 @@ async function ladeTVZusatzangebote(){
   const rows={rohkost:[],dessert:[]};
   (data||[]).forEach(r=>{
     const typ=String(r.typ||"").toLowerCase();
-    if(rows[typ] && String(r.name||"").trim()) rows[typ].push(String(r.name).trim());
+    if(rows[typ] && String(r.name||"").trim()){
+      rows[typ].push(String(r.name).trim());
+    }
   });
 
   const ys=[853.0889,878.5,903.9,929.3];
@@ -221,21 +240,7 @@ async function ladeTVZusatzangebote(){
   svg.appendChild(g);
 }
 
-async function ladeTV(){
-  const {data,error}=await supabaseClient
-    .from("Gerichte")
-    .select("*")
-    .eq("datum",todayISO())
-    .eq("website_anzeigen",true)
-    .order("reihenfolge",{ascending:true,nullsFirst:false})
-    .order("id",{ascending:true});
-
-  if(error){
-    console.error("TV Gerichte:",error);
-    return;
-  }
-
-  // Ausverkaufte Gerichte werden auf der TV-Anzeige vollständig ausgeblendet.
+function tvGerichteRendern(data){
   const items=[...(data||[])].filter(
     item=>!isSold(item.ausverkauft)
   );
@@ -250,7 +255,7 @@ async function ladeTV(){
     }
 
     setRowVisibility(group,true);
-    setSoldStyle(group,isSold(item.ausverkauft));
+    setSoldStyle(group,false);
     setSymbol(group,item.symbol || (item.vegetarisch ? "veggie" : ""));
 
     setText(group,0,String(item.gerichte||"").toUpperCase());
@@ -265,14 +270,81 @@ async function ladeTV(){
         : ""
     );
   }
+}
 
-  await ladeTVZusatzangebote();
+function tvAusCacheAnzeigen(){
+  const cache=tvCacheLesen();
+  if(!cache)return false;
+
+  const age=Date.now()-Number(cache.timestamp||0);
+  if(age>TV_CACHE_MAX_AGE)return false;
+
+  if(Array.isArray(cache.gerichte)){
+    tvGerichteRendern(cache.gerichte);
+  }
+  if(Array.isArray(cache.zusatzangebote)){
+    tvZusatzangeboteRendern(cache.zusatzangebote);
+  }
+
+  return true;
+}
+
+async function ladeTV(){
+  // Zuerst einmal den letzten erfolgreichen Stand anzeigen.
+  tvAusCacheAnzeigen();
+
+  try{
+    const datum=todayISO();
+
+    const [gerichteResult,zusatzResult]=await Promise.all([
+      supabaseClient
+        .from("Gerichte")
+        .select("*")
+        .eq("datum",datum)
+        .eq("website_anzeigen",true)
+        .order("reihenfolge",{ascending:true,nullsFirst:false})
+        .order("id",{ascending:true}),
+
+      supabaseClient
+        .from("TV_Zusatzangebote")
+        .select("*")
+        .eq("aktiv",true)
+        .order("typ",{ascending:true})
+        .order("position",{ascending:true})
+    ]);
+
+    if(gerichteResult.error)throw gerichteResult.error;
+    if(zusatzResult.error)throw zusatzResult.error;
+
+    // Nur nach einem vollständig erfolgreichen Abruf überschreiben.
+    const gerichte=gerichteResult.data||[];
+    const zusatzangebote=zusatzResult.data||[];
+
+    tvGerichteRendern(gerichte);
+    tvZusatzangeboteRendern(zusatzangebote);
+    tvCacheSpeichern(gerichte,zusatzangebote);
+
+  }catch(e){
+    console.warn(
+      "Supabase momentan nicht erreichbar – zuletzt gespeicherte TV-Daten bleiben sichtbar.",
+      e
+    );
+    // Wichtig: DOM absichtlich nicht leeren. Der letzte erfolgreiche Stand
+    // bleibt auf dem Bildschirm.
+  }
 }
 
 scaleStage();
 window.addEventListener("resize",scaleStage);
+
+// Sofort den letzten bekannten Stand anzeigen, danach frisch laden.
+tvAusCacheAnzeigen();
 ladeTV();
-setInterval(ladeTV,60000);
+
+// Alle 2 Minuten aktualisieren. Bei Fehlern bleibt die letzte erfolgreiche
+// Anzeige sichtbar.
+setInterval(ladeTV,120000);
+
 document.addEventListener("visibilitychange",()=>{
   if(!document.hidden)ladeTV();
 });
