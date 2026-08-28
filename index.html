@@ -4046,6 +4046,34 @@ async function ladeGerichte(){
   }
 
 
+  /*
+   * Ausverkaufte Gerichte bleiben sichtbar, rutschen aber immer ans Ende.
+   * Dadurch stehen die aktuell verfügbaren Gerichte oben und die Liste
+   * bleibt für Gäste übersichtlich.
+   */
+  data.sort(
+    (a,b)=>{
+
+      const aAusverkauft =
+        a.ausverkauft === true ||
+        a.ausverkauft === "true" ||
+        a.ausverkauft === 1 ||
+        a.ausverkauft === "1";
+
+      const bAusverkauft =
+        b.ausverkauft === true ||
+        b.ausverkauft === "true" ||
+        b.ausverkauft === 1 ||
+        b.ausverkauft === "1";
+
+      if(aAusverkauft !== bAusverkauft){
+        return aAusverkauft ? 1 : -1;
+      }
+
+      return 0;
+    }
+  );
+
   data.forEach(
     gericht => {
 
