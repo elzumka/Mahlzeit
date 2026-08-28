@@ -3,548 +3,131 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mahlzeit! – Mittagstisch heute</title>
+<title>Mahlzeit! – TV-Speiseplan</title>
 <style>
+@font-face{font-family:"ImpactCustom";src:url("Impact.ttf") format("truetype");font-weight:400}
+@font-face{font-family:"ArialRoundedCustom";src:url("ArialRounded.ttf") format("truetype");font-weight:400}
+@font-face{font-family:"SourceSansCustom";src:url("SourceSansVariable.otf") format("opentype");font-weight:100 900}
 
-@font-face{
-  font-family:"ImpactCustom";
-  src:url("Impact.ttf") format("truetype");
-  font-weight:400;
-  font-style:normal;
-  font-display:swap;
-}
-@font-face{
-  font-family:"ArialRoundedCustom";
-  src:url("ArialRounded.ttf") format("truetype");
-  font-weight:400;
-  font-style:normal;
-  font-display:swap;
-}
-@font-face{
-  font-family:"SourceSansCustom";
-  src:url("SourceSansVariable.otf") format("opentype");
-  font-weight:100 900;
-  font-style:normal;
-  font-display:swap;
-}
-@font-face{
-  font-family:"CenturyGothicCustom";
-  src:url("CenturyGothic.ttf") format("truetype");
-  font-weight:400;
-  font-style:normal;
-  font-display:swap;
-}
-@font-face{
-  font-family:"CeraCustom";
-  src:url("CeraPROModernMedium.ttf") format("truetype");
-  font-weight:500;
-  font-style:normal;
-  font-display:swap;
-}
-
-*{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111}
 body{display:flex;align-items:center;justify-content:center}
-.tv-screen{
-  position:relative;width:100vw;height:100vh;max-width:177.7778vh;max-height:56.25vw;
-  aspect-ratio:16/9;background:#f5eee5 url("digitale-anzeige-vorlage.png") center/100% 100% no-repeat;
-  overflow:hidden
+#screen{
+  width:1920px;height:1080px;position:relative;overflow:hidden;
+  background:url("digitale-anzeige-vorlage.png") center/1920px 1080px no-repeat;
+  transform-origin:center center;
 }
-.layer{position:absolute;inset:0;color:#222;font-family:Arial,Helvetica,sans-serif}
-
-/* Exakt über den sechs linken Platzhaltern der Illustrator-Datei */
-.daily{
-  position:absolute;
-  left:0;
-  top:0;
-  width:100%;
-  height:100%;
-  display:block;
-}
-
-.dish{
-  position:absolute;
-  left:0;
-  width:100%;
-  height:118.6px;
-  padding:0;
-  display:block;
-}
-
-.dish:nth-child(1){top:258.0px}
-.dish:nth-child(2){top:376.6px}
-.dish:nth-child(3){top:495.1px}
-.dish:nth-child(4){top:613.7px}
-.dish:nth-child(5){top:732.3px}
-.dish:nth-child(6){top:850.9px}
-
-.dish-icon{
-  position:absolute;
-  left:61px;
-  top:-9px;
-  width:54px;
-  height:54px;
-  object-fit:contain;
-  opacity:.92;
-}
-
-.dish-main{
-  position:absolute;
-  left:195.9px;
-  top:0;
-  width:560px;
-  min-width:0;
-}
-
-.dish-name{
-  font-family:"ImpactCustom",Impact,"Arial Black",sans-serif;
-  font-size:71.81px;
-  line-height:80.7px;
-  font-weight:400;
-  text-transform:uppercase;
-  white-space:nowrap;
-  overflow:hidden;
-}
-
-.dish-desc{
-  margin-top:-10.3px;
-  font-family:"SourceSansCustom","CenturyGothicCustom",Arial,sans-serif;
-  font-size:37.80px;
-  line-height:40px;
-  font-weight:400;
-  text-transform:uppercase;
-  letter-spacing:.025em;
-  white-space:nowrap;
-  overflow:hidden;
-}
-
-.dish-price{
-  position:absolute;
-  left:0;
-  top:43.4px;
-  width:1038.5px;
-  font-family:"ArialRoundedCustom",Arial,sans-serif;
-  font-size:42.22px;
-  line-height:44px;
-  font-weight:700;
-  text-align:right;
-  white-space:nowrap;
-}
-
-.dish.sold-out{opacity:.45}
-
-.sold-label{
-  display:inline-block;
-  margin-top:1px;
-  padding:3px 9px;
-  border:1px solid #555;
-  border-radius:99px;
-  font-family:"Source Sans Variable",Arial,sans-serif;
-  font-size:14px;
-  line-height:18px;
-  font-weight:700;
-  letter-spacing:.06em;
-}
-
-/* Rechte Bereiche – Koordinaten entsprechend der Nutzer-PDF */
-.klassiker-box,.schnitzel-box,.dessert-box{
-  position:absolute;
-  left:0;
-  top:0;
-  width:100%;
-  height:100%;
-  color:#222;
-  overflow:hidden;
-}
-
-.klassiker-box{padding:0}
-.schnitzel-box{padding:0}
-.dessert-box{padding:0}
-
-.classic-grid{
-  position:relative;
-  width:100%;
-  height:100%;
-  display:block;
-}
-
-.classic-grid > div:nth-child(1){
-  position:absolute;
-  left:1193.6px;
-  top:354.5px;
-  width:292px;
-}
-
-.classic-grid > div:nth-child(2){
-  position:absolute;
-  left:1546.0px;
-  top:354.5px;
-  width:273.5px;
-}
-
-.classic-title{
-  display:flex;
-  align-items:baseline;
-  justify-content:flex-start;
-  gap:7px;
-  font-family:"ArialRoundedCustom",Arial,sans-serif;
-  font-size:29.10px;
-  line-height:34.5px;
-  font-weight:700;
-  text-transform:uppercase;
-}
-
-.classic-title.wugu-kaese{
-  font-family:"SourceSansCustom","CenturyGothicCustom",Arial,sans-serif;
-  font-size:27.51px;
-  line-height:29px;
-  font-weight:400;
-}
-
-.classic-desc-price-row{
-  display:flex;
-  align-items:baseline;
-  justify-content:space-between;
-  gap:10px;
-}
-
-.classic-desc-price-row .classic-desc{
-  margin-top:0;
-  flex:1 1 auto;
-}
-
-.classic-desc{
-  font-family:"SourceSansCustom","CenturyGothicCustom",Arial,sans-serif;
-  font-size:27.5px;
-  line-height:29px;
-  font-weight:400;
-  text-transform:uppercase;
-}
-
-.classic-price{
-  font-family:"ArialRoundedCustom",Arial,sans-serif;
-  font-size:29.10px;
-  line-height:34.5px;
-  font-weight:700;
-  white-space:nowrap;
-}
-
-.classic-inline-price{
-  margin-left:auto;
-  flex:0 0 auto;
-  font-family:"ArialRoundedCustom",Arial,sans-serif;
-  font-size:29.10px;
-  line-height:34.5px;
-  font-weight:700;
-  white-space:nowrap;
-}
-
-.classic-veggie-wrap{
-  display:inline-flex;
-  align-items:center;
-}
-
-.classic-veggie{
-  width:27px;
-  height:27px;
-  object-fit:contain;
-  opacity:.88;
-}
-
-.schnitzel-box .menu-item{
-  position:absolute;
-  left:1193.6px;
-  top:579.0px;
-  width:305px;
-  display:grid;
-  grid-template-columns:1fr auto;
-  gap:12px;
-  align-items:start;
-}
-
-.menu-copy{
-  font-family:"SourceSansCustom","CenturyGothicCustom",Arial,sans-serif;
-  font-size:27.51px;
-  line-height:29px;
-  text-transform:uppercase;
-}
-
-.menu-copy strong{
-  font-family:"ArialRoundedCustom",Arial,sans-serif;
-  font-size:29.10px;
-  line-height:34.5px;
-  font-weight:700;
-}
-
-.menu-price{
-  font-family:"ArialRoundedCustom",Arial,sans-serif;
-  font-size:29.10px;
-  line-height:34.5px;
-  font-weight:700;
-  white-space:nowrap;
-  align-self:end;
-}
-
-.dessert-columns{
-  position:absolute;
-  left:1174px;
-  top:830px;
-  width:430px;
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  grid-template-rows:repeat(4,auto);
-  grid-auto-flow:column;
-  column-gap:55px;
-  font-family:"SourceSansCustom","CenturyGothicCustom",Arial,sans-serif;
-  font-size:27.51px;
-  line-height:37px;
-  font-weight:400;
-  text-transform:uppercase;
-  letter-spacing:.025em;
-}
-
-.dessert-columns div::before{content:"- "}
-
-#message{
-  position:absolute;
-  left:50%;
-  top:50%;
-  transform:translate(-50%,-50%);
-  color:#31583d;
-  font-size:22px;
-  display:none !important;
-}
-#message{
-  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  color:#31583d;font-size:1.45vw
-}
-@media(max-aspect-ratio:16/9){.tv-screen{width:100vw;height:auto}}
-@media(min-aspect-ratio:16/9){.tv-screen{width:auto;height:100vh}}
-
-.classic-veggie{
-  display:inline-block;
-  font-size:1.12em;
-  line-height:1;
-  transform:translateY(.02em);
-  color:#31583d;
-}
-
-
-.classic-desc-price-row{
-  display:flex;
-  align-items:baseline;
-  justify-content:space-between;
-  gap:.65em;
-}
-
-.classic-desc-price-row .classic-desc{
-  flex:1 1 auto;
-  min-width:0;
-  margin-top:.17em;
-}
-
-.classic-desc-price-row .classic-inline-price{
-  flex:0 0 auto;
-  margin-left:auto;
-  text-align:right;
-}
-
-.wugu-kaese-row{
-  margin-top:.20em;
-}
-
-.wugu-kaese{
-  font-family:"SourceSansCustom","CenturyGothicCustom",Arial,sans-serif !important;
-  font-weight:400 !important;
-  font-size:1.02vw !important;
-}
-
+#overlay{position:absolute;inset:0;width:1920px;height:1080px;pointer-events:none}
 </style>
 </head>
 <body>
-<main class="tv-screen">
-  <div class="layer">
-    <div id="message" style="display:none">Mittagstisch wird geladen …</div>
-    <section id="daily" class="daily" hidden></section>
-    <section id="klassiker" class="klassiker-box" hidden></section>
-    <section id="schnitzel" class="schnitzel-box" hidden></section>
-    <section id="dessert" class="dessert-box" hidden></section>
-  </div>
-</main>
-
+<div id="screen"><svg id="overlay" viewBox="0 0 1920 1080"></svg></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL='https://kpomtfkngyaojimwaosw.supabase.co';
-const DATA_VEG='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAArCAYAAAAQVipNAAAFL0lEQVR4nMVYbUwTZxz/9STRyaTUwGqcnYqZQqhxwQ0IHxx04cNMICFDkrGpcW6IAyPETccGZhGJxpehmYPhNKYjOCKYGhbJkkbAlwBTNDUeY9JYaDoN7By0hdI16e3ZB9LbHXdH72p1v0/3vP3vd//35zSBiT/wf2GUGSMAMPTYCc/MNPI2ZmliXsSLfQE/7jsfEZvTjj77IH577ATtcsCUmoa8tCxsSt6AEeYJZgIB8lwIMV43GXA8hPXBHbTf7sG4ZxIAoNfqUGLKx4G8YiQvX6mJWbCAO0O7RkhiXHz0NES7HOTKwC1YBm6CdjkEa2W5BSjMyEbWWqNG7vyEzwsAeCZCjNdNmq514GxXB6eFEIyGJHy7fS/S16QINCGHpbFxkREKsiysDwZIdds5kSYAoCgzBwfyimE0JMlqQwpGw2p1hHwBP36+20v2/9Qo0gYA1BRsR+XmLZrYhS+p4cGBdo3AaEgKT8gX8KO+s43UWsyS689KJISwGgqyLNp/7XluGuHDF/Dj5UWL5QkFWRZ5J74gXYP3RGtFmTmo3fIxViUuU+Uj84HxesiKpYkaSUJyZIyGJFyuqI0qET5CkSggJEemKDMHF3ZVKQrfufL4L5PD9N8z3DPFX9jRdERExpSahuZPq1WToV0OsqPpCFGyN+Q/AE9Do8wYudTfLdio1+rQXnFIlYmCLIv9FxvJd1YLHp5sCasdAHgy+RSrEpcJCdW0nRNtbN3zNdRE0SgzRjYdKse4ZxL1W8sV+5tnxsc9UyFBc7VTllswb+2Zi95hmqzb9wHGPZMwGpJQYsqPyPkpAOi3D4oWaot2KhbYYLWQnMN7ufHlilpFpgJmc5B2cSw3jgGAq7Y+wSa9VqfYVIctPwqyuBpTAcB95yPy+rIV3JgCgOtDNsGmwvTsiMhEYiqb047EuHjuDBVkWVFpyF3/VlhBvcO0qL6ZS6sUmyqEiekpwZia9E2JckXKqyvDkuH7DDAbBGpbDtrlIBtXrxMS4qsrBH7mnAvG6xaR0Wt1OFa8W3VUXRm4hdz1bwrOUVIbadeIrJBtjXWiuaadn6s2lS/gx8S0V3SOAmadkY/bj4YkhTRYLZJ17t03MlRrp76zjXyUvVk0TwHA28kbBJPXf78v2jjKjJHK5jOi+W8+LFfLBYzXTSwDNyV9jgKAwoxswSTtcsAX8Avm3jtVIxJsLv0SUj4YDtsa62AurZJcowAgfU2KRq/VCRYKTx3koq93mCZzG3qjIQmFGdmqyTRYLSRhiVY2Iilgtl8pMeULFroG76HBaiFBlsUe82nRwUhyTu8wTY52tOD7nftkP4Sr9rveyRfdryqbz+Cp1yPSTiQ5p8FqIZXNZ9BdfXresqTh/2yQSniURoN/yH+5U6/VYehEs+Lm3hfwo/T8SXKpvxs1BdtRXbBt3g8R5KGstUZNWW6BYAOfDAAce3+3osIbZFm09l4jKZ9tVUwGkGjyjxXv1jBTblF/FMLxq614LUFPlusSELtwkSjKRpkx0mnrw9GOFs78SskAc0zGh/nGL6Tk3HElMgDMRp1UJJpLq1T5m+xF0fXXn4rJABCRqd9ajhJTvurLgSyhs10d3PMrcfG4WH4Qljs3Bf97+Aj9+zGlpin+4yEFSZPRLgfZ+NUn3Phu3Q+yame8bgIgoowtBUkN3eDVsnA5J1pEQpBsP873dAKIvM+JKiHG6+YycyR9TtQJ2cdmfSrSPifqhGxOO/Ra3bwF8IUS6rMPqr5CRxMiQolL4lVdoaONfwHWO0Nr0JaOXgAAAABJRU5ErkJggg==';
-const SUPABASE_KEY='sb_publishable_NhBrxE_DK7laWTa3HG1BvQ_JZeBj5NK';
+const SUPABASE_URL="https://kpomtfkngyaojimwaosw.supabase.co";
+const SUPABASE_KEY="sb_publishable_NhBrxE_DK7laWTa3HG1BvQ_JZeBj5NK";
 const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-function esc(v){
-  return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;")
-    .replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
-}
-function money(v){
-  const n=Number(v);
-  return Number.isFinite(n)?n.toFixed(2).replace(".",",")+" €":"";
-}
+const DATA_VEG="vegetarian.png";base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAArCAYAAAAQVipNAAAFL0lEQVR4nMVYbUwTZxz/9STRyaTUwGqcnYqZQqhxwQ0IHxx04cNMICFDkrGpcW6IAyPETccGZhGJxpehmYPhNKYjOCKYGhbJkkbAlwBTNDUeY9JYaDoN7By0hdI16e3ZB9LbHXdH72p1v0/3vP3vd//35zSBiT/wf2GUGSMAMPTYCc/MNPI2ZmliXsSLfQE/7jsfEZvTjj77IH577ATtcsCUmoa8tCxsSt6AEeYJZgIB8lwIMV43GXA8hPXBHbTf7sG4ZxIAoNfqUGLKx4G8YiQvX6mJWbCAO0O7RkhiXHz0NES7HOTKwC1YBm6CdjkEa2W5BSjMyEbWWqNG7vyEzwsAeCZCjNdNmq514GxXB6eFEIyGJHy7fS/S16QINCGHpbFxkREKsiysDwZIdds5kSYAoCgzBwfyimE0JMlqQwpGw2p1hHwBP36+20v2/9Qo0gYA1BRsR+XmLZrYhS+p4cGBdo3AaEgKT8gX8KO+s43UWsyS689KJISwGgqyLNp/7XluGuHDF/Dj5UWL5QkFWRZ5J74gXYP3RGtFmTmo3fIxViUuU+Uj84HxesiKpYkaSUJyZIyGJFyuqI0qET5CkSggJEemKDMHF3ZVKQrfufL4L5PD9N8z3DPFX9jRdERExpSahuZPq1WToV0OsqPpCFGyN+Q/AE9Do8wYudTfLdio1+rQXnFIlYmCLIv9FxvJd1YLHp5sCasdAHgy+RSrEpcJCdW0nRNtbN3zNdRE0SgzRjYdKse4ZxL1W8sV+5tnxsc9UyFBc7VTllswb+2Zi95hmqzb9wHGPZMwGpJQYsqPyPkpAOi3D4oWaot2KhbYYLWQnMN7ufHlilpFpgJmc5B2cSw3jgGAq7Y+wSa9VqfYVIctPwqyuBpTAcB95yPy+rIV3JgCgOtDNsGmwvTsiMhEYiqb047EuHjuDBVkWVFpyF3/VlhBvcO0qL6ZS6sUmyqEiekpwZia9E2JckXKqyvDkuH7DDAbBGpbDtrlIBtXrxMS4qsrBH7mnAvG6xaR0Wt1OFa8W3VUXRm4hdz1bwrOUVIbadeIrJBtjXWiuaadn6s2lS/gx8S0V3SOAmadkY/bj4YkhTRYLZJ17t03MlRrp76zjXyUvVk0TwHA28kbBJPXf78v2jjKjJHK5jOi+W8+LFfLBYzXTSwDNyV9jgKAwoxswSTtcsAX8Avm3jtVIxJsLv0SUj4YDtsa62AurZJcowAgfU2KRq/VCRYKTx3koq93mCZzG3qjIQmFGdmqyTRYLSRhiVY2Iilgtl8pMeULFroG76HBaiFBlsUe82nRwUhyTu8wTY52tOD7nftkP4Sr9rveyRfdryqbz+Cp1yPSTiQ5p8FqIZXNZ9BdfXresqTh/2yQSniURoN/yH+5U6/VYehEs+Lm3hfwo/T8SXKpvxs1BdtRXbBt3g8R5KGstUZNWW6BYAOfDAAce3+3osIbZFm09l4jKZ9tVUwGkGjyjxXv1jBTblF/FMLxq614LUFPlusSELtwkSjKRpkx0mnrw9GOFs78SskAc0zGh/nGL6Tk3HElMgDMRp1UJJpLq1T5m+xF0fXXn4rJABCRqd9ajhJTvurLgSyhs10d3PMrcfG4WH4Qljs3Bf97+Aj9+zGlpin+4yEFSZPRLgfZ+NUn3Phu3Q+yame8bgIgoowtBUkN3eDVsnA5J1pEQpBsP873dAKIvM+JKiHG6+YycyR9TtQJ2cdmfSrSPifqhGxOO/Ra3bwF8IUS6rMPqr5CRxMiQolL4lVdoaONfwHWO0Nr0JaOXgAAAABJRU5ErkJggg==';
+const FONT={impact:"ImpactCustom",rounded:"ArialRoundedCustom",source:"SourceSansCustom"};
+const ROW_Y=[320.9121,439.4824,558.0527,676.6230,795.1924,913.7627];
+const DESC_Y=[354.9277,473.4980,592.0684,710.6387,829.2080,947.7783];
+
+function esc(v){return String(v??"")}
 function sold(v){return v===true||v==="true"||v===1||v==="1"}
-function todayISO(){
-  const d=new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+function money(v){const n=Number(v);return Number.isFinite(n)?n.toFixed(2).replace(".",",")+" €":""}
+
+function addText(svg,x,y,value,font,size,anchor="start",weight="400",opacity=1){
+  const el=document.createElementNS("http://www.w3.org/2000/svg","text");
+  el.setAttribute("x",x); el.setAttribute("y",y);
+  el.setAttribute("font-family",font); el.setAttribute("font-size",size);
+  el.setAttribute("font-weight",weight); el.setAttribute("text-anchor",anchor);
+  el.setAttribute("fill","#171714"); el.setAttribute("opacity",opacity);
+  el.textContent=value; svg.appendChild(el);
 }
 
-async function ladeTV(){
-  const message=document.getElementById("message");
-  const daily=document.getElementById("daily");
-  const klassiker=document.getElementById("klassiker");
-  const schnitzel=document.getElementById("schnitzel");
-  const dessert=document.getElementById("dessert");
-
-  const [{data:gerichte,error:gerErr},{data:klassikerData,error:klErr}]=await Promise.all([
-    supabaseClient.from("Gerichte").select("*").eq("datum",todayISO()).eq("website_anzeigen",true)
-      .order("reihenfolge",{ascending:true,nullsFirst:false}).order("id",{ascending:true}),
-    supabaseClient.from("Klassiker").select("*").eq("aktiv",true)
-      .order("sortierung",{ascending:true}).order("id",{ascending:true})
-  ]);
-
-  if(gerErr){
-    console.error("TV Gerichte:",gerErr);
-    message.textContent="Tagesgerichte konnten nicht geladen werden.";
-    message.style.display="flex";
-    return;
-  }
-
-  const items=[...(gerichte||[])].sort((a,b)=>sold(a.ausverkauft)-sold(b.ausverkauft));
-
-  const icons={
-    veggie:"vegetarian.png"
-  };
-
-  function symbol(item){
-    return item.vegetarisch ? icons.veggie : "";
-  }
-
-  daily.innerHTML=items.slice(0,6).map(item=>{
-    const isSold=sold(item.ausverkauft);
-    const ico=symbol(item);
-    return `<article class="dish ${isSold?"sold-out":""}">
-      <div>${ico?`<img class="dish-icon" src="${ico}" alt="" onerror="this.style.display='none'">`:""}</div>
-      <div class="dish-main">
-        <div class="dish-name">${esc(item.gerichte||"")}</div>
-        <div class="dish-desc">${esc(item.beilage||"")}</div>
-        ${isSold?'<div class="sold-label">AUSVERKAUFT</div>':""}
-      </div>
-      <div class="dish-price">${money(item.preis)}</div>
-    </article>`;
-  }).join("");
-
-  daily.hidden=false;
-  message.hidden=true;
-  message.style.display="none";
-
-  const c=klassikerData||[];
-
-  const kraut =
-    c.find(
-      x => /kräuterquark/i.test(x.name||"")
-    );
-
-  const wurstgulasch =
-    c.find(
-      x =>
-        /wurstgulasch|wu-?gu/i.test(x.name||"") ||
-        /wurstgulasch|wu-?gu/i.test(x.beschreibung||"")
-    );
-
-  const schn =
-    c.find(
-      x => /schnitzel/i.test(x.name||"")
-    );
-
-  const wurstBasispreis =
-    wurstgulasch?.preis ?? 7.90;
-
-  const wurstKaesePreis =
-    wurstgulasch?.preis_mit_kaese ??
-    wurstgulasch?.preis_käse ??
-    wurstgulasch?.kaese_preis ??
-    8.20;
-
-  klassiker.innerHTML=`
-    <div class="classic-grid">
-
-      <div>
-        <div class="classic-title">
-          <span class="classic-veggie-wrap">
-            <img class="classic-veggie" src="${DATA_VEG}" alt="">
-          </span>
-          <span>KRÄUTERQUARK</span>
-        </div>
-
-        <div class="classic-desc">
-          KARTOFFELN,<br>
-          LEINÖL, ZWIEBELN
-        </div>
-
-        <div class="classic-price" style="position:absolute;left:226px;top:47px">
-          ${money(kraut?.preis ?? 6.90)}
-        </div>
-      </div>
-
-      <div>
-        <div class="classic-title">
-          <span>NUDELN</span>
-        </div>
-
-        <div class="classic-desc-price-row" style="margin-top:0">
-          <span class="classic-desc">WURSTGULASCH</span>
-          <span class="classic-inline-price">7,90 €</span>
-        </div>
-
-        <div class="classic-desc-price-row wugu-kaese-row" style="margin-top:0">
-          <span class="classic-desc wugu-kaese">WU-GU MIT KÄSE</span>
-          <span class="classic-inline-price">8,20 €</span>
-        </div>
-      </div>
-
-    </div>
-  `;
-  klassiker.hidden=false;
-  schnitzel.innerHTML=schn?`
-    <div class="menu-item">
-      <div class="menu-copy">
-        <strong>SCHNITZEL</strong><br>
-        MIT GETRÄNK<br>
-        UND ROHKOST<br>
-        ODER DESSERT
-      </div>
-      <div class="menu-price">
-        ${money(schn.preis ?? 11.50)}
-      </div>
-    </div>
-  `:"";
-  schnitzel.hidden=!schn;
-
-  /* Platzhalter-Inhalte entsprechen der sichtbaren Vorlage und können
-     später durch eigene Daten aus der Verwaltung ersetzt werden. */
-  dessert.innerHTML=`
-    <div class="dessert-columns">
-      <div>MÖHREN ROHKOST</div>
-      <div>WEISSKRAUT</div>
-      <div>SALAT</div>
-      <div>ROTE BEETE</div>
-      <div>SCHOKOPUDDING</div>
-      <div>ROTE GRÜTZE</div>
-      <div>QUARKSPEISE</div>
-      <div>MILCHREIS</div>
-    </div>
-  `;
-  dessert.hidden=false;
+function addImage(svg,href,x,y,w,h,opacity=1){
+  if(!href)return;
+  const el=document.createElementNS("http://www.w3.org/2000/svg","image");
+  el.setAttribute("href",href); el.setAttribute("x",x); el.setAttribute("y",y);
+  el.setAttribute("width",w); el.setAttribute("height",h); el.setAttribute("opacity",opacity);
+  svg.appendChild(el);
 }
 
-ladeTV();
-setInterval(ladeTV,60000);
-document.addEventListener("visibilitychange",()=>{if(!document.hidden)ladeTV()});
+function drawDaily(items){
+  const svg=document.getElementById("overlay");
+  const sorted=[...(items||[])].sort((a,b)=>sold(a.ausverkauft)-sold(b.ausverkauft));
+  sorted.slice(0,6).forEach((item,i)=>{
+    const opacity=sold(item.ausverkauft)?0.42:1;
+    addText(svg,195.8735,ROW_Y[i],String(item.gerichte||"").toUpperCase(),FONT.impact,48.5152,"start","400",opacity);
+    addText(svg,195.8735,DESC_Y[i],String(item.beilage||"").toUpperCase(),FONT.source,28.3465,"start","400",opacity);
+    addText(svg,1038.4954,ROW_Y[i]+10.4165,money(item.preis),FONT.rounded,31.6572,"end","700",opacity);
+    if(sold(item.ausverkauft)){
+      addText(svg,195.8735,DESC_Y[i]+18,"AUSVERKAUFT",FONT.source,10.5,"start","700",0.62);
+    }
+  });
+}
+
+function drawRight(){
+  const svg=document.getElementById("overlay");
+
+  // Tägliche Klassiker
+  addImage(svg,DATA_VEG,1193.6,363,24,24,0.88);
+  addText(svg,1220,382.6758,"KRÄUTERQUARK",FONT.rounded,21.8214,"start","700");
+  addText(svg,1193.6104,406.2,"KARTOFFELN,",FONT.source,20.6418);
+  addText(svg,1193.6104,429.795,"LEINÖL, ZWIEBELN",FONT.source,20.6418);
+  addText(svg,1485.6023,429.8569,"6,90 €",FONT.rounded,21.8214,"end","700");
+
+  addText(svg,1546.0038,382.6790,"NUDELN",FONT.rounded,21.8214,"start","700");
+  addText(svg,1546,406.2661,"WURSTGULASCH",FONT.source,20.6418);
+  addText(svg,1837.9880,406.2661,"7,90 €",FONT.rounded,21.8214,"end","700");
+  addText(svg,1546,429.8564,"WU-GU MIT KÄSE",FONT.source,20.6418);
+  addText(svg,1837.9871,429.8564,"8,20 €",FONT.rounded,21.8214,"end","700");
+
+  // Schnitzel Menü
+  addText(svg,1193.6104,603.7002,"SCHNITZEL",FONT.rounded,21.8214,"start","700");
+  addText(svg,1193.6104,627.2910,"MIT GETRÄNK",FONT.source,20.6418);
+  addText(svg,1193.6104,650.8845,"UND ROHKOST",FONT.source,20.6418);
+  addText(svg,1193.6104,674.4781,"ODER DESSERT",FONT.source,20.6418);
+  addText(svg,1498.7800,674.4722,"11,50 €",FONT.rounded,21.8214,"end","700");
+
+  // Beilagen & Desserts
+  const ys=[853.0889,876.6825,900.2761,923.8696];
+  ["MÖHREN ROHKOST","WEISSKRAUT","SALAT","ROTE BEETE"].forEach((v,i)=>addText(svg,1173.7441,ys[i],"- "+v,FONT.source,20.6418));
+  ["SCHOKOPUDDING","ROTE GRÜTZE","QUARKSPEISE","MILCHREIS"].forEach((v,i)=>addText(svg,1551.3652,ys[i],"- "+v,FONT.source,20.6418));
+}
+
+function scaleScreen(){
+  const s=Math.min(window.innerWidth/1920,window.innerHeight/1080);
+  document.getElementById("screen").style.transform=`scale(${s})`;
+}
+
+async function loadTV(){
+  try{
+    await document.fonts.ready;
+    const svg=document.getElementById("overlay");
+    svg.innerHTML="";
+    const datum=(()=>{
+      const d=new Date();
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    })();
+
+    const {data,error}=await supabaseClient
+      .from("Gerichte").select("*").eq("datum",datum).eq("website_anzeigen",true)
+      .order("reihenfolge",{ascending:true,nullsFirst:false}).order("id",{ascending:true});
+
+    if(error)throw error;
+    drawDaily(data);
+    drawRight();
+  }catch(e){
+    console.error("TV-Speiseplan:",e);
+  }
+}
+
+scaleScreen();
+window.addEventListener("resize",scaleScreen);
+loadTV();
+setInterval(loadTV,60000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)loadTV()});
 </script>
 </body>
 </html>
