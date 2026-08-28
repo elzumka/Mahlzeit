@@ -13,7 +13,8 @@
 .admin-bereich{display:none}.admin-bereich.active{display:block}.form,.saved-plans{background:rgba(255,255,255,.55);border:1px solid var(--line);padding:30px;margin-bottom:24px}
 label{display:block;margin-top:18px;margin-bottom:7px;font-weight:700}input,select{width:100%;box-sizing:border-box;padding:13px;font-size:16px;border:1px solid #bbb;background:#fff}input[type=checkbox]{width:auto}.checkbox{display:flex;align-items:center;gap:10px}.checkbox input{margin:0}
 button.save{margin-top:28px;padding:14px 24px;border:0;background:var(--green);color:var(--cream);font-size:16px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.06em}.save:hover{background:var(--green-dark)}
-#meldung,#speiseplan-meldung{margin-top:18px;font-weight:700}.intro{line-height:1.55;color:#555}.plan-info{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}.plan-info>div{background:var(--cream);border:1px solid var(--line);padding:15px}.plan-info span{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:#666;margin-bottom:5px}.plan-info strong{color:var(--green)}
+#meldung,#speiseplan-meldung{margin-top:18px;font-weight:700}
+.edit-symbol{margin-top:8px}.intro{line-height:1.55;color:#555}.plan-info{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}.plan-info>div{background:var(--cream);border:1px solid var(--line);padding:15px}.plan-info span{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:#666;margin-bottom:5px}.plan-info strong{color:var(--green)}
 #speiseplan-bearbeiten{display:none;background:var(--cream);border:1px solid var(--line);padding:18px;margin-top:18px}
 #speiseplan-bearbeiten.active{display:block}
 
@@ -2638,6 +2639,26 @@ button{
 <label for="gericht">Gericht</label><input type="text" id="gericht" placeholder="z. B. Schnitzel">
 <label for="beilage">Beilage</label><input type="text" id="beilage" placeholder="z. B. Bratkartoffeln, Bohnen-Pilzrahm">
 <label for="preis">Preis</label><input type="number" id="preis" step="0.01" placeholder="z. B. 8.90">
+
+<label for="symbol">Symbol</label>
+<select id="symbol">
+  <option value="">Kein Symbol</option>
+  <option value="veggie">Vegetarisch</option>
+  <option value="hähnchen">Huhn</option>
+  <option value="ente">Ente</option>
+  <option value="gans">Gans</option>
+  <option value="schwein">Schwein</option>
+  <option value="rind">Rind</option>
+  <option value="reh">Hirsch / Reh</option>
+  <option value="wildschwein">Wildschwein</option>
+  <option value="fisch">Fisch</option>
+  <option value="ei">Ei</option>
+  <option value="camembert">Camembert</option>
+  <option value="käse">Käse</option>
+  <option value="rind_schwein">Rind &amp; Schwein</option>
+  <option value="pilz">Pilze</option>
+</select>
+
 <label class="checkbox"><input type="checkbox" id="vegetarisch"> Vegetarisch</label>
 <label class="checkbox"><input type="checkbox" id="website_anzeigen" checked> Auf Website anzeigen</label>
 <label class="checkbox"><input type="checkbox" id="speiseplan_anzeigen" checked> Auf Speiseplan drucken</label>
@@ -3472,12 +3493,29 @@ function zeigeBereich(id,button){
   if(button)button.classList.add('active');
 }
 
+// Symbolauswahl und Vegetarisch-Haken synchron halten.
+(function(){
+  const symbolEl=document.getElementById("symbol");
+  const veggieEl=document.getElementById("vegetarisch");
+  if(!symbolEl || !veggieEl) return;
+  symbolEl.addEventListener("change",()=>{
+    if(symbolEl.value==="veggie") veggieEl.checked=true;
+    else if(symbolEl.value) veggieEl.checked=false;
+  });
+  veggieEl.addEventListener("change",()=>{
+    if(veggieEl.checked) symbolEl.value="veggie";
+    else if(symbolEl.value==="veggie") symbolEl.value="";
+  });
+})();
+
 async function gerichtSpeichern(){
     const datum = document.getElementById('datum').value;
     const gericht = document.getElementById('gericht').value.trim();
     const beilage = document.getElementById('beilage').value.trim();
     const preis = document.getElementById('preis').value;
+    const symbolAuswahl = document.getElementById('symbol').value;
     const vegetarisch = document.getElementById('vegetarisch').checked;
+    const symbol = symbolAuswahl || (vegetarisch ? 'veggie' : '');
     const websiteAnzeigen = document.getElementById('website_anzeigen').checked;
     const speiseplanAnzeigen = document.getElementById('speiseplan_anzeigen').checked;
     const meldung = document.getElementById('meldung');
@@ -3499,6 +3537,7 @@ async function gerichtSpeichern(){
         beilage,
         preis,
         vegetarisch,
+        symbol,
         website_anzeigen: websiteAnzeigen,
         speiseplan_anzeigen: speiseplanAnzeigen,
         ausverkauft: document.getElementById('ausverkauft').checked,
@@ -3516,6 +3555,7 @@ async function gerichtSpeichern(){
     document.getElementById('gericht').value='';
     document.getElementById('beilage').value='';
     document.getElementById('preis').value='';
+    document.getElementById('symbol').value='';
     document.getElementById('vegetarisch').checked=false;
     document.getElementById('website_anzeigen').checked=true;
     document.getElementById('speiseplan_anzeigen').checked=true;
@@ -3742,9 +3782,9 @@ async function gerichteLaden(){
                           <small>
                             ${Number(gericht.preis || 0).toFixed(2).replace(".",",")} €
                             ${
-                              gericht.vegetarisch
-                                ? " · Vegetarisch"
-                                : ""
+                              gericht.symbol
+                                ? ` · Symbol: ${gericht.symbol}`
+                                : (gericht.vegetarisch ? " · Symbol: veggie" : "")
                             }
                             ${
                               sold
@@ -3779,6 +3819,27 @@ async function gerichteLaden(){
                               value="${gericht.preis ?? ""}"
                               placeholder="Preis"
                             >
+
+                            <select
+                              id="edit-symbol-${gericht.id}"
+                              class="edit-symbol"
+                            >
+                              <option value="">Kein Symbol</option>
+                              <option value="veggie" ${gericht.symbol==="veggie" ? "selected" : ""}>Vegetarisch</option>
+                              <option value="hähnchen" ${gericht.symbol==="hähnchen" ? "selected" : ""}>Huhn</option>
+                              <option value="ente" ${gericht.symbol==="ente" ? "selected" : ""}>Ente</option>
+                              <option value="gans" ${gericht.symbol==="gans" ? "selected" : ""}>Gans</option>
+                              <option value="schwein" ${gericht.symbol==="schwein" ? "selected" : ""}>Schwein</option>
+                              <option value="rind" ${gericht.symbol==="rind" ? "selected" : ""}>Rind</option>
+                              <option value="reh" ${gericht.symbol==="reh" ? "selected" : ""}>Hirsch / Reh</option>
+                              <option value="wildschwein" ${gericht.symbol==="wildschwein" ? "selected" : ""}>Wildschwein</option>
+                              <option value="fisch" ${gericht.symbol==="fisch" ? "selected" : ""}>Fisch</option>
+                              <option value="ei" ${gericht.symbol==="ei" ? "selected" : ""}>Ei</option>
+                              <option value="camembert" ${gericht.symbol==="camembert" ? "selected" : ""}>Camembert</option>
+                              <option value="käse" ${gericht.symbol==="käse" ? "selected" : ""}>Käse</option>
+                              <option value="rind_schwein" ${gericht.symbol==="rind_schwein" ? "selected" : ""}>Rind &amp; Schwein</option>
+                              <option value="pilz" ${gericht.symbol==="pilz" ? "selected" : ""}>Pilze</option>
+                            </select>
                           </div>
 
                           <div
@@ -3876,6 +3937,11 @@ async function gerichtAenderungSpeichern(
             `edit-preis-${id}`
         ).value;
 
+    const symbol =
+        document.getElementById(
+            `edit-symbol-${id}`
+        ).value;
+
 
     if(
         !gericht ||
@@ -3900,7 +3966,9 @@ async function gerichtAenderungSpeichern(
             .update({
                 gerichte:gericht,
                 beilage:beilage,
-                preis:preis
+                preis:preis,
+                symbol:symbol,
+                vegetarisch:(symbol === "veggie")
             })
             .eq(
                 'id',
