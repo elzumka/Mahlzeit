@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mahlzeit! - Mittagstisch heute</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;width:100%;height:100%;background:#111;overflow:hidden}
+  body{display:flex;align-items:center;justify-content:center}
+
+  .tv-screen{
+    position:relative;
+    width:100vw;
+    height:100vh;
+    max-width:177.7778vh;
+    max-height:56.25vw;
+    aspect-ratio:16/9;
+    background:#f5eee5 url("digitale-anzeige-vorlage.png") center/100% 100% no-repeat;
+    overflow:hidden;
+  }
+
+  .layer{
+    position:absolute;
+    inset:0;
+    font-family:Arial,Helvetica,sans-serif;
+    color:#1f2620;
+  }
+
+  .loading{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:2.1vw;
+    color:#31583d;
+    letter-spacing:.03em;
+  }
+
+  /* Tagesgerichte – großer Hauptbereich links */
+  .today-dishes{
+    position:absolute;
+    left:7.1%;
+    top:27.5%;
+    width:51.5%;
+    height:61%;
+    display:flex;
+    flex-direction:column;
+    gap:1.9%;
+    overflow:hidden;
+  }
+
+  .dish{
+    display:grid;
+    grid-template-columns:3.2% minmax(0,1fr) auto;
+    column-gap:1.6%;
+    align-items:start;
+    min-height:0;
+    padding:0;
+  }
+
+  .dish-icon{
+    width:100%;
+    aspect-ratio:1;
+    margin-top:.2em;
+    opacity:.9;
+    object-fit:contain;
+  }
+
+  .dish-main{
+    min-width:0;
+    padding-right:1em;
+  }
+
+  .dish-name{
+    font-size:2.05vw;
+    line-height:1.02;
+    font-weight:800;
+    letter-spacing:.015em;
+    text-transform:uppercase;
+  }
+
+  .dish-desc{
+    margin-top:.32em;
+    font-size:1.28vw;
+    line-height:1.05;
+    letter-spacing:.02em;
+    text-transform:uppercase;
+  }
+
+  .dish-price{
+    white-space:nowrap;
+    font-size:1.72vw;
+    line-height:1;
+    font-weight:800;
+    padding-top:.18em;
+  }
+
+  .dish.sold-out{
+    opacity:.48;
+    order:99;
+  }
+
+  .sold-label{
+    display:inline-block;
+    margin-top:.22em;
+    padding:.18em .45em;
+    border:1px solid #5b655d;
+    border-radius:999px;
+    font-size:.76vw;
+    line-height:1;
+    letter-spacing:.08em;
+    font-weight:800;
+  }
+
+  /* Rechte Boxen */
+  .side-box{
+    position:absolute;
+    left:61.7%;
+    width:32.5%;
+    display:flex;
+    flex-direction:column;
+    color:#1f2620;
+  }
+
+  .klassiker-box{top:23.1%;height:28.0%;padding:5.2% 3.8% 1.5%}
+  .schnitzel-box{top:39.1%;height:27.8%;padding:5.0% 3.8% 1.5%}
+  .dessert-box{top:54.9%;height:25.0%;padding:5.2% 3.8% 1.5%}
+
+  .side-item{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:.5em;
+    margin-bottom:.75em;
+    font-size:1.20vw;
+    line-height:1.05;
+  }
+
+  .side-item strong{
+    font-size:1.29vw;
+    text-transform:uppercase;
+    font-weight:800;
+  }
+
+  .side-desc{
+    margin-top:.18em;
+    font-size:1.03vw;
+    line-height:1.05;
+    text-transform:uppercase;
+  }
+
+  .side-price{
+    white-space:nowrap;
+    font-weight:800;
+    font-size:1.16vw;
+    align-self:start;
+  }
+
+  .empty-note{
+    font-size:1.0vw;
+    opacity:.55;
+  }
+
+  .status{
+    position:absolute;
+    left:6.9%;
+    bottom:3.4%;
+    color:#31583d;
+    font-size:.8vw;
+    letter-spacing:.04em;
+    opacity:.55;
+  }
+
+  @media(max-aspect-ratio:16/9){
+    .tv-screen{width:100vw;height:auto}
+  }
+  @media(min-aspect-ratio:16/9){
+    .tv-screen{width:auto;height:100vh}
+  }
+</style>
+</head>
+<body>
+  <main class="tv-screen" aria-label="Mittagstisch heute">
+    <div class="layer">
+      <div id="loading" class="loading">Speiseplan wird geladen …</div>
+      <section id="today-dishes" class="today-dishes" hidden></section>
+      <section id="klassiker" class="side-box klassiker-box" hidden></section>
+      <section id="schnitzel" class="side-box schnitzel-box" hidden></section>
+      <section id="dessert" class="side-box dessert-box" hidden></section>
+    </div>
+  </main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://kpomtfkngyaojimwaosw.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_NhBrxE_DK7laWTa3HG1BvQ_JZeBj5NK';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function isoHeute(){
+  const d=new Date();
+  return [
+    d.getFullYear(),
+    String(d.getMonth()+1).padStart(2,"0"),
+    String(d.getDate()).padStart(2,"0")
+  ].join("-");
+}
+
+function preis(value){
+  const n=Number(value);
+  return Number.isFinite(n) ? n.toFixed(2).replace(".",",")+" €" : "";
+}
+
+function esc(value){
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function isSold(item){
+  return item.ausverkauft===true ||
+         item.ausverkauft==="true" ||
+         item.ausverkauft===1 ||
+         item.ausverkauft==="1";
+}
+
+async function ladeAnzeige(){
+  const loading=document.getElementById("loading");
+  const today=document.getElementById("today-dishes");
+  const klassiker=document.getElementById("klassiker");
+  const schnitzel=document.getElementById("schnitzel");
+  const dessert=document.getElementById("dessert");
+
+  const datum=isoHeute();
+
+  const [{
+    data:gerichte,
+    error:gerichteError
+  },{data:klassikerData,error:klassikerError}] =
+    await Promise.all([
+      supabaseClient
+        .from("Gerichte")
+        .select("*")
+        .eq("datum",datum)
+        .eq("website_anzeigen",true)
+        .order("reihenfolge",{ascending:true,nullsFirst:false})
+        .order("id",{ascending:true}),
+      supabaseClient
+        .from("Klassiker")
+        .select("*")
+        .eq("aktiv",true)
+        .order("sortierung",{ascending:true})
+        .order("id",{ascending:true})
+    ]);
+
+  if(gerichteError){
+    console.error("Gerichte:",gerichteError);
+    loading.textContent="Speiseplan konnte nicht geladen werden.";
+    return;
+  }
+
+  if(klassikerError){
+    console.warn("Klassiker:",klassikerError);
+  }
+
+  const items=[...(gerichte||[])];
+  items.sort((a,b)=>isSold(a)-isSold(b));
+
+  today.innerHTML = items.map(item=>{
+    const sold=isSold(item);
+    return `
+      <article class="dish ${sold ? "sold-out" : ""}">
+        <div></div>
+        <div class="dish-main">
+          <div class="dish-name">${esc(item.gerichte||"")}</div>
+          <div class="dish-desc">${esc(item.beilage||"")}</div>
+          ${sold ? '<div class="sold-label">AUSVERKAUFT</div>' : ''}
+        </div>
+        <div class="dish-price">${preis(item.preis)}</div>
+      </article>
+    `;
+  }).join("");
+
+  today.hidden=false;
+  loading.hidden=true;
+
+  const klass=(klassikerData||[]).filter(item =>
+    !/schnitzel/i.test(item.name||"")
+  );
+
+  klassiker.innerHTML = klass.length
+    ? klass.map(item=>`
+        <div class="side-item">
+          <div>
+            <strong>${esc(item.name)}</strong>
+            <div class="side-desc">${esc(item.beschreibung||"")}</div>
+          </div>
+          <div class="side-price">${preis(item.preis)}</div>
+        </div>
+      `).join("")
+    : '<div class="empty-note">Keine Angaben</div>';
+  klassiker.hidden=false;
+
+  const schn=(klassikerData||[]).find(item =>
+    /schnitzel/i.test(item.name||"")
+  );
+
+  schnitzel.innerHTML = schn
+    ? `
+      <div class="side-item">
+        <div>
+          <strong>${esc(schn.name)}</strong>
+          <div class="side-desc">${esc(schn.beschreibung||"")}</div>
+        </div>
+        <div class="side-price">${preis(schn.preis)}</div>
+      </div>`
+    : '<div class="empty-note">Keine Angaben</div>';
+  schnitzel.hidden=false;
+
+  /*
+   * Für Beilagen & Desserts gibt es in der aktuellen Datenstruktur
+   * noch keinen eigenen Bereich. Die Vorlage bleibt dafür vorbereitet.
+   */
+  dessert.innerHTML =
+    '<div class="empty-note">Über die Verwaltung ergänzbar.</div>';
+  dessert.hidden=false;
+}
+
+ladeAnzeige();
+setInterval(ladeAnzeige, 60000);
+document.addEventListener("visibilitychange",()=>{
+  if(!document.hidden) ladeAnzeige();
+});
+</script>
+</body>
+</html>
