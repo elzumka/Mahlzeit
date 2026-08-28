@@ -3746,6 +3746,11 @@ async function gerichteLaden(){
                                 ? " · Vegetarisch"
                                 : ""
                             }
+                            ${
+                              sold
+                                ? ' · <strong style="color:#b84b3a;">AUSVERKAUFT</strong>'
+                                : ""
+                            }
                           </small>
 
                           <div
@@ -3813,14 +3818,14 @@ async function gerichteLaden(){
                           type="button"
                           class="${
                             sold
-                              ? "ausverkauft-aktiv"
-                              : ""
+                              ? "ausverkauft-button"
+                              : "verfuegbar-button"
                           }"
                           onclick="gerichtAusverkauftUmschalten(${gericht.id},${!sold})"
                         >
                           ${
                             sold
-                              ? "Ausverkauft"
+                              ? "Wieder verfügbar"
                               : "Ausverkauft"
                           }
                         </button>
