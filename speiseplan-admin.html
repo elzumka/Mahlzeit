@@ -3992,7 +3992,6 @@ async function gerichtAusverkauftUmschalten(
 
 
     const {
-        data:updatedRow,
         error
     } =
         await supabaseClient
@@ -4003,9 +4002,7 @@ async function gerichtAusverkauftUmschalten(
             .eq(
                 'id',
                 id
-            )
-            .select('id,ausverkauft')
-            .single();
+            );
 
 
     if(error){
@@ -4028,7 +4025,7 @@ async function gerichtAusverkauftUmschalten(
         document.getElementById(
             'meldung'
         ).textContent =
-            'Status konnte nicht geändert werden.';
+            'Status konnte nicht geändert werden. Bitte Supabase-Berechtigungen prüfen.';
 
         return;
     }
