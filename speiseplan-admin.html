@@ -3720,7 +3720,10 @@ async function gerichteLaden(){
 
 
                     const sold =
-                        gericht.ausverkauft;
+                        gericht.ausverkauft === true ||
+                        gericht.ausverkauft === "true" ||
+                        gericht.ausverkauft === 1 ||
+                        gericht.ausverkauft === "1";
 
 
                     eintrag.innerHTML=`
@@ -3989,6 +3992,7 @@ async function gerichtAusverkauftUmschalten(
 
 
     const {
+        data:updatedRow,
         error
     } =
         await supabaseClient
@@ -3999,7 +4003,9 @@ async function gerichtAusverkauftUmschalten(
             .eq(
                 'id',
                 id
-            );
+            )
+            .select('id,ausverkauft')
+            .single();
 
 
     if(error){
