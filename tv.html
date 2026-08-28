@@ -9,6 +9,10 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111}
 body{display:flex;align-items:center;justify-content:center}
 #stage{width:1939.4px;height:1108.34px;position:relative;transform-origin:center center}
 #template{display:block;width:1939.4px;height:1108.34px}
+
+.dynamic-symbol{
+  image-rendering:auto;
+}
 </style>
 </head>
 <body>
@@ -70,6 +74,72 @@ function setText(group,index,value){
   }
 }
 
+
+const TV_SYMBOL_FILES = {
+  "veggie":"veggie.png",
+  "vegetarisch":"veggie.png",
+  "hähnchen":"hähnchen.png",
+  "huhn":"hähnchen.png",
+  "ente":"ente.png",
+  "gans":"gans.png",
+  "schwein":"schwein.png",
+  "rind":"rind.png",
+  "reh":"reh.png",
+  "hirsch":"reh.png",
+  "wildschwein":"wildschwein.png",
+  "fisch":"fisch.png",
+  "ei":"ei.png",
+  "camembert":"camembert.png",
+  "käse":"käse.png",
+  "rind_schwein":"rind_schwein.png",
+  "rind & schwein":"rind_schwein.png",
+  "pilz":"pilz.png"
+};
+
+function setSymbol(groupId,symbol){
+  const group=document.getElementById(groupId);
+  if(!group)return;
+
+  const rect=group.querySelector("rect[width][height]");
+  if(!rect)return;
+
+  let img=group.querySelector("image.dynamic-symbol");
+
+  const key=String(symbol||"").trim().toLowerCase();
+  const file=TV_SYMBOL_FILES[key]||"";
+
+  if(!file){
+    if(img)img.remove();
+    rect.style.display="";
+    return;
+  }
+
+  const x=parseFloat(rect.getAttribute("x")||"0");
+  const y=parseFloat(rect.getAttribute("y")||"0");
+  const w=parseFloat(rect.getAttribute("width")||"54");
+  const h=parseFloat(rect.getAttribute("height")||"54");
+
+  if(!img){
+    img=document.createElementNS("http://www.w3.org/2000/svg","image");
+    img.classList.add("dynamic-symbol");
+    img.setAttribute("preserveAspectRatio","xMidYMid meet");
+    img.addEventListener("error",()=>{
+      console.warn("TV-Symbol konnte nicht geladen werden:",file);
+      img.remove();
+      rect.style.display="";
+    });
+    group.appendChild(img);
+  }
+
+  // URL encode only the filename; this also supports ä/ö/ü in filenames.
+  img.setAttribute("href",encodeURI(file));
+  img.setAttribute("x",x);
+  img.setAttribute("y",y);
+  img.setAttribute("width",w);
+  img.setAttribute("height",h);
+  rect.style.display="none";
+}
+
 function setRowVisibility(group,visible){
   const g=document.getElementById(group);
   if(g)g.style.display=visible?"":"none";
@@ -116,6 +186,7 @@ async function ladeTV(){
 
     setRowVisibility(group,true);
     setSoldStyle(group,isSold(item.ausverkauft));
+    setSymbol(group,item.symbol || (item.vegetarisch ? "veggie" : ""));
 
     setText(group,0,String(item.gerichte||"").toUpperCase());
     setText(group,1,String(item.beilage||"").toUpperCase());
