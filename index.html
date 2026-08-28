@@ -2360,6 +2360,54 @@ body.legal-modal-open{overflow:hidden;}
   }
 }
 
+
+/* Mobile: Öffnungszeiten kompakter, damit der Mittagstisch schneller
+   erreichbar ist. Desktop-Darstellung bleibt unverändert. */
+@media(max-width:760px){
+
+  .info{
+    padding:0 4vw 28px;
+  }
+
+  .info-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+
+  .info-card{
+    padding:14px 8px 12px;
+  }
+
+  .info-card .icon{
+    margin-bottom:4px;
+  }
+
+  .info-card .icon img{
+    width:48px;
+    height:48px;
+  }
+
+  .info-card h3{
+    font-size:17px;
+    line-height:1;
+    margin:3px 0;
+  }
+
+  .info-card .info-days,
+  .info-card .info-time{
+    font-size:12px;
+    line-height:1.25;
+    margin:2px 0;
+  }
+
+  #top-banner-text{
+    margin:10px 0 0 !important;
+    font-size:10px;
+    line-height:1.35;
+    letter-spacing:.035em !important;
+  }
+
+}
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
