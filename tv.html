@@ -171,8 +171,9 @@ async function ladeTV(){
     return;
   }
 
-  const items=[...(data||[])].sort(
-    (a,b)=>isSold(a.ausverkauft)-isSold(b.ausverkauft)
+  // Ausverkaufte Gerichte werden auf der TV-Anzeige vollständig ausgeblendet.
+  const items=[...(data||[])].filter(
+    item=>!isSold(item.ausverkauft)
   );
 
   for(let i=1;i<=7;i++){
