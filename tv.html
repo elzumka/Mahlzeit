@@ -17,11 +17,11 @@ body{display:flex;align-items:center;justify-content:center}
 
 /* Exakt über den sechs linken Platzhaltern der Illustrator-Datei */
 .daily{
-  position:absolute;left:9.75%;top:22.8%;width:43.1%;height:58.7%;
+  position:absolute;left:9.55%;top:23.1%;width:43.4%;height:58.0%;
   display:grid;grid-template-rows:repeat(6,1fr)
 }
 .dish{
-  display:grid;grid-template-columns:7.0% minmax(0,1fr) 15.5%;column-gap:1.25%;
+  display:grid;grid-template-columns:7.0% minmax(0,1fr) 16.0%;column-gap:1.15%;
   align-items:start;padding-top:1.0%;min-width:0
 }
 .dish-icon{
@@ -29,7 +29,7 @@ body{display:flex;align-items:center;justify-content:center}
 }
 .dish-main{min-width:0}
 .dish-name{
-  font-family:"Arial Rounded MT Bold",Arial,sans-serif;font-size:1.68vw;line-height:1;
+  font-family:"Arial Rounded MT Bold",Arial,sans-serif;font-size:1.66vw;line-height:1;
   font-weight:800;text-transform:uppercase;white-space:nowrap;overflow:hidden
 }
 .dish-desc{
@@ -56,12 +56,17 @@ body{display:flex;align-items:center;justify-content:center}
 
 .classic-grid{display:grid;grid-template-columns:1fr 1fr;gap:8%;height:100%}
 .classic-title{
-  display:flex;gap:.18em;font-family:"Arial Rounded MT Bold",Arial,sans-serif;
-  font-size:1.10vw;font-weight:800;text-transform:uppercase;line-height:1
+  display:flex;gap:.18em;font-family:"Source Sans Variable","Century Gothic",Arial,sans-serif;
+  font-size:1.06vw;font-weight:700;text-transform:uppercase;line-height:1
+}
+
+.classic-title.wugu-kaese{
+  font-family:"Source Sans Variable","Century Gothic",Arial,sans-serif;
+  font-weight:600;
 }
 .classic-desc{
   margin-top:.15em;font-family:"Source Sans Variable","Century Gothic",Arial,sans-serif;
-  font-size:.97vw;line-height:1.04;text-transform:uppercase
+  font-size:.93vw;line-height:1.04;text-transform:uppercase
 }
 .classic-price{
   margin-top:.10em;font-family:"Arial Rounded MT Bold",Arial,sans-serif;
@@ -84,12 +89,21 @@ body{display:flex;align-items:center;justify-content:center}
 }
 @media(max-aspect-ratio:16/9){.tv-screen{width:100vw;height:auto}}
 @media(min-aspect-ratio:16/9){.tv-screen{width:auto;height:100vh}}
+
+.classic-veggie{
+  display:inline-block;
+  font-size:1.12em;
+  line-height:1;
+  transform:translateY(.02em);
+  color:#31583d;
+}
+
 </style>
 </head>
 <body>
 <main class="tv-screen">
   <div class="layer">
-    <div id="message">Mittagstisch wird geladen …</div>
+    <div id="message" style="display:none">Mittagstisch wird geladen …</div>
     <section id="daily" class="daily" hidden></section>
     <section id="klassiker" class="klassiker-box" hidden></section>
     <section id="schnitzel" class="schnitzel-box" hidden></section>
@@ -134,6 +148,7 @@ async function ladeTV(){
   if(gerErr){
     console.error("TV Gerichte:",gerErr);
     message.textContent="Tagesgerichte konnten nicht geladen werden.";
+    message.style.display="flex";
     return;
   }
 
@@ -163,6 +178,7 @@ async function ladeTV(){
 
   daily.hidden=false;
   message.hidden=true;
+  message.style.display="none";
 
   const c=klassikerData||[];
 
@@ -171,11 +187,6 @@ async function ladeTV(){
       x => /kräuterquark/i.test(x.name||"")
     );
 
-  /*
-   * Wurstgulasch wird anhand von Name UND Beschreibung erkannt.
-   * Dadurch funktioniert es auch dann, wenn im Datensatz "Nudeln"
-   * nur als Beilage/Beschreibung steht.
-   */
   const wurstgulasch =
     c.find(
       x =>
@@ -188,79 +199,70 @@ async function ladeTV(){
       x => /schnitzel/i.test(x.name||"")
     );
 
-  const wurstBeschreibung =
-    wurstgulasch?.beschreibung || "";
-
   const wurstBasispreis =
-    wurstgulasch?.preis;
+    wurstgulasch?.preis ?? 7.90;
 
-  const kaesePreis =
+  const wurstKaesePreis =
     wurstgulasch?.preis_mit_kaese ??
     wurstgulasch?.preis_käse ??
     wurstgulasch?.kaese_preis ??
-    null;
-
-  /*
-   * Wenn kein separates Käse-Preisfeld existiert, zeigen wir nur
-   * den tatsächlich hinterlegten Preis. So wird nichts erfunden.
-   */
-  const wurstPreisZeile =
-    kaesePreis !== null && kaesePreis !== undefined
-      ? `
-          <div class="classic-title">
-            <span>NUDELN</span>
-          </div>
-          <div class="classic-desc">WURSTGULASCH</div>
-          <div class="classic-price">${money(wurstBasispreis)}</div>
-
-          <div class="classic-title" style="margin-top:.28em">
-            <span>MIT KÄSE</span>
-          </div>
-          <div class="classic-price">${money(kaesePreis)}</div>
-        `
-      : `
-          <div class="classic-title">
-            <span>NUDELN</span>
-          </div>
-          <div class="classic-desc">
-            ${esc(
-              wurstBeschreibung
-                .replace(/^nudeln\s*[-·:]?\s*/i,"")
-                .trim() || "WURSTGULASCH"
-            )}
-          </div>
-          <div class="classic-price">${money(wurstBasispreis)}</div>
-        `;
+    8.20;
 
   klassiker.innerHTML=`
     <div class="classic-grid">
+
       <div>
         ${kraut?`
           <div class="classic-title">
-            <span>◦</span>
+            <span class="classic-veggie">◦</span>
             <span>${esc(kraut.name)}</span>
           </div>
-          <div class="classic-desc">${esc(kraut.beschreibung||"")}</div>
-          <div class="classic-price">${money(kraut.preis)}</div>
+          <div class="classic-desc">
+            ${esc(kraut.beschreibung||"")}
+          </div>
+          <div class="classic-price">
+            ${money(kraut.preis)}
+          </div>
         `:""}
       </div>
 
       <div>
-        ${wurstgulasch ? wurstPreisZeile : ""}
-      </div>
-    </div>`;
+        ${wurstgulasch?`
+          <div class="classic-title">
+            <span>NUDELN</span>
+          </div>
+          <div class="classic-desc">
+            WURSTGULASCH
+          </div>
+          <div class="classic-price">
+            ${money(wurstBasispreis)}
+          </div>
 
+          <div class="classic-title wugu-kaese" style="margin-top:.30em">
+            <span>WU-GU MIT KÄSE</span>
+          </div>
+          <div class="classic-price">
+            ${money(wurstKaesePreis)}
+          </div>
+        `:""}
+      </div>
+
+    </div>
+  `;
   klassiker.hidden=false;
 
   schnitzel.innerHTML=schn?`
     <div class="menu-item">
       <div class="menu-copy">
-        <strong>${esc(schn.name)}</strong><br>
-        ${esc(schn.beschreibung||"")}
+        <strong>SCHNITZEL</strong><br>
+        MIT ROHKOST ODER DESSERT<br>
+        UND GETRÄNK
       </div>
-      <div class="menu-price">${money(schn.preis)}</div>
-    </div>`:"";
-
+      <div class="menu-price">
+        ${money(schn.preis ?? 11.50)}
+      </div>
+    </div>
+  `:"";
   schnitzel.hidden=!schn;
 
   /* Platzhalter-Inhalte entsprechen der sichtbaren Vorlage und können
