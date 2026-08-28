@@ -14,6 +14,15 @@ body{display:flex;align-items:center;justify-content:center}
   image-rendering:auto;
 }
 </style>
+<style id="tv-dynamic-base-hide">
+#template #Rohkost,
+#template #dessert{display:none !important;}
+</style>
+<style id="tv-rohkost-dessert-font">
+#tv-dynamische-zusatzangebote text{
+  font-family:"Source Sans Variable","SourceSansRoman-Regular",sans-serif !important;
+}
+</style>
 </head>
 <body>
 <div id="stage">
@@ -157,6 +166,61 @@ function scaleStage(){
   stage.style.transform=`scale(${s})`;
 }
 
+
+function addTVText(svg,x,y,value,font,size,opts={}){
+  const el=document.createElementNS("http://www.w3.org/2000/svg","text");
+  el.setAttribute("x",x);
+  el.setAttribute("y",y);
+  el.setAttribute("font-family",font);
+  el.setAttribute("font-size",size);
+  el.setAttribute("font-weight",opts.weight||"400");
+  el.setAttribute("fill",opts.fill||"#1d1d1b");
+  el.setAttribute("letter-spacing",opts.letterSpacing||"0em");
+  el.textContent=value;
+  svg.appendChild(el);
+}
+
+async function ladeTVZusatzangebote(){
+  const {data,error}=await supabaseClient
+    .from("TV_Zusatzangebote")
+    .select("*")
+    .eq("aktiv",true)
+    .order("typ",{ascending:true})
+    .order("position",{ascending:true});
+
+  if(error){
+    console.warn("TV Zusatzangebote:",error);
+    return;
+  }
+
+  const old=document.getElementById("tv-dynamische-zusatzangebote");
+  if(old) old.remove();
+
+  const svg=document.getElementById("template");
+  if(!svg) return;
+
+  const g=document.createElementNS("http://www.w3.org/2000/svg","g");
+  g.setAttribute("id","tv-dynamische-zusatzangebote");
+
+  const rows={rohkost:[],dessert:[]};
+  (data||[]).forEach(r=>{
+    const typ=String(r.typ||"").toLowerCase();
+    if(rows[typ] && String(r.name||"").trim()) rows[typ].push(String(r.name).trim());
+  });
+
+  const ys=[853.0889,878.5,903.9,929.3];
+
+  rows.rohkost.slice(0,4).forEach((v,i)=>{
+    addTVText(g,1173.7441,ys[i],"- "+v,"Source Sans Variable",20.6418);
+  });
+
+  rows.dessert.slice(0,4).forEach((v,i)=>{
+    addTVText(g,1551.3652,ys[i],"- "+v,"Source Sans Variable",20.6418);
+  });
+
+  svg.appendChild(g);
+}
+
 async function ladeTV(){
   const {data,error}=await supabaseClient
     .from("Gerichte")
@@ -201,6 +265,8 @@ async function ladeTV(){
         : ""
     );
   }
+
+  await ladeTVZusatzangebote();
 }
 
 scaleStage();
