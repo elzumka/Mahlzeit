@@ -2247,11 +2247,6 @@ button{
     padding-right:28px !important;
   }
 
-  .admin-primary-tabs .tv-main-tab{
-    min-width:0 !important;
-    padding-right:5px !important;
-  }
-
   .admin-secondary-nav{
     margin:7px 0 10px !important;
   }
@@ -2443,14 +2438,6 @@ button{
   </button>
 
   <button
-    class="admin-tab primary tv-main-tab"
-    type="button"
-    onclick="zeigeBereich('tv-zusatzangebote-bereich',this);tvZusatzangeboteLaden()"
-  >
-    <strong>TV-Anzeige</strong>
-  </button>
-
-  <button
     class="admin-tab primary"
     type="button"
     onclick="zeigeBereich('speiseplan-bereich',this);sp_init()"
@@ -2590,6 +2577,14 @@ button{
       </button>
 
       <button
+        type="button"
+        onclick="adminMehrBereich('tv-zusatzangebote-bereich',this);tvZusatzangeboteLaden()"
+      >
+        <strong>TV-Anzeige</strong>
+        <span>Rohkost &amp; Desserts</span>
+      </button>
+
+<button
         type="button"
         onclick="adminMehrBereich('ankuendigungen-bereich',this);ankuendigungenLaden()"
       >
@@ -5554,32 +5549,46 @@ async function tvZusatzangeboteLaden(){
 
 async function tvZusatzangeboteSpeichern(){
   const msg=document.getElementById("tv-zusatzangebote-meldung");
-  const rows=[];
-
-  for(const typ of ["rohkost","dessert"]){
-    for(let i=1;i<=4;i++){
-      rows.push({
-        typ,
-        position:i,
-        name:(document.getElementById(`tv-${typ}-${i}`)?.value||"").trim(),
-        aktiv:true
-      });
-    }
-  }
 
   if(msg) msg.textContent="Wird gespeichert …";
 
-  const {error}=await supabaseClient
-    .from("TV_Zusatzangebote")
-    .upsert(rows,{onConflict:"typ,position"});
+  try{
+    for(const typ of ["rohkost","dessert"]){
+      for(let i=1;i<=4;i++){
+        const el=document.getElementById(`tv-${typ}-${i}`);
+        const name=(el?.value||"").trim();
 
-  if(error){
-    console.error("TV Zusatzangebote speichern:",error);
+        if(name){
+          const {error}=await supabaseClient
+            .from("TV_Zusatzangebote")
+            .upsert(
+              [{
+                typ,
+                position:i,
+                name,
+                aktiv:true
+              }],
+              {onConflict:"typ,position"}
+            );
+
+          if(error) throw error;
+        }else{
+          const {error}=await supabaseClient
+            .from("TV_Zusatzangebote")
+            .delete()
+            .eq("typ",typ)
+            .eq("position",i);
+
+          if(error) throw error;
+        }
+      }
+    }
+
+    if(msg) msg.textContent="Gespeichert.";
+  }catch(e){
+    console.error("TV Zusatzangebote speichern:",e);
     if(msg) msg.textContent="Fehler beim Speichern.";
-    return;
   }
-
-  if(msg) msg.textContent="Gespeichert.";
 }
 
 /* ==========================================================
