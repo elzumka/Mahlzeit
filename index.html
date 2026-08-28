@@ -1358,14 +1358,16 @@ footer p {
 .dish-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 7px;
 }
 
 .veggie-icon {
-  width: 28px;
-  height: 28px;
+  width: 18px;
+  height: 18px;
   object-fit: contain;
-  flex-shrink: 0;
+  flex: 0 0 18px;
+  margin-left: 0;
+  opacity: .78;
 }
 
 #heutiges-datum {
@@ -3652,10 +3654,19 @@ async function ladeGerichte(){
    * automatisch wieder ein neuer Zyklus.
    */
 
+  /*
+   * Freitag läuft bis 14:00 Uhr noch als normaler Mittagstisch.
+   * Erst ab 14:00 Uhr beginnt die Wochenendanzeige.
+   * Samstag und Sonntag zeigen ganztägig die Wochenendanzeige.
+   */
+  const freitagNach14 =
+    wochentag === 5 &&
+    aktuelleMinuten >= (14 * 60);
+
   const istWochenende =
-    wochentag === 5 ||
     wochentag === 6 ||
-    wochentag === 0;
+    wochentag === 0 ||
+    freitagNach14;
 
   const istFeierabend =
     !istWochenende &&
@@ -3799,7 +3810,7 @@ async function ladeGerichte(){
 
 
   /*
-   * Freitag bis Sonntag:
+   * Freitag ab 14:00 Uhr sowie Samstag und Sonntag:
    * Wochenendbild zeigen.
    */
   if(
