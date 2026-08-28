@@ -2326,6 +2326,40 @@ body.legal-modal-open{overflow:hidden;}
   display:flex;
 }
 
+
+.test-controls{
+  display:flex;
+  justify-content:center;
+  margin:0 auto 14px;
+}
+
+#tagesgerichte-test-button{
+  border:1px solid var(--line);
+  background:transparent;
+  color:var(--green);
+  border-radius:9px;
+  padding:7px 12px;
+  font-size:11px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+#tagesgerichte-test-button.aktiv{
+  background:var(--green);
+  color:var(--cream);
+}
+
+@media(max-width:800px){
+  .test-controls{
+    margin-bottom:10px;
+  }
+
+  #tagesgerichte-test-button{
+    padding:6px 10px;
+    font-size:10px;
+  }
+}
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
@@ -2638,6 +2672,16 @@ async function downloadSpeiseplanPDF(){
     </div>
 
     <div id="heutiges-datum"></div>
+
+    <div class="test-controls" aria-label="Testfunktionen">
+      <button
+        type="button"
+        id="tagesgerichte-test-button"
+        onclick="tagesgerichteTestUmschalten()"
+      >
+        Tagesgerichte testen
+      </button>
+    </div>
 
     <div class="menu" id="gerichte-container"></div>
 
@@ -3612,6 +3656,36 @@ document.addEventListener(
 
 <script>
 
+let tagesgerichteTestModus = false;
+
+function tagesgerichteTestUmschalten(){
+
+  tagesgerichteTestModus =
+    !tagesgerichteTestModus;
+
+  const button =
+    document.getElementById(
+      "tagesgerichte-test-button"
+    );
+
+  if(button){
+
+    button.textContent =
+      tagesgerichteTestModus
+        ? "Tagesgerichte normal anzeigen"
+        : "Tagesgerichte testen";
+
+    button.classList.toggle(
+      "aktiv",
+      tagesgerichteTestModus
+    );
+
+  }
+
+  ladeGerichte();
+
+}
+
 async function ladeGerichte(){
 
   const jetzt = new Date();
@@ -3671,6 +3745,9 @@ async function ladeGerichte(){
   const istFeierabend =
     !istWochenende &&
     aktuelleMinuten >= (14 * 60);
+
+  const testModus =
+    tagesgerichteTestModus === true;
 
 
   if(nextWeekNote){
@@ -3814,7 +3891,8 @@ async function ladeGerichte(){
    * Wochenendbild zeigen.
    */
   if(
-    istWochenende
+    istWochenende &&
+    !testModus
   ){
 
     container.classList.add(
@@ -3849,7 +3927,8 @@ async function ladeGerichte(){
    * Feierabendbild zeigen.
    */
   if(
-    istFeierabend
+    istFeierabend &&
+    !testModus
   ){
 
     container.classList.add(
@@ -3893,44 +3972,40 @@ async function ladeGerichte(){
   try{
 
     /*
-     * Die Tagesgerichte werden bewusst direkt über die REST-API
-     * mit "no-store" geladen. Dadurch wird auch ein frisch gesetzter
-     * Ausverkauft-Status sofort aus Supabase gelesen und nicht aus
-     * einem eventuell zwischengespeicherten Request.
+     * Tagesgerichte über den bereits funktionierenden Supabase-Client laden.
+     * Der Client liest den aktuellen Datensatz direkt aus der Tabelle.
      */
-    const restUrl =
-      `${SUPABASE_URL}/rest/v1/Gerichte` +
-      `?select=id,datum,gerichte,beilage,preis,vegetarisch,ausverkauft,website_anzeigen,reihenfolge` +
-      `&datum=eq.${encodeURIComponent(isoHeute)}` +
-      `&website_anzeigen=eq.true` +
-      `&order=reihenfolge.asc.nullslast,id.asc` +
-      `&t=${Date.now()}`;
-
-    const restResponse =
-      await fetch(
-        restUrl,
-        {
-          method:"GET",
-          cache:"no-store",
-          headers:{
-            apikey:SUPABASE_KEY,
-            Authorization:`Bearer ${SUPABASE_KEY}`,
-            "Cache-Control":"no-cache"
+    const result =
+      await supabaseClient
+        .from("Gerichte")
+        .select("*")
+        .eq(
+          "datum",
+          isoHeute
+        )
+        .eq(
+          "website_anzeigen",
+          true
+        )
+        .order(
+          "reihenfolge",
+          {
+            ascending:true,
+            nullsFirst:false
           }
-        }
-      );
-
-    if(!restResponse.ok){
-      throw new Error(
-        `Gerichte konnten nicht geladen werden (${restResponse.status}).`
-      );
-    }
+        )
+        .order(
+          "id",
+          {
+            ascending:true
+          }
+        );
 
     data =
-      await restResponse.json();
+      result.data || [];
 
     error =
-      null;
+      result.error;
 
   }catch(loadError){
 
@@ -3979,6 +4054,12 @@ async function ladeGerichte(){
           "div"
         );
 
+      const istAusverkauft =
+        gericht.ausverkauft === true ||
+        gericht.ausverkauft === "true" ||
+        gericht.ausverkauft === 1 ||
+        gericht.ausverkauft === "1";
+
       karte.className =
         "dish" +
         (
@@ -3987,12 +4068,6 @@ async function ladeGerichte(){
             : ""
         );
 
-
-      const istAusverkauft =
-        gericht.ausverkauft === true ||
-        gericht.ausverkauft === "true" ||
-        gericht.ausverkauft === 1 ||
-        gericht.ausverkauft === "1";
 
       const preis =
         Number(
