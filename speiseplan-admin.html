@@ -5770,106 +5770,366 @@ function instagramWocheVerschieben(tage){
   instagramStartMontag.setDate(instagramStartMontag.getDate()+tage);
   instagramLaden();
 }
-
-const IG_FONT_DATA={};
-
-async function instagramFontDataUrl(file){
-  if(IG_FONT_DATA[file])return IG_FONT_DATA[file];
-  const response=await fetch(new URL(`./${file}`,window.location.href),{cache:"force-cache"});
-  if(!response.ok)throw new Error(`Schrift ${file} nicht gefunden (${response.status}).`);
-  const blob=await response.blob();
-  const data=await new Promise((resolve,reject)=>{
-    const r=new FileReader();
-    r.onload=()=>resolve(r.result);
-    r.onerror=()=>reject(r.error);
-    r.readAsDataURL(blob);
-  });
-  IG_FONT_DATA[file]=data;
-  return data;
-}
-
-async function instagramFontsInSvg(svg){
-  const fonts=await Promise.all([
-    instagramFontDataUrl("impact.ttf"),
-    instagramFontDataUrl("ARLRDBD.TTF"),
-    instagramFontDataUrl("SourceSansVariable-Roman.otf")
-  ]);
-
-  const style=`<style>
-  @font-face{font-family:'IG-Impact';src:url('${fonts[0]}') format('truetype');font-weight:400;font-style:normal}
-  @font-face{font-family:'IG-ArialRounded';src:url('${fonts[1]}') format('truetype');font-weight:400;font-style:normal}
-  @font-face{font-family:'IG-SourceSans';src:url('${fonts[2]}') format('opentype');font-weight:100 900;font-style:normal}
-  .ig-gericht{font-family:'IG-ArialRounded','Arial Rounded MT Bold',Arial,sans-serif!important}
-  .ig-beilage{font-family:'IG-SourceSans','Source Sans Variable',Arial,sans-serif!important}
-  .ig-preis,.ig-datum{font-family:'IG-ArialRounded','Arial Rounded MT Bold',Arial,sans-serif!important}
-  .ig-kw{font-family:'IG-Impact',Impact,sans-serif!important}
-  </style>`;
-
-  return svg.replace(/<svg\b([^>]*)>/i,`<svg$1>${style}`);
-}
-
-async function instagramIconDataUrl(symbol){
-  const files={
-    "veggie":"veggie.png","vegetarisch":"veggie.png",
-    "hähnchen":"hähnchen.png","huhn":"hähnchen.png",
-    "hahn":"hähnchen.png","ente":"ente.png","gans":"gans.png",
-    "schwein":"schwein.png","rind":"rind.png","reh":"reh.png",
-    "hirsch":"reh.png","wildschwein":"wildschwein.png","fisch":"fisch.png",
-    "ei":"ei.png","camembert":"camembert.png","käse":"käse.png",
-    "rind_schwein":"rind_schwein.png","rind & schwein":"rind_schwein.png",
-    "pilz":"pilz.png"
-  };
-  const file=files[String(symbol||"").trim().toLowerCase()];
-  if(!file)return "";
-  const response=await fetch(new URL(`./${file}`,window.location.href),{cache:"no-store"});
-  if(!response.ok)throw new Error(`Symbol ${file} nicht gefunden (${response.status}).`);
-  const blob=await response.blob();
-  return await new Promise((resolve,reject)=>{
-    const r=new FileReader();
-    r.onload=()=>resolve(r.result);
-    r.onerror=()=>reject(r.error);
-    r.readAsDataURL(blob);
+function instagramReadSvg(url){
+  return fetch(url).then(r=>{
+    if(!r.ok)throw new Error(`Vorlage nicht gefunden: ${url}`);
+    return r.text();
   });
 }
-
-async function instagramEmbedImages(svg){
+function instagramReplaceDate(svg,date){
   const root=new DOMParser().parseFromString(svg,"image/svg+xml");
-  const images=[...root.querySelectorAll("image")];
-  for(const image of images){
-    const href=image.getAttribute("href") || image.getAttributeNS("http://www.w3.org/1999/xlink","href");
-    if(!href || href.startsWith("data:"))continue;
-    try{
-      const response=await fetch(new URL(href,window.location.href),{cache:"force-cache"});
-      if(!response.ok)continue;
-      const blob=await response.blob();
-      const data=await new Promise((resolve,reject)=>{
-        const r=new FileReader();
-        r.onload=()=>resolve(r.result);
-        r.onerror=()=>reject(r.error);
-        r.readAsDataURL(blob);
-      });
-      image.setAttribute("href",data);
-      image.setAttributeNS("http://www.w3.org/1999/xlink","xlink:href",data);
-    }catch(error){
-      console.warn("Instagram-Bild konnte nicht eingebettet werden:",href,error);
-    }
+  const texts=[...root.querySelectorAll("text")];
+  const dateText=texts.find(t=>/\d{2}\.\d{2}\.\d{2,4}/.test(t.textContent||""));
+  if(dateText){
+    const nested=dateText.querySelector("tspan");
+    if(nested) nested.textContent=date;
+    else dateText.textContent=date;
+    dateText.setAttribute("font-family","IG-ArialRounded, 'Arial Rounded MT Bold'");
+    dateText.setAttribute("class",((dateText.getAttribute("class")||"")+" ig-datum").trim());
   }
   return new XMLSerializer().serializeToString(root);
 }
 
+function instagramReplaceRows(svg,items){
+  const root=new DOMParser().parseFromString(svg,"image/svg+xml");
+  const textEls=[...root.querySelectorAll("text")];
+
+  function leafTspans(textEl){
+    return [...textEl.querySelectorAll("tspan")].filter(
+      el=>!el.querySelector("tspan")
+    );
+  }
+
+  function setNestedText(outerTspan,value){
+    const leaves=[...outerTspan.querySelectorAll("tspan")]
+      .filter(el=>!el.querySelector("tspan"));
+    if(leaves.length){
+      leaves[0].textContent=String(value||"");
+      for(let i=1;i<leaves.length;i++) leaves[i].textContent="";
+    }else{
+      outerTspan.textContent=String(value||"");
+    }
+  }
+
+  const rowTexts=textEls
+    .filter(t=>/GERICHT\s+\d+/.test(t.textContent||""))
+    .sort((a,b)=>{
+      const na=Number((a.textContent.match(/GERICHT\s+(\d+)/)||[])[1]||0);
+      const nb=Number((b.textContent.match(/GERICHT\s+(\d+)/)||[])[1]||0);
+      return na-nb;
+    });
+
+  const priceTexts=textEls
+    .filter(t=>/PREIS\s+\d+/.test(t.textContent||""))
+    .sort((a,b)=>{
+      const na=Number((a.textContent.match(/PREIS\s+(\d+)/)||[])[1]||0);
+      const nb=Number((b.textContent.match(/PREIS\s+(\d+)/)||[])[1]||0);
+      return na-nb;
+    });
+
+  const placeholderRects=[...root.querySelectorAll("rect")]
+    .filter(r=>{
+      const w=Number(r.getAttribute("width")||0);
+      const h=Number(r.getAttribute("height")||0);
+      return Math.abs(w-66.89)<2 && Math.abs(h-66.89)<2;
+    })
+    .sort((a,b)=>
+      Number(a.getAttribute("y")||0)-Number(b.getAttribute("y")||0)
+    );
+
+  const iconFiles={
+    "veggie":"veggie.png",
+    "vegetarisch":"veggie.png",
+    "hähnchen":"hähnchen.png",
+    "huhn":"hähnchen.png",
+    "ente":"ente.png",
+    "gans":"gans.png",
+    "schwein":"schwein.png",
+    "rind":"rind.png",
+    "reh":"reh.png",
+    "hirsch":"reh.png",
+    "wildschwein":"wildschwein.png",
+    "fisch":"fisch.png",
+    "ei":"ei.png",
+    "camembert":"camembert.png",
+    "käse":"käse.png",
+    "rind_schwein":"rind_schwein.png",
+    "rind & schwein":"rind_schwein.png",
+    "pilz":"pilz.png"
+  };
+
+  for(let i=0;i<4;i++){
+    const item=items[i];
+    const row=rowTexts[i];
+    const priceText=priceTexts[i];
+    const rect=placeholderRects[i];
+
+    // Placeholder square is only a design aid. Never show the square in the final post.
+    if(rect) rect.style.display="none";
+
+    if(!item){
+      if(row) row.style.display="none";
+      if(priceText) priceText.style.display="none";
+      continue;
+    }
+
+    if(row){
+      const topSpans=[...row.querySelectorAll(":scope > tspan")];
+
+      if(topSpans[0]){
+        setNestedText(topSpans[0],String(item.gerichte||"").toUpperCase());
+      }
+
+      if(topSpans[1]){
+        setNestedText(topSpans[1],String(item.beilage||"").toUpperCase());
+        topSpans[1].setAttribute("font-family","SourceSansRoman-Regular, 'Source Sans Variable'");
+        topSpans[1].setAttribute("font-size","42.64");
+      }
+    }
+
+    if(priceText){
+      const leaves=leafTspans(priceText);
+      const price=Number(item.preis);
+      const formatted=Number.isFinite(price)
+        ? price.toFixed(2).replace(".",",")+" €"
+        : "";
+      if(leaves.length) leaves[0].textContent=formatted;
+      else priceText.textContent=formatted;
+      priceText.setAttribute("font-family","IG-ArialRounded, 'Arial Rounded MT Bold'");
+      priceText.setAttribute("class",((priceText.getAttribute("class")||"")+" ig-preis").trim());
+    }
+
+    // Insert the matching PNG exactly into the template's placeholder square.
+    if(rect){
+      const raw=String(
+        item.symbol || (item.vegetarisch ? "veggie" : "")
+      ).trim().toLowerCase();
+      const file=iconFiles[raw]||"";
+
+      root.querySelectorAll("image.instagram-food-icon").forEach(el=>el.remove());
+
+      if(file){
+        const image=document.createElementNS("http://www.w3.org/2000/svg","image");
+        image.classList.add("instagram-food-icon");
+        image.setAttribute("x",rect.getAttribute("x")||"95.89");
+        image.setAttribute("y",rect.getAttribute("y")||"348.58");
+        image.setAttribute("width",rect.getAttribute("width")||"66.89");
+        image.setAttribute("height",rect.getAttribute("height")||"66.89");
+        image.setAttribute("preserveAspectRatio","xMidYMid meet");
+        const iconUrl=new URL(file,window.location.href).href;
+        image.setAttribute("href",iconUrl);
+        image.setAttributeNS("http://www.w3.org/1999/xlink","xlink:href",iconUrl);
+        root.documentElement.appendChild(image);
+      }
+    }
+  }
+
+  return new XMLSerializer().serializeToString(root);
+}
 function instagramSvgElement(svgText){
   const doc=new DOMParser().parseFromString(svgText,"image/svg+xml");
   const svg=doc.documentElement;
   if(!svg || svg.nodeName.toLowerCase()!=="svg"){
     throw new Error("Ungültige SVG-Vorlage.");
   }
+  // Import into the current page so nested <image href="...png"> resources
+  // resolve normally against the GitHub page origin.
   return document.importNode(svg,true);
 }
 
-async function instagramSvgExportReady(svg){
-  svg=await instagramEmbedImages(svg);
-  svg=await instagramFontsInSvg(svg);
+function instagramSvgDataUrl(svg){
+  return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
+}
+
+async function instagramMakeSlide(templateUrl,items,date){
+  let svg=await instagramReadSvg(templateUrl);
+  svg=instagramReplaceDate(svg,instagramFormatDatum(date));
+  if(items) svg=await instagramReplaceRows(svg,items);
   return svg;
+}
+
+async function instagramTitelbildUrl(weekDates){
+  const raw=await instagramReadSvg(IG_TEMPLATES.titel);
+  const root=new DOMParser().parseFromString(raw,"image/svg+xml");
+
+  // KW and date exist as dedicated SVG text objects in the supplied title artwork.
+  const texts=[...root.querySelectorAll("text")];
+  const kwText=texts.find(t=>/KW\s*\d+/i.test(t.textContent||""));
+  const dateText=texts.find(t=>/\d{2}\.\d{2}\.\s*-\s*\d{2}\.\d{2}\.\d{4}/i.test(t.textContent||""));
+
+  if(kwText){
+    const n=getCalendarWeek(weekDates[0]);
+    const span=kwText.querySelector("tspan");
+    if(span)span.textContent=`KW ${n}`;
+    else kwText.textContent=`KW ${n}`;
+    kwText.setAttribute("font-family","IG-Impact, Impact");
+    kwText.setAttribute("class",((kwText.getAttribute("class")||"")+" ig-kw").trim());
+  }
+
+  if(dateText){
+    const d=`${String(weekDates[0].getDate()).padStart(2,"0")}.${String(weekDates[0].getMonth()+1).padStart(2,"0")}. - ${String(weekDates[4].getDate()).padStart(2,"0")}.${String(weekDates[4].getMonth()+1).padStart(2,"0")}.${weekDates[4].getFullYear()}`;
+    const span=dateText.querySelector("tspan");
+    if(span)span.textContent=d;
+    else dateText.textContent=d;
+    dateText.setAttribute("font-family","ArialRoundedMTBold, Arial Rounded MT Bold");
+    dateText.setAttribute("class",((dateText.getAttribute("class")||"")+" ig-datum").trim());
+  }
+
+  return instagramSvgDataUrl(new XMLSerializer().serializeToString(root));
+}
+
+async function instagramLaden(){
+  const preview=document.getElementById("instagram-preview");
+  const msg=document.getElementById("instagram-meldung");
+  if(!preview)return;
+
+  msg.textContent="Instagram-Carousel wird erstellt …";
+  preview.innerHTML="";
+
+  try{
+    const dates=[];
+  for(let i=0;i<5;i++){
+    const d=new Date(instagramStartMontag);
+    d.setDate(instagramStartMontag.getDate()+i);
+    dates.push(d);
+  }
+
+  const weekLabel=document.getElementById("instagram-woche-label");
+  if(weekLabel)weekLabel.textContent=`KW ${getCalendarWeek(dates[0])} · ${String(dates[0].getDate()).padStart(2,"0")}.${String(dates[0].getMonth()+1).padStart(2,"0")}. – ${String(dates[4].getDate()).padStart(2,"0")}.${String(dates[4].getMonth()+1).padStart(2,"0")}.${dates[4].getFullYear()}`;
+
+  // Slide 1: your own title SVG.
+  const titleUrl=await instagramTitelbildUrl(dates);
+  const coverCard=document.createElement("div");
+  coverCard.className="instagram-card";
+
+  const coverLabel=document.createElement("div");
+  coverLabel.style.fontWeight="900";
+  coverLabel.style.color="var(--green)";
+  coverLabel.style.marginBottom="7px";
+  coverLabel.textContent="Slide 1 / 6 · Titelbild";
+  coverCard.appendChild(coverLabel);
+
+  const coverHolder=document.createElement("div");
+  coverHolder.className="instagram-svg-preview";
+  const coverSvgText=decodeURIComponent(titleUrl.split(",").slice(1).join(","));
+  const coverSvg=instagramSvgElement(coverSvgText);
+  coverSvg.style.display="block";
+  coverSvg.style.width="100%";
+  coverSvg.style.height="auto";
+  coverSvg.style.borderRadius="8px";
+  coverSvg.style.boxShadow="0 5px 18px rgba(0,0,0,.12)";
+  coverSvg.style.background="#f7f0e2";
+  coverHolder.appendChild(coverSvg);
+  coverCard.appendChild(coverHolder);
+
+  const coverFooter=document.createElement("div");
+  coverFooter.className="instagram-card-footer";
+
+  const coverOpen=document.createElement("button");
+  coverOpen.type="button";
+  coverOpen.textContent="Öffnen";
+  coverOpen.onclick=()=>window.open(titleUrl,"_blank","noopener");
+
+  const coverPng=document.createElement("button");
+  coverPng.type="button";
+  coverPng.textContent="PNG";
+  coverPng.onclick=async()=>{
+    try{
+      await instagramDownloadSlide(0);
+    }catch(error){
+      console.error(error);
+      const m=document.getElementById("instagram-meldung");
+      if(m)m.textContent=`PNG-Export Fehler bei Slide 1: ${error.message||error}`;
+    }
+  };
+
+  coverFooter.appendChild(coverOpen);
+  coverFooter.appendChild(coverPng);
+  coverCard.appendChild(coverFooter);
+  preview.appendChild(coverCard);
+
+  const results=[];
+  const days=["montag","dienstag","mittwoch","donnerstag","freitag"];
+  for(const date of dates){
+    const {data,error}=await supabaseClient
+      .from("Gerichte").select("*")
+      .eq("datum",instagramISO(date))
+      .eq("website_anzeigen",true)
+      .order("reihenfolge",{ascending:true,nullsFirst:false})
+      .order("id",{ascending:true});
+    if(error){
+      console.error(error);
+      msg.textContent="Fehler beim Laden der Gerichte.";
+      return;
+    }
+    results.push([data||[]]);
+  }
+
+  const slides=[];
+  slides.push(titleUrl);
+
+  for(let i=0;i<5;i++){
+    const day=days[i];
+    const active=(results[i][0]||[]).filter(g=>!isSold(g.ausverkauft)).slice(0,4);
+    const svg=await instagramMakeSlide(IG_TEMPLATES[day],active,dates[i]);
+    const url=instagramSvgDataUrl(svg);
+    slides.push(url);
+
+    const card=document.createElement("div");
+    card.className="instagram-card";
+
+    const label=document.createElement("div");
+    label.style.fontWeight="900";
+    label.style.color="var(--green)";
+    label.style.marginBottom="7px";
+    label.textContent=`Slide ${i+2} / 6 · ${day.toUpperCase()}`;
+    card.appendChild(label);
+
+    const svgHolder=document.createElement("div");
+    svgHolder.className="instagram-svg-preview";
+    const svgEl=instagramSvgElement(svg);
+    svgEl.style.display="block";
+    svgEl.style.width="100%";
+    svgEl.style.height="auto";
+    svgEl.style.borderRadius="8px";
+    svgEl.style.boxShadow="0 5px 18px rgba(0,0,0,.12)";
+    svgEl.style.background="#f7f0e2";
+    svgHolder.appendChild(svgEl);
+    card.appendChild(svgHolder);
+
+    const footer=document.createElement("div");
+    footer.className="instagram-card-footer";
+
+    const open=document.createElement("button");
+    open.type="button";
+    open.textContent="Öffnen";
+    open.onclick=()=>window.open(url,"_blank","noopener");
+
+    const png=document.createElement("button");
+    png.type="button";
+    png.textContent="PNG";
+    png.onclick=async()=>{
+      try{
+        await instagramDownloadSlide(i+1);
+      }catch(error){
+        console.error(error);
+        const m=document.getElementById("instagram-meldung");
+        if(m)m.textContent=`PNG-Export Fehler bei Slide ${i+2}: ${error.message||error}`;
+      }
+    };
+
+    footer.appendChild(open);
+    footer.appendChild(png);
+    card.appendChild(footer);
+    preview.appendChild(card);
+  }
+
+    window.__mahlzeitInstagramSlides=slides;
+    msg.textContent="Carousel ist fertig.";
+  }catch(error){
+    console.error("Instagram-Carousel:",error);
+    msg.textContent=`Fehler: ${error?.message || "Carousel konnte nicht erstellt werden."}`;
+  }
 }
 
 async function instagramSvgToPng(svgText,filename){
@@ -5877,48 +6137,49 @@ async function instagramSvgToPng(svgText,filename){
     throw new Error("PNG-Exportbibliothek konnte nicht geladen werden.");
   }
 
-  const svgEl=instagramSvgElement(await instagramSvgExportReady(svgText));
-
-  // Force export dimensions while preserving the SVG's viewBox.
+  // Make a clean, inline SVG. Embedded images/fonts are preserved.
+  const svgEl=instagramSvgElement(svgText);
   svgEl.setAttribute("width","1080");
-  svgEl.setAttribute("height","1350");
+  svgEl.setAttribute("height","1080");
   svgEl.style.width="1080px";
-  svgEl.style.height="1350px";
+  svgEl.style.height="1080px";
   svgEl.style.display="block";
-  svgEl.style.background="#f5eee4";
 
   const wrap=document.createElement("div");
   wrap.style.position="fixed";
   wrap.style.left="-20000px";
   wrap.style.top="0";
   wrap.style.width="1080px";
-  wrap.style.height="1350px";
+  wrap.style.height="1080px";
   wrap.style.overflow="hidden";
   wrap.style.background="#f5eee4";
+  wrap.style.margin="0";
+  wrap.style.padding="0";
   wrap.style.zIndex="-1";
   wrap.appendChild(svgEl);
   document.body.appendChild(wrap);
 
   try{
-    if(document.fonts && document.fonts.ready){
-      await document.fonts.ready;
-    }
-
-    // Give the browser one paint cycle so inline SVG fonts/images are ready.
+    if(document.fonts?.ready) await document.fonts.ready;
     await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
 
     const canvas=await html2canvas(wrap,{
       backgroundColor:"#f5eee4",
       width:1080,
-      height:1350,
+      height:1080,
       scale:1,
       useCORS:true,
       allowTaint:false,
+      imageTimeout:15000,
       logging:false
     });
 
     const blob=await new Promise((resolve,reject)=>{
-      canvas.toBlob(b=>b?resolve(b):reject(new Error("PNG konnte nicht erzeugt werden.")),"image/png",1);
+      canvas.toBlob(
+        b=>b?resolve(b):reject(new Error("PNG konnte nicht erzeugt werden.")),
+        "image/png",
+        1
+      );
     });
 
     const url=URL.createObjectURL(blob);
@@ -5928,17 +6189,15 @@ async function instagramSvgToPng(svgText,filename){
     document.body.appendChild(a);
     a.click();
     a.remove();
-
     setTimeout(()=>URL.revokeObjectURL(url),1500);
   }finally{
     wrap.remove();
   }
 }
 
-
 async function instagramDownloadSlide(index){
   const slides=window.__mahlzeitInstagramSlides||[];
-  if(!slides[index])return;
+  if(!slides[index])throw new Error(`Slide ${index+1} ist nicht vorhanden.`);
   await instagramSvgToPng(slides[index],`mahlzeit-carousel-${index+1}.png`);
 }
 
@@ -5948,10 +6207,11 @@ async function instagramAlleHerunterladen(){
     await instagramLaden();
   }
   const finalSlides=window.__mahlzeitInstagramSlides||[];
+
   for(let i=0;i<finalSlides.length;i++){
     try{
       await instagramSvgToPng(finalSlides[i],`mahlzeit-carousel-${i+1}.png`);
-      await new Promise(r=>setTimeout(r,250));
+      await new Promise(r=>setTimeout(r,300));
     }catch(error){
       console.error("PNG-Export:",error);
       const msg=document.getElementById("instagram-meldung");
