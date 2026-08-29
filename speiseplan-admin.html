@@ -6363,17 +6363,32 @@ function instagramIstMobil(){
 
 function instagramMobileFensterOeffnen(titel="Mahlzeit! PNG"){
   if(!instagramIstMobil()) return null;
-  // Important: open the window synchronously while the user is still inside
-  // the click event. Mobile Safari/Chrome may block a window opened later,
-  // after the asynchronous SVG/PNG rendering has finished.
+  // Open AND initialise the mobile window synchronously during the user click.
+  // Safari can otherwise leave a completely white about:blank tab while the
+  // asynchronous SVG/PNG rendering is still running.
   try{
     const win=window.open("about:blank","_blank");
-    if(win){
-      try{ win.document.title=titel; }catch(_e){}
-      return win;
+    if(!win)return null;
+    try{
+      win.document.open();
+      win.document.write(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>${String(titel).replace(/[<>]/g,"")}</title><style>html,body{margin:0;min-height:100%;background:#f5eee4;color:#20201d;font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif}body{padding:16px;text-align:center}h1{font-size:20px;color:#285437;margin:8px 0 10px}.loading{font-size:15px;line-height:1.45;padding:24px 12px;color:#555}.result{display:none}.imgwrap{background:#fff;border-radius:12px;padding:8px;box-shadow:0 3px 14px rgba(0,0,0,.12)}img{display:block;width:100%;height:auto;border-radius:8px}.save{display:block;width:100%;box-sizing:border-box;margin-top:12px;padding:14px 12px;border:0;border-radius:10px;background:#285437;color:#fff;font-size:16px;font-weight:800}.secondary{display:block;width:100%;box-sizing:border-box;margin-top:8px;padding:12px;border:1px solid #b8ad9d;border-radius:10px;background:#fff;color:#285437;font-size:14px;font-weight:700}.error{display:none;color:#8b1e1e;background:#fff;border:1px solid #d5aaaa;border-radius:10px;padding:14px;text-align:left;line-height:1.45}</style></head><body><h1>Mahlzeit! PNG</h1><div id="loading" class="loading">PNG wird vorbereitet …<br>Bitte dieses Fenster geöffnet lassen.</div><div id="error" class="error"></div><div id="result" class="result"><div class="imgwrap"><img id="png" alt="PNG"></div><button class="save" id="share">Teilen / In Fotos sichern</button><button class="secondary" id="open">Bild separat öffnen</button></div></body></html>`);
+      win.document.close();
+    }catch(_e){}
+    return win;
+  }catch(_e){ return null; }
+}
+
+function instagramMobileFensterFehler(win,error){
+  if(!win || win.closed)return;
+  try{
+    const el=win.document.getElementById("error");
+    const loading=win.document.getElementById("loading");
+    if(loading)loading.style.display="none";
+    if(el){
+      el.style.display="block";
+      el.textContent="Der PNG-Export konnte nicht abgeschlossen werden: "+(error?.message||error||"Unbekannter Fehler")+". Bitte das Fenster schließen und den PNG-Button erneut drücken.";
     }
   }catch(_e){}
-  return null;
 }
 
 async function instagramPngAusgeben(blob,filename,mobileWindow=null){
@@ -6385,13 +6400,39 @@ async function instagramPngAusgeben(blob,filename,mobileWindow=null){
     // Bild herunterladen" action. This works even when the browser refuses
     // Blob downloads and when navigator.share({files}) is unavailable.
     if(mobileWindow && !mobileWindow.closed){
-      // Do not navigate to the raw blob URL on mobile Safari. It displays the
-      // PNG, but there is no reliable download/save action. Instead show a
-      // tiny HTML page with the image and a user-initiated Share/Save button.
-      const safeUrl=url.replace(/\\/g,"\\\\").replace(/`/g,"\\`");
-      mobileWindow.document.open();
-      mobileWindow.document.write(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>${filename}</title><style>body{font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;margin:0;padding:16px;background:#f5eee4;color:#20201d;text-align:center}h1{font-size:20px;color:#285437;margin:8px 0 12px}.hint{font-size:14px;line-height:1.45;margin:0 auto 14px;max-width:520px}.imgwrap{background:#fff;border-radius:12px;padding:8px;box-shadow:0 3px 14px rgba(0,0,0,.12)}img{display:block;width:100%;height:auto;border-radius:8px}.save{display:block;width:100%;box-sizing:border-box;margin-top:12px;padding:14px 12px;border:0;border-radius:10px;background:#285437;color:#fff;font-size:16px;font-weight:800}.secondary{display:block;width:100%;box-sizing:border-box;margin-top:8px;padding:12px;border:1px solid #b8ad9d;border-radius:10px;background:#fff;color:#285437;font-size:14px;font-weight:700}</style></head><body><h1>${filename}</h1><p class="hint">Das PNG ist fertig. Auf dem iPhone kannst du über „Teilen / In Fotos sichern“ speichern. Alternativ das Bild lange gedrückt halten.</p><div class="imgwrap"><img id="png" src="${safeUrl}" alt="${filename}"></div><button class="save" id="share">Teilen / In Fotos sichern</button><button class="secondary" id="open">Bild separat öffnen</button><script>const src=${JSON.stringify(url)};const name=${JSON.stringify(filename)};document.getElementById('share').addEventListener('click',async()=>{try{const r=await fetch(src);const b=await r.blob();const f=new File([b],name,{type:'image/png'});if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[f]}))){await navigator.share({files:[f],title:name});}else{alert('Bitte halte das Bild gedrückt und wähle „Bild sichern“.');}}catch(e){if(e&&e.name!=='AbortError')alert('Bitte halte das Bild gedrückt und wähle „Bild sichern“.');}});document.getElementById('open').addEventListener('click',()=>location.href=src);<\/script></body></html>`);
-      mobileWindow.document.close();
+      // The mobile tab was already created synchronously. Now only attach the
+      // finished PNG. This avoids Safari's blank-tab/race condition.
+      try{
+        const img=mobileWindow.document.getElementById("png");
+        const result=mobileWindow.document.getElementById("result");
+        const loading=mobileWindow.document.getElementById("loading");
+        const share=mobileWindow.document.getElementById("share");
+        const open=mobileWindow.document.getElementById("open");
+
+        if(img) img.src=url;
+        if(result) result.style.display="block";
+        if(loading) loading.style.display="none";
+
+        if(share){
+          share.onclick=async()=>{
+            try{
+              const r=await fetch(url);
+              const b=await r.blob();
+              const f=new File([b],filename,{type:"image/png"});
+              if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[f]}))){
+                await navigator.share({files:[f],title:filename});
+              }else{
+                alert("Bitte halte das Bild gedrückt und wähle „Bild sichern“. ");
+              }
+            }catch(e){
+              if(!e || e.name!=="AbortError") alert("Bitte halte das Bild gedrückt und wähle „Bild sichern“. ");
+            }
+          };
+        }
+        if(open) open.onclick=()=>{ mobileWindow.location.href=url; };
+      }catch(error){
+        instagramMobileFensterFehler(mobileWindow,error);
+      }
       setTimeout(()=>URL.revokeObjectURL(url),60000);
       return;
     }
@@ -6447,10 +6488,14 @@ async function instagramDownloadSlide(index){
   const slides=window.__mahlzeitInstagramSlides||[];
   if(!slides[index])throw new Error(`Slide ${index+1} ist nicht vorhanden.`);
 
-  // Open a mobile tab immediately, before awaiting PNG generation.
-  // This avoids popup blocking on iOS/Android.
+  // Open and initialise the mobile tab immediately, before awaiting PNG generation.
   const mobileWindow=instagramMobileFensterOeffnen(`Mahlzeit! – ${index+1}. PNG`);
-  await instagramSvgToPng(slides[index],`mahlzeit-carousel-${index+1}.png`,mobileWindow);
+  try{
+    await instagramSvgToPng(slides[index],`mahlzeit-carousel-${index+1}.png`,mobileWindow);
+  }catch(error){
+    instagramMobileFensterFehler(mobileWindow,error);
+    throw error;
+  }
 }
 
 async function instagramAlleHerunterladen(){
