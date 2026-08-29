@@ -2987,7 +2987,7 @@ button{
     <h3 class="settings-subtitle">Frühstück</h3>
 
     <label class="checkbox">
-      <input type="checkbox" id="setting-fruehstueck-aktiv" onchange="websiteEinstellungenAutoSpeichern()">
+      <input type="checkbox" id="setting-fruehstueck-aktiv" onchange="websiteFruehstueckToggle()">
       Frühstück aktiviert
     </label>
 
@@ -8816,6 +8816,133 @@ async function websiteEinstellungenSpeichern(){
       button.disabled=false;
       button.textContent="Einstellungen speichern";
     }
+  }
+}
+
+
+async function websiteFruehstueckToggle(){
+
+  const checkbox =
+    document.getElementById(
+      "setting-fruehstueck-aktiv"
+    );
+
+  const meldung =
+    document.getElementById(
+      "website-einstellungen-meldung"
+    );
+
+  if(!checkbox)return;
+
+  const aktiv =
+    checkbox.checked === true;
+
+  if(meldung){
+    meldung.textContent =
+      aktiv
+        ? "Frühstück wird aktiviert …"
+        : "Frühstück wird deaktiviert …";
+  }
+
+  checkbox.disabled=true;
+
+  try{
+
+    const {error} =
+      await supabaseClient
+        .from("WebsiteEinstellungen")
+        .update({
+          fruehstueck_aktiv: aktiv
+        })
+        .eq("id",1);
+
+    if(error){
+      throw new Error(
+        "Frühstück konnte nicht gespeichert werden: " +
+        error.message
+      );
+    }
+
+    /*
+     * Direkt aus Supabase prüfen, damit der Schalter nicht
+     * nur optisch umspringt.
+     */
+    const {
+      data:check,
+      error:checkError
+    } =
+      await supabaseClient
+        .from("WebsiteEinstellungen")
+        .select("fruehstueck_aktiv")
+        .eq("id",1)
+        .single();
+
+    if(checkError){
+      throw new Error(
+        "Speichern erfolgreich, aber die Prüfung ist fehlgeschlagen: " +
+        checkError.message
+      );
+    }
+
+    if(
+      Boolean(check.fruehstueck_aktiv) !== aktiv
+    ){
+      throw new Error(
+        "Supabase hat den Frühstück-Aktiv-Status nicht übernommen."
+      );
+    }
+
+    if(meldung){
+      meldung.textContent =
+        aktiv
+          ? "✓ Frühstück ist aktiviert."
+          : "✓ Frühstück ist deaktiviert.";
+    }
+
+  }catch(error){
+
+    console.error(
+      "Frühstück aktivieren:",
+      error
+    );
+
+    /*
+     * Bei einem Fehler den Schalter auf den zuletzt
+     * tatsächlich gespeicherten Zustand zurücksetzen.
+     */
+    try{
+      const {
+        data
+      } =
+        await supabaseClient
+          .from("WebsiteEinstellungen")
+          .select("fruehstueck_aktiv")
+          .eq("id",1)
+          .single();
+
+      if(data){
+        checkbox.checked =
+          data.fruehstueck_aktiv === true;
+      }
+    }catch(resetError){
+      console.error(
+        "Frühstück-Status zurücksetzen:",
+        resetError
+      );
+    }
+
+    if(meldung){
+      meldung.textContent =
+        "⚠ " + (
+          error?.message ||
+          "Frühstück konnte nicht gespeichert werden."
+        );
+    }
+
+  }finally{
+
+    checkbox.disabled=false;
+
   }
 }
 
