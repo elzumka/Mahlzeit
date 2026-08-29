@@ -5803,50 +5803,71 @@ async function instagramAssetDataUrl(file){
 }
 
 async function instagramInlineAssets(svgText){
-  // The carousel stores its slides as SVG data URLs.  Desktop browsers may
-  // tolerate passing that URL through the SVG parser, but mobile browsers
-  // generally do not.  Normalize both plain SVG text and data URLs here.
-  let source=String(svgText||"");
+  // Normalize both plain SVG text and data:image/svg+xml URLs.
+  let source=String(svgText||"").trim();
   if(source.startsWith("data:image/svg+xml")){
     const comma=source.indexOf(",");
     if(comma===-1) throw new Error("Ungültige SVG-Data-URL.");
     const meta=source.slice(0,comma);
     const payload=source.slice(comma+1);
     try{
-      source=meta.toLowerCase().includes(";base64")
-        ? atob(payload)
+      source=/;base64/i.test(meta)
+        ? decodeURIComponent(escape(atob(payload)))
         : decodeURIComponent(payload);
     }catch(error){
       throw new Error("SVG-Data-URL konnte nicht dekodiert werden.");
     }
   }
 
-  const root=new DOMParser().parseFromString(source,"image/svg+xml");
-  if(!root.documentElement || root.documentElement.nodeName.toLowerCase()!=="svg"){
+  const doc=new DOMParser().parseFromString(source,"image/svg+xml");
+  const parserError=doc.querySelector("parsererror");
+  const root=doc.documentElement;
+  if(parserError || !root || root.nodeName.toLowerCase()!=="svg"){
     throw new Error("Ungültige SVG-Vorlage.");
   }
 
-  // Fonts must live inside the SVG as well. Otherwise an SVG rendered as an
-  // image/canvas can silently fall back to a system font.
-  const fontStyle=root.createElementNS("http://www.w3.org/2000/svg","style");
-  fontStyle.textContent=`
-    @font-face{font-family:"IG-Impact";src:url("impact.ttf") format("truetype");font-weight:400;font-style:normal;}
-    @font-face{font-family:"IG-ArialRounded";src:url("ARLRDBD.TTF") format("truetype");font-weight:400;font-style:normal;}
-    @font-face{font-family:"IG-SourceSans";src:url("SourceSansVariable-Roman.otf") format("opentype");font-weight:100 900;font-style:normal;}
-    .ig-gericht{font-family:"IG-ArialRounded"!important;}
-    .ig-beilage{font-family:"IG-SourceSans"!important;}
-    .ig-preis,.ig-datum{font-family:"IG-ArialRounded"!important;}
-    .ig-kw{font-family:"IG-Impact"!important;}
-  `;
+  // IMPORTANT for iPhone/iPad: a data:image/svg+xml rendered through an
+  // <img> does not reliably load relative @font-face URLs. Embed the exact
+  // supplied font files directly into the SVG as data URLs.
+  const [impactUrl,roundedUrl,sourceSansUrl]=await Promise.all([
+    instagramAssetDataUrl(new URL("impact.ttf",window.location.href).href),
+    instagramAssetDataUrl(new URL("ARLRDBD.TTF",window.location.href).href),
+    instagramAssetDataUrl(new URL("SourceSansVariable-Roman.otf",window.location.href).href)
+  ]);
+
   let defs=root.querySelector("defs");
   if(!defs){
-    defs=root.createElementNS("http://www.w3.org/2000/svg","defs");
-    root.documentElement.insertBefore(defs,root.documentElement.firstChild);
+    defs=doc.createElementNS("http://www.w3.org/2000/svg","defs");
+    root.insertBefore(defs,root.firstChild);
   }
+
+  const fontStyle=doc.createElementNS("http://www.w3.org/2000/svg","style");
+  fontStyle.setAttribute("type","text/css");
+  fontStyle.textContent=`
+    @font-face{font-family:"IG-Impact";src:url("${impactUrl}") format("truetype");font-weight:400;font-style:normal;}
+    @font-face{font-family:"IG-ArialRounded";src:url("${roundedUrl}") format("truetype");font-weight:400;font-style:normal;}
+    @font-face{font-family:"IG-SourceSans";src:url("${sourceSansUrl}") format("opentype");font-weight:100 900;font-style:normal;}
+    .ig-gericht{font-family:"IG-ArialRounded" !important;}
+    .ig-beilage{font-family:"IG-SourceSans" !important;}
+    .ig-preis,.ig-datum{font-family:"IG-ArialRounded" !important;}
+    .ig-kw{font-family:"IG-Impact" !important;}
+    text{font-synthesis:none;}
+  `;
   defs.appendChild(fontStyle);
 
-  // Inline every local image so the PNG export cannot be blocked by CORS or
-  // by the SVG image renderer resolving relative URLs differently.
+  // Replace the original font-family names throughout the SVG as a second
+  // line of defence. This is especially important on iOS where CSS inside a
+  // nested SVG can otherwise be ignored by the SVG image decoder.
+  root.querySelectorAll("text,tspan").forEach(el=>{
+    const f=(el.getAttribute("font-family")||"").toLowerCase();
+    if(f.includes("source sans")) el.setAttribute("font-family","IG-SourceSans");
+    else if(f.includes("arialrounded") || f.includes("arial rounded")) el.setAttribute("font-family","IG-ArialRounded");
+    else if(f.includes("impact")) el.setAttribute("font-family","IG-Impact");
+  });
+
+  // All template images are normally already embedded as PNG data URLs.
+  // If a template contains a relative/local image, inline it as well so the
+  // rasterizer never has to resolve an external resource.
   const images=[...root.querySelectorAll("image")];
   for(const image of images){
     const href=image.getAttribute("href") || image.getAttributeNS("http://www.w3.org/1999/xlink","href");
@@ -6223,7 +6244,12 @@ async function instagramSvgToPngBlob(svgText){
   // Export the SVG itself through a real Image element. This keeps the supplied
   // fonts and all embedded symbols intact on desktop and mobile browsers.
   const preparedSvg=await instagramInlineAssets(svgText);
-  const svgUrl="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(preparedSvg);
+
+  // Use a Blob URL instead of a data: URL. Mobile Safari is much more
+  // reliable with large SVGs this way (the supplied title artwork contains
+  // large embedded PNGs, and the embedded fonts make the SVG larger still).
+  const svgBlob=new Blob([preparedSvg],{type:"image/svg+xml;charset=utf-8"});
+  const svgUrl=URL.createObjectURL(svgBlob);
 
   const img=new Image();
   img.decoding="async";
@@ -6231,10 +6257,14 @@ async function instagramSvgToPngBlob(svgText){
   img.height=1080;
   img.src=svgUrl;
 
-  await new Promise((resolve,reject)=>{
-    img.onload=()=>resolve();
-    img.onerror=()=>reject(new Error("SVG konnte für den PNG-Export nicht geladen werden."));
-  });
+  try{
+    await new Promise((resolve,reject)=>{
+      img.onload=()=>resolve();
+      img.onerror=()=>reject(new Error("SVG konnte für den PNG-Export nicht geladen werden."));
+    });
+  }finally{
+    URL.revokeObjectURL(svgUrl);
+  }
 
   const canvas=document.createElement("canvas");
   canvas.width=1080;
@@ -6282,7 +6312,13 @@ async function instagramPngAusgeben(blob,filename,mobileWindow=null){
     // Bild herunterladen" action. This works even when the browser refuses
     // Blob downloads and when navigator.share({files}) is unavailable.
     if(mobileWindow && !mobileWindow.closed){
-      mobileWindow.location.href=url;
+      // Do not navigate to the raw blob URL on mobile Safari. It displays the
+      // PNG, but there is no reliable download/save action. Instead show a
+      // tiny HTML page with the image and a user-initiated Share/Save button.
+      const safeUrl=url.replace(/\\/g,"\\\\").replace(/`/g,"\\`");
+      mobileWindow.document.open();
+      mobileWindow.document.write(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>${filename}</title><style>body{font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;margin:0;padding:16px;background:#f5eee4;color:#20201d;text-align:center}h1{font-size:20px;color:#285437;margin:8px 0 12px}.hint{font-size:14px;line-height:1.45;margin:0 auto 14px;max-width:520px}.imgwrap{background:#fff;border-radius:12px;padding:8px;box-shadow:0 3px 14px rgba(0,0,0,.12)}img{display:block;width:100%;height:auto;border-radius:8px}.save{display:block;width:100%;box-sizing:border-box;margin-top:12px;padding:14px 12px;border:0;border-radius:10px;background:#285437;color:#fff;font-size:16px;font-weight:800}.secondary{display:block;width:100%;box-sizing:border-box;margin-top:8px;padding:12px;border:1px solid #b8ad9d;border-radius:10px;background:#fff;color:#285437;font-size:14px;font-weight:700}</style></head><body><h1>${filename}</h1><p class="hint">Das PNG ist fertig. Auf dem iPhone kannst du über „Teilen / In Fotos sichern“ speichern. Alternativ das Bild lange gedrückt halten.</p><div class="imgwrap"><img id="png" src="${safeUrl}" alt="${filename}"></div><button class="save" id="share">Teilen / In Fotos sichern</button><button class="secondary" id="open">Bild separat öffnen</button><script>const src=${JSON.stringify(url)};const name=${JSON.stringify(filename)};document.getElementById('share').addEventListener('click',async()=>{try{const r=await fetch(src);const b=await r.blob();const f=new File([b],name,{type:'image/png'});if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[f]}))){await navigator.share({files:[f],title:name});}else{alert('Bitte halte das Bild gedrückt und wähle „Bild sichern“.');}}catch(e){if(e&&e.name!=='AbortError')alert('Bitte halte das Bild gedrückt und wähle „Bild sichern“.');}});document.getElementById('open').addEventListener('click',()=>location.href=src);<\/script></body></html>`);
+      mobileWindow.document.close();
       setTimeout(()=>URL.revokeObjectURL(url),60000);
       return;
     }
