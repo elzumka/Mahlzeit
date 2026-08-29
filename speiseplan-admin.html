@@ -5693,6 +5693,10 @@ async function tvZusatzangeboteSpeichern(){
 
 const IG_TITLE_SVG = "instagram-titelbild.svg";
 
+function isSold(value){
+  return value===true || value==="true" || value===1 || value==="1";
+}
+
 const IG_TEMPLATES={"montag": "instagram-montag.svg", "dienstag": "instagram-dienstag.svg", "mittwoch": "instagram-mittwoch.svg", "donnerstag": "instagram-donnerstag.svg", "freitag": "instagram-freitag.svg", "titel": "instagram-titelbild.svg"};
 
 let instagramStartMontag=instagramMontag(new Date());
