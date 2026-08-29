@@ -3080,6 +3080,16 @@ button{
       placeholder="@mahlzeit_cottbus"
      onchange="websiteEinstellungenAutoSpeichern()">
 
+    <label for="setting-email">
+      Mail
+    </label>
+
+    <input
+      type="email"
+      id="setting-email"
+      placeholder="info@mahlzeit-cottbus.de"
+     onchange="websiteEinstellungenAutoSpeichern()">
+
     <button
       type="button"
       class="save"
@@ -8613,7 +8623,8 @@ async function websiteEinstellungenLaden(){
         lieferservice_bis:"14:00",
         lieferservice_text:"Bald auch für euch · über Lieferando",
         telefon:"0355 25057",
-        instagram:"@mahlzeit_cottbus"
+        instagram:"@mahlzeit_cottbus",
+        email:"info@mahlzeit-cottbus.de"
       };
 
     const setValue=(id,value)=>{
@@ -8641,6 +8652,7 @@ async function websiteEinstellungenLaden(){
 
     setValue("setting-telefon",values.telefon||"0355 25057");
     setValue("setting-instagram",values.instagram||"@mahlzeit_cottbus");
+    setValue("setting-email",values.email||"info@mahlzeit-cottbus.de");
 
     setValue(
       "setting-top-banner-text",
@@ -8708,6 +8720,10 @@ function websiteEinstellungenWerte(){
       document.getElementById("setting-instagram")?.value.trim() ||
       "@mahlzeit_cottbus",
 
+    email:
+      document.getElementById("setting-email")?.value.trim() ||
+      "info@mahlzeit-cottbus.de",
+
     top_banner_text:
       document.getElementById("setting-top-banner-text")?.value.trim() ||
       "Aktuell ausschließlich Mittagstisch · BALD AUCH FRÜHSTÜCK UND LIEFERSERVICE FÜR EUCH"
@@ -8731,6 +8747,19 @@ async function websiteEinstellungenSpeichern(){
   const values =
     websiteEinstellungenWerte();
 
+  /*
+   * Die vorhandene WebsiteEinstellungen-Tabelle besitzt aktuell
+   * keine top_banner_text-Spalte. Deshalb darf dieses optionale
+   * Feld die übrigen Einstellungen nicht blockieren.
+   *
+   * Sobald die Spalte in Supabase vorhanden ist, kann sie unten
+   * wieder automatisch mitgespeichert werden.
+   */
+  const {
+    top_banner_text,
+    ...databaseValues
+  } = values;
+
   if(button){
     button.disabled=true;
     button.textContent="Speichern …";
@@ -8742,16 +8771,12 @@ async function websiteEinstellungenSpeichern(){
 
   try{
 
-    /*
-     * Wir kennen die vorhandene Zeile id=1.
-     * Daher bewusst direkt UPDATE statt upsert.
-     */
     const {
       error
     } =
       await supabaseClient
         .from("WebsiteEinstellungen")
-        .update(values)
+        .update(databaseValues)
         .eq("id",1);
 
     if(error){
@@ -8761,16 +8786,15 @@ async function websiteEinstellungenSpeichern(){
       );
     }
 
-    /*
-     * Kontrolle: direkt wieder lesen.
-     */
     const {
       data:check,
       error:checkError
     } =
       await supabaseClient
         .from("WebsiteEinstellungen")
-        .select("*")
+        .select(
+          "mittagstisch_aktiv,fruehstueck_aktiv,lieferservice_aktiv"
+        )
         .eq("id",1)
         .single();
 
@@ -8783,16 +8807,20 @@ async function websiteEinstellungenSpeichern(){
 
     if(
       Boolean(check.mittagstisch_aktiv) !==
-      Boolean(values.mittagstisch_aktiv)
+        Boolean(values.mittagstisch_aktiv) ||
+      Boolean(check.fruehstueck_aktiv) !==
+        Boolean(values.fruehstueck_aktiv) ||
+      Boolean(check.lieferservice_aktiv) !==
+        Boolean(values.lieferservice_aktiv)
     ){
       throw new Error(
-        "Supabase hat den neuen Aktiv-Status nicht übernommen."
+        "Supabase hat einen Aktiv-Status nicht übernommen."
       );
     }
 
     if(meldung){
       meldung.textContent =
-        "✓ Gespeichert – Änderung ist in Supabase angekommen.";
+        "✓ Gespeichert – Frühstück, Mittagstisch und Lieferservice wurden übernommen.";
     }
 
   }catch(error){
@@ -8816,255 +8844,10 @@ async function websiteEinstellungenSpeichern(){
       button.disabled=false;
       button.textContent="Einstellungen speichern";
     }
+
   }
+
 }
-
-
-async function websiteFruehstueckToggle(){
-
-  const checkbox =
-    document.getElementById(
-      "setting-fruehstueck-aktiv"
-    );
-
-  const meldung =
-    document.getElementById(
-      "website-einstellungen-meldung"
-    );
-
-  if(!checkbox)return;
-
-  const aktiv =
-    checkbox.checked === true;
-
-  if(meldung){
-    meldung.textContent =
-      aktiv
-        ? "Frühstück wird aktiviert …"
-        : "Frühstück wird deaktiviert …";
-  }
-
-  checkbox.disabled=true;
-
-  try{
-
-    const {error} =
-      await supabaseClient
-        .from("WebsiteEinstellungen")
-        .update({
-          fruehstueck_aktiv: aktiv
-        })
-        .eq("id",1);
-
-    if(error){
-      throw new Error(
-        "Frühstück konnte nicht gespeichert werden: " +
-        error.message
-      );
-    }
-
-    /*
-     * Direkt aus Supabase prüfen, damit der Schalter nicht
-     * nur optisch umspringt.
-     */
-    const {
-      data:check,
-      error:checkError
-    } =
-      await supabaseClient
-        .from("WebsiteEinstellungen")
-        .select("fruehstueck_aktiv")
-        .eq("id",1)
-        .single();
-
-    if(checkError){
-      throw new Error(
-        "Speichern erfolgreich, aber die Prüfung ist fehlgeschlagen: " +
-        checkError.message
-      );
-    }
-
-    if(
-      Boolean(check.fruehstueck_aktiv) !== aktiv
-    ){
-      throw new Error(
-        "Supabase hat den Frühstück-Aktiv-Status nicht übernommen."
-      );
-    }
-
-    if(meldung){
-      meldung.textContent =
-        aktiv
-          ? "✓ Frühstück ist aktiviert."
-          : "✓ Frühstück ist deaktiviert.";
-    }
-
-  }catch(error){
-
-    console.error(
-      "Frühstück aktivieren:",
-      error
-    );
-
-    /*
-     * Bei einem Fehler den Schalter auf den zuletzt
-     * tatsächlich gespeicherten Zustand zurücksetzen.
-     */
-    try{
-      const {
-        data
-      } =
-        await supabaseClient
-          .from("WebsiteEinstellungen")
-          .select("fruehstueck_aktiv")
-          .eq("id",1)
-          .single();
-
-      if(data){
-        checkbox.checked =
-          data.fruehstueck_aktiv === true;
-      }
-    }catch(resetError){
-      console.error(
-        "Frühstück-Status zurücksetzen:",
-        resetError
-      );
-    }
-
-    if(meldung){
-      meldung.textContent =
-        "⚠ " + (
-          error?.message ||
-          "Frühstück konnte nicht gespeichert werden."
-        );
-    }
-
-  }finally{
-
-    checkbox.disabled=false;
-
-  }
-}
-
-
-async function websiteLieferserviceToggle(){
-
-  const checkbox =
-    document.getElementById(
-      "setting-lieferung-aktiv"
-    );
-
-  const meldung =
-    document.getElementById(
-      "website-einstellungen-meldung"
-    );
-
-  if(!checkbox)return;
-
-  const aktiv =
-    checkbox.checked === true;
-
-  if(meldung){
-    meldung.textContent =
-      aktiv
-        ? "Lieferservice wird aktiviert …"
-        : "Lieferservice wird deaktiviert …";
-  }
-
-  checkbox.disabled=true;
-
-  try{
-
-    const {error} =
-      await supabaseClient
-        .from("WebsiteEinstellungen")
-        .update({
-          lieferservice_aktiv: aktiv
-        })
-        .eq("id",1);
-
-    if(error){
-      throw new Error(
-        "Lieferservice konnte nicht gespeichert werden: " +
-        error.message
-      );
-    }
-
-    const {
-      data:check,
-      error:checkError
-    } =
-      await supabaseClient
-        .from("WebsiteEinstellungen")
-        .select("lieferservice_aktiv")
-        .eq("id",1)
-        .single();
-
-    if(checkError){
-      throw new Error(
-        "Speichern erfolgreich, aber die Prüfung ist fehlgeschlagen: " +
-        checkError.message
-      );
-    }
-
-    if(
-      Boolean(check.lieferservice_aktiv) !== aktiv
-    ){
-      throw new Error(
-        "Supabase hat den Lieferservice-Aktiv-Status nicht übernommen."
-      );
-    }
-
-    if(meldung){
-      meldung.textContent =
-        aktiv
-          ? "✓ Lieferservice ist aktiviert."
-          : "✓ Lieferservice ist deaktiviert.";
-    }
-
-  }catch(error){
-
-    console.error(
-      "Lieferservice aktivieren:",
-      error
-    );
-
-    try{
-      const {
-        data
-      } =
-        await supabaseClient
-          .from("WebsiteEinstellungen")
-          .select("lieferservice_aktiv")
-          .eq("id",1)
-          .single();
-
-      if(data){
-        checkbox.checked =
-          data.lieferservice_aktiv === true;
-      }
-    }catch(resetError){
-      console.error(
-        "Lieferservice-Status zurücksetzen:",
-        resetError
-      );
-    }
-
-    if(meldung){
-      meldung.textContent =
-        "⚠ " + (
-          error?.message ||
-          "Lieferservice konnte nicht gespeichert werden."
-        );
-    }
-
-  }finally{
-
-    checkbox.disabled=false;
-
-  }
-}
-
 
 function websiteEinstellungenAutoSpeichern(){
 
