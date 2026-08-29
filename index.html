@@ -2727,7 +2727,7 @@ async function downloadSpeiseplanPDF(){
         id="tagesgerichte-test-button"
         onclick="tagesgerichteTestUmschalten()"
       >
-        Tagesgerichte anzeigen
+        Tagesgerichte testen
       </button>
     </div>
 
@@ -3253,6 +3253,11 @@ async function downloadSpeiseplanPDF(){
     <p class="contact-line">
       <strong class="contact-label">TELEFON</strong>
       <a href="tel:+4935525057">0355 25057</a>
+    </p>
+
+    <p class="contact-line">
+      <strong class="contact-label">MAIL</strong>
+      <a href="mailto:info@mahlzeit-cottbus.de">info@mahlzeit-cottbus.de</a>
     </p>
 
     <p class="contact-line">
@@ -5046,6 +5051,7 @@ const WEBSITE_TEXTE_SITE_DEFAULTS = {
   kontakt_heading:"Kommt vorbei!",
   label_adresse:"ADRESSE",
   label_telefon:"TELEFON",
+  label_email:"E-MAIL",
   label_instagram:"INSTAGRAM",
   offer_mittag:"MITTAGSTISCH",
   offer_mittag_text:"Montag–Freitag · 11:00–14:00 Uhr",
@@ -5278,7 +5284,8 @@ async function ladeWebsiteTexte(){
 
   if(labels[0])labels[0].textContent=values.label_adresse;
   if(labels[1])labels[1].textContent=values.label_telefon;
-  if(labels[2])labels[2].textContent=values.label_instagram;
+  if(labels[2])labels[2].textContent=values.label_email || "MAIL";
+  if(labels[3])labels[3].textContent=values.label_instagram;
 
   const offers =
     document.querySelectorAll(
