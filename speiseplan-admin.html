@@ -6240,30 +6240,66 @@ function instagramIstMobil(){
   return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
 }
 
-async function instagramPngAusgeben(blob,filename){
-  // Mobile Safari/Chrome do not reliably honor <a download> for Blob URLs.
-  // Prefer the native share sheet there; the user can choose "Fotos sichern",
-  // "In Dateien sichern" or another installed destination.
-  if(instagramIstMobil() && typeof navigator.share==="function"){
-    const file=new File([blob],filename,{type:"image/png"});
-    try{
-      if(!navigator.canShare || navigator.canShare({files:[file]})){
-        await navigator.share({
-          files:[file],
-          title:filename,
-          text:"Mahlzeit! Instagram-Carousel"
-        });
-        return;
-      }
-    }catch(error){
-      // User cancellation is not an export error. For other share failures,
-      // continue with the browser fallback below.
-      if(error && error.name==="AbortError") return;
-      console.warn("Mobiler PNG-Share fehlgeschlagen:",error);
+function instagramMobileFensterOeffnen(titel="Mahlzeit! PNG"){
+  if(!instagramIstMobil()) return null;
+  // Important: open the window synchronously while the user is still inside
+  // the click event. Mobile Safari/Chrome may block a window opened later,
+  // after the asynchronous SVG/PNG rendering has finished.
+  try{
+    const win=window.open("about:blank","_blank");
+    if(win){
+      try{ win.document.title=titel; }catch(_e){}
+      return win;
     }
+  }catch(_e){}
+  return null;
+}
+
+async function instagramPngAusgeben(blob,filename,mobileWindow=null){
+  if(instagramIstMobil()){
+    const url=URL.createObjectURL(blob);
+
+    // Most reliable mobile fallback: show the actual PNG as a standalone
+    // image. The user can then use the browser's native "Bild sichern /
+    // Bild herunterladen" action. This works even when the browser refuses
+    // Blob downloads and when navigator.share({files}) is unavailable.
+    if(mobileWindow && !mobileWindow.closed){
+      mobileWindow.location.href=url;
+      setTimeout(()=>URL.revokeObjectURL(url),60000);
+      return;
+    }
+
+    // If the browser did not allow the synchronously opened tab, try the
+    // native share sheet as a secondary option.
+    if(typeof navigator.share==="function"){
+      const file=new File([blob],filename,{type:"image/png"});
+      try{
+        if(!navigator.canShare || navigator.canShare({files:[file]})){
+          await navigator.share({
+            files:[file],
+            title:filename,
+            text:"Mahlzeit! Instagram-Carousel"
+          });
+          URL.revokeObjectURL(url);
+          return;
+        }
+      }catch(error){
+        if(error && error.name==="AbortError"){
+          URL.revokeObjectURL(url);
+          return;
+        }
+        console.warn("Mobiler PNG-Share fehlgeschlagen:",error);
+      }
+    }
+
+    // Last mobile fallback: navigate the current page to the PNG in a way
+    // that is still usable for saving the image.
+    window.location.href=url;
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+    return;
   }
 
-  // Desktop and browsers without Web Share API: normal download.
+  // Desktop: keep the direct download that already works reliably.
   const url=URL.createObjectURL(blob);
   const a=document.createElement("a");
   a.href=url;
@@ -6275,15 +6311,19 @@ async function instagramPngAusgeben(blob,filename){
   setTimeout(()=>URL.revokeObjectURL(url),2000);
 }
 
-async function instagramSvgToPng(svgText,filename){
+async function instagramSvgToPng(svgText,filename,mobileWindow=null){
   const blob=await instagramSvgToPngBlob(svgText);
-  await instagramPngAusgeben(blob,filename);
+  await instagramPngAusgeben(blob,filename,mobileWindow);
 }
 
 async function instagramDownloadSlide(index){
   const slides=window.__mahlzeitInstagramSlides||[];
   if(!slides[index])throw new Error(`Slide ${index+1} ist nicht vorhanden.`);
-  await instagramSvgToPng(slides[index],`mahlzeit-carousel-${index+1}.png`);
+
+  // Open a mobile tab immediately, before awaiting PNG generation.
+  // This avoids popup blocking on iOS/Android.
+  const mobileWindow=instagramMobileFensterOeffnen(`Mahlzeit! – ${index+1}. PNG`);
+  await instagramSvgToPng(slides[index],`mahlzeit-carousel-${index+1}.png`,mobileWindow);
 }
 
 async function instagramAlleHerunterladen(){
@@ -6294,38 +6334,48 @@ async function instagramAlleHerunterladen(){
   const finalSlides=window.__mahlzeitInstagramSlides||[];
   if(!finalSlides.length) throw new Error("Keine Instagram-Slides vorhanden.");
 
-  // On mobile, share all six PNGs in one native share sheet when supported.
-  // This avoids six separate blocked/ignored downloads on iOS and Android.
-  if(instagramIstMobil() && typeof navigator.share==="function"){
-    try{
-      const files=[];
+  if(instagramIstMobil()){
+    // Open one gallery tab synchronously. This is considerably more reliable
+    // on phones than six automatic downloads, which mobile browsers commonly
+    // block. Each PNG is shown as a real image with its own save/download link.
+    const mobileWindow=instagramMobileFensterOeffnen("Mahlzeit! – Instagram PNGs");
+
+    if(mobileWindow && !mobileWindow.closed){
+      const images=[];
       for(let i=0;i<finalSlides.length;i++){
         const blob=await instagramSvgToPngBlob(finalSlides[i]);
-        files.push(new File([blob],`mahlzeit-carousel-${i+1}.png`,{type:"image/png"}));
+        const url=URL.createObjectURL(blob);
+        images.push({url,name:`mahlzeit-carousel-${i+1}.png`});
       }
 
-      if(!navigator.canShare || navigator.canShare({files})){
-        await navigator.share({
-          files,
-          title:"Mahlzeit! Instagram-Carousel",
-          text:"6 PNG-Bilder für den Instagram-Carousel"
-        });
-        const msg=document.getElementById("instagram-meldung");
-        if(msg)msg.textContent="Alle 6 PNGs wurden für die Freigabe vorbereitet.";
-        return;
-      }
-    }catch(error){
-      if(error && error.name==="AbortError") return;
-      console.warn("Mobiler Sammel-Share fehlgeschlagen:",error);
-      // Continue with the normal per-file fallback below.
+      mobileWindow.document.open();
+      mobileWindow.document.write(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mahlzeit! – Instagram PNGs</title><style>body{font-family:Arial,sans-serif;margin:0;padding:16px;background:#f5eee4;color:#20201d}h1{font-size:22px;color:#285437}p{font-size:14px;line-height:1.45}.item{margin:18px 0;padding:12px;background:#fff;border-radius:12px}.item img{display:block;width:100%;height:auto;border-radius:8px}.save{display:block;margin-top:10px;padding:12px;text-align:center;background:#285437;color:#fff;text-decoration:none;border-radius:8px;font-weight:700}</style></head><body><h1>Instagram · PNGs</h1><p>Tippe auf „PNG speichern“. Falls dein Browser keinen direkten Download anbietet, halte das Bild gedrückt und wähle „Bild sichern“ bzw. „Bild herunterladen“.</p><div id="list"></div></body></html>`);
+      mobileWindow.document.close();
+      const list=mobileWindow.document.getElementById("list");
+      images.forEach((item,i)=>{
+        const box=mobileWindow.document.createElement("div");
+        box.className="item";
+        const img=mobileWindow.document.createElement("img");
+        img.src=item.url;
+        img.alt=`Instagram Slide ${i+1}`;
+        const a=mobileWindow.document.createElement("a");
+        a.className="save";
+        a.href=item.url;
+        a.download=item.name;
+        a.textContent=`PNG ${i+1} speichern`;
+        box.appendChild(img);box.appendChild(a);list.appendChild(box);
+      });
+      const msg=document.getElementById("instagram-meldung");
+      if(msg)msg.textContent="Die 6 PNGs wurden in einem mobilen Speicherfenster geöffnet. Dort kannst du jedes Bild speichern.";
+      return;
     }
   }
 
+  // Desktop: download all six directly, one after another.
   for(let i=0;i<finalSlides.length;i++){
     try{
       const blob=await instagramSvgToPngBlob(finalSlides[i]);
       await instagramPngAusgeben(blob,`mahlzeit-carousel-${i+1}.png`);
-      // Give mobile browsers a moment between fallback downloads.
       await new Promise(r=>setTimeout(r,300));
     }catch(error){
       console.error("PNG-Export:",error);
@@ -6335,7 +6385,6 @@ async function instagramAlleHerunterladen(){
     }
   }
 }
-
 
 function getCalendarWeek(date){
   const d=new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));
