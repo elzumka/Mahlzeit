@@ -2533,7 +2533,6 @@ button{
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 </head>
 <body>
 <div class="container">
@@ -5004,87 +5003,181 @@ async function sp_erzeugePNGBlob(){
 
 async function sp_drucken(){
 
-  try{
+  const sheet =
+    document.querySelector(
+      "#speiseplan-bereich .sp-sheet"
+    );
 
-    if(
-      !window.jspdf ||
-      !window.jspdf.jsPDF
-    ){
-      throw new Error(
-        "Die PDF-Bibliothek konnte nicht geladen werden. Bitte die Seite neu laden."
-      );
-    }
+  if(!sheet){
+    alert(
+      "Der Speiseplan konnte nicht für den Druck vorbereitet werden."
+    );
+    return;
+  }
 
-    const blob =
-      await sp_erzeugePNGBlob();
+  const printWindow =
+    window.open(
+      "",
+      "_blank"
+    );
 
-    const dataUrl =
-      await new Promise(
-        (resolve,reject)=>{
-          const reader =
-            new FileReader();
+  if(!printWindow){
 
-          reader.onload =
-            ()=>resolve(reader.result);
+    alert(
+      "Das Druckfenster wurde vom Browser blockiert. Bitte Pop-ups für diese Seite erlauben."
+    );
 
-          reader.onerror =
-            ()=>reject(
-              new Error(
-                "Der Speiseplan konnte nicht für das PDF verarbeitet werden."
+    return;
+  }
+
+  const baseHref =
+    document.baseURI;
+
+  const sheetHtml =
+    sheet.outerHTML;
+
+  printWindow.document.open();
+
+  printWindow.document.write(`
+    <!doctype html>
+    <html lang="de">
+      <head>
+
+        <meta charset="utf-8">
+
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1"
+        >
+
+        <base href="${baseHref}">
+
+        <title>Speiseplan</title>
+
+        <style>
+
+          @page{
+            size:A4 portrait;
+            margin:0;
+          }
+
+          html,
+          body{
+            width:210mm;
+            height:297mm;
+            margin:0;
+            padding:0;
+            background:#fff;
+            overflow:hidden;
+          }
+
+          body{
+            display:flex;
+            align-items:flex-start;
+            justify-content:flex-start;
+          }
+
+          .sp-sheet{
+            position:relative;
+            display:block;
+            width:210mm !important;
+            min-width:210mm !important;
+            max-width:210mm !important;
+            height:297mm !important;
+            min-height:297mm !important;
+            max-height:297mm !important;
+            margin:0 !important;
+            padding:0 !important;
+            overflow:hidden !important;
+            background:#f7eee4;
+            box-shadow:none !important;
+          }
+
+          .sp-sheet-bg{
+            position:absolute !important;
+            inset:0 !important;
+            display:block !important;
+            width:210mm !important;
+            height:297mm !important;
+            max-width:none !important;
+            margin:0 !important;
+            object-fit:fill !important;
+          }
+
+          #sp-overlay{
+            position:absolute !important;
+            inset:0 !important;
+            display:block !important;
+            width:210mm !important;
+            height:297mm !important;
+          }
+
+        </style>
+
+      </head>
+
+      <body>
+        ${sheetHtml}
+
+        <script>
+
+          (async function(){
+
+            try{
+
+              if(
+                document.fonts &&
+                document.fonts.ready
+              ){
+                await document.fonts.ready;
+              }
+
+            }catch(e){}
+
+            const images =
+              Array.from(
+                document.images
+              );
+
+            await Promise.all(
+              images.map(
+                img =>
+                  img.complete
+                    ? Promise.resolve()
+                    : new Promise(
+                        resolve=>{
+                          img.addEventListener(
+                            "load",
+                            resolve,
+                            {once:true}
+                          );
+
+                          img.addEventListener(
+                            "error",
+                            resolve,
+                            {once:true}
+                          );
+                        }
+                      )
               )
             );
 
-          reader.readAsDataURL(blob);
-        }
-      );
+            setTimeout(
+              ()=>{
+                window.focus();
+                window.print();
+              },
+              250
+            );
 
-    const {
-      jsPDF
-    } =
-      window.jspdf;
+          })();
 
-    /*
-     * Der Speiseplan wird als fertiges 2480 × 3508 px Bild
-     * exakt auf eine A4-Seite (210 × 297 mm) gesetzt.
-     * Dadurch kann der Browser keine zweite Druckseite erzeugen
-     * und das Blatt bleibt vollständig ausgefüllt.
-     */
-    const pdf =
-      new jsPDF({
-        orientation:"portrait",
-        unit:"mm",
-        format:"a4",
-        compress:true
-      });
+        <\/script>
+      </body>
+    </html>
+  `);
 
-    pdf.addImage(
-      dataUrl,
-      "PNG",
-      0,
-      0,
-      210,
-      297,
-      undefined,
-      "FAST"
-    );
-
-    pdf.save(
-      `Speiseplan-KW-${String(spState.week).padStart(2,"0")}-${spState.year}.pdf`
-    );
-
-  }catch(error){
-
-    console.error(
-      "PDF-Download:",
-      error
-    );
-
-    alert(
-      error?.message ||
-      "Der PDF-Download konnte nicht gestartet werden."
-    );
-
-  }
+  printWindow.document.close();
 
 }
 
@@ -5834,13 +5927,58 @@ function instagramReplaceRows(svg,items){
   return new XMLSerializer().serializeToString(root);
 }
 function instagramSvgElement(svgText){
-  const doc=new DOMParser().parseFromString(svgText,"image/svg+xml");
+  let source=String(svgText||"").trim();
+
+  /*
+   * Die Slides werden intern als SVG-Data-URL gespeichert.
+   * Beim PNG-Klick muss diese zuerst wieder in echtes SVG/XML
+   * zurückverwandelt werden. Genau das verhindert den Fehler
+   * „Ungültige SVG-Vorlage“ bei Slide 2–6.
+   */
+  if(/^data:image\/svg\+xml/i.test(source)){
+    const comma=source.indexOf(",");
+    if(comma===-1){
+      throw new Error("Ungültige SVG-Vorlage.");
+    }
+
+    const meta=source.slice(0,comma);
+    const payload=source.slice(comma+1);
+
+    try{
+      if(/;base64/i.test(meta)){
+        const binary=atob(payload);
+        const bytes=Uint8Array.from(
+          binary,
+          ch=>ch.charCodeAt(0)
+        );
+        source=new TextDecoder("utf-8").decode(bytes);
+      }else{
+        source=decodeURIComponent(payload);
+      }
+    }catch(error){
+      throw new Error("Ungültige SVG-Vorlage.");
+    }
+  }
+
+  const doc=
+    new DOMParser().parseFromString(
+      source,
+      "image/svg+xml"
+    );
+
   const svg=doc.documentElement;
-  if(!svg || svg.nodeName.toLowerCase()!=="svg"){
+
+  if(
+    !svg ||
+    svg.nodeName.toLowerCase()!=="svg"
+  ){
     throw new Error("Ungültige SVG-Vorlage.");
   }
-  // Import into the current page so nested <image href="...png"> resources
-  // resolve normally against the GitHub page origin.
+
+  /*
+   * Import into the current page so nested <image href="...png">
+   * resources resolve normally against the GitHub page origin.
+   */
   return document.importNode(svg,true);
 }
 
