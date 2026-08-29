@@ -6240,11 +6240,73 @@ async function instagramLaden(){
   }
 }
 
+async function instagramPreloadExportResources(svgText){
+  // iOS Safari can fire <img>.onload for an SVG before the SVG's nested
+  // <image> resources and embedded @font-face files have actually finished
+  // decoding. The second click then works because those resources are cached.
+  // Preload everything explicitly before the first rasterisation.
+  const source=String(svgText||"").trim();
+  const doc=new DOMParser().parseFromString(source,"image/svg+xml");
+  const root=doc.documentElement;
+  if(!root || root.nodeName.toLowerCase()!=="svg") return;
+
+  const imageUrls=[...root.querySelectorAll("image")]
+    .map(el=>el.getAttribute("href") || el.getAttributeNS("http://www.w3.org/1999/xlink","href"))
+    .filter(Boolean)
+    .filter(src=>src.startsWith("data:image/"));
+
+  await Promise.all(imageUrls.map(src=>new Promise(resolve=>{
+    const im=new Image();
+    let done=false;
+    const finish=()=>{if(done)return;done=true;resolve();};
+    im.onload=async()=>{
+      try{if(typeof im.decode==="function") await im.decode();}catch(_e){}
+      finish();
+    };
+    im.onerror=finish;
+    im.src=src;
+    setTimeout(finish,15000);
+  })));
+
+  // The fonts are embedded in the SVG as data URLs. Loading the same font
+  // data into document.fonts first removes the iOS first-render race.
+  const fontDefs=[
+    ["IG-Impact", /@font-face\{font-family:\"IG-Impact\";src:url\("([^\"]+)"\)/],
+    ["IG-ArialRounded", /@font-face\{font-family:\"IG-ArialRounded\";src:url\("([^\"]+)"\)/],
+    ["IG-SourceSans", /@font-face\{font-family:\"IG-SourceSans\";src:url\("([^\"]+)"\)/]
+  ];
+
+  if(document.fonts && typeof FontFace!=="undefined"){
+    for(const [family,re] of fontDefs){
+      const match=source.match(re);
+      if(!match) continue;
+      try{
+        const ff=new FontFace(family,`url("${match[1]}")`);
+        await ff.load();
+        document.fonts.add(ff);
+      }catch(error){
+        console.warn("Instagram-Font konnte nicht vorgeladen werden:",family,error);
+      }
+    }
+    try{await document.fonts.ready;}catch(_e){}
+  }
+
+  // Give WebKit two paint cycles after the resources are decoded.
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  await new Promise(resolve=>setTimeout(resolve,80));
+}
+
 async function instagramSvgToPngBlob(svgText){
   // Use the browser's native SVG renderer for the complete artwork and then
   // rasterise that rendered SVG to a PNG. Do NOT use html2canvas here: it can
   // omit <image> elements (logo/opening-hours artwork) and SVG text on iOS.
   const preparedSvg=await instagramInlineAssets(svgText);
+
+  // Critical mobile fix: preload all embedded PNGs and fonts before creating
+  // the SVG image. Without this, Safari may produce a partially rendered PNG
+  // on the first click and a complete one only on the second click.
+  await instagramPreloadExportResources(preparedSvg);
+
   const blob=new Blob([preparedSvg],{type:"image/svg+xml;charset=utf-8"});
   const svgUrl=URL.createObjectURL(blob);
 
@@ -6270,6 +6332,10 @@ async function instagramSvgToPngBlob(svgText){
       try{ await img.decode(); }catch(_e){}
     }
 
+    // WebKit can report decode completion one frame before nested SVG assets
+    // are painted. Wait for two more frames before drawing the canvas.
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+
     const canvas=document.createElement("canvas");
     canvas.width=1080;
     canvas.height=1080;
@@ -6291,7 +6357,6 @@ async function instagramSvgToPngBlob(svgText){
     URL.revokeObjectURL(svgUrl);
   }
 }
-
 function instagramIstMobil(){
   return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
 }
