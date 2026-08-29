@@ -5879,7 +5879,17 @@ async function instagramReplaceRows(svg,items){
 
   return new XMLSerializer().serializeToString(root);
 }
-function instagramSvgDataUrl(svg){
+function instagramSvgElement(svgText){
+  const doc = new DOMParser().parseFromString(svgText, "image/svg+xml");
+  const svg = doc.documentElement;
+
+  if (!svg || svg.nodeName.toLowerCase() !== "svg") {
+    throw new Error("Ungültige SVG-Vorlage.");
+  }
+
+  return document.importNode(svg, true);
+}
+  function instagramSvgDataUrl(svg){
   return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
 }
 
