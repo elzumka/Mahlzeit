@@ -2486,6 +2486,16 @@ button{
 #instagram-preview .instagram-card svg text tspan{
   vector-effect:non-scaling-stroke;
 }
+.instagram-svg-preview{
+  width:100%;
+  overflow:hidden;
+  border-radius:8px;
+}
+.instagram-svg-preview svg{
+  display:block;
+  width:100%;
+  height:auto;
+}
 </style>
 </style>
 </head>
@@ -5880,6 +5890,17 @@ function instagramReplaceRows(svg,items){
 
   return new XMLSerializer().serializeToString(root);
 }
+function instagramSvgElement(svgText){
+  const doc=new DOMParser().parseFromString(svgText,"image/svg+xml");
+  const svg=doc.documentElement;
+  if(!svg || svg.nodeName.toLowerCase()!=="svg"){
+    throw new Error("Ungültige SVG-Vorlage.");
+  }
+  // Import into the current page so nested <image href="...png"> resources
+  // resolve normally against the GitHub page origin.
+  return document.importNode(svg,true);
+}
+
 function instagramSvgDataUrl(svg){
   return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
 }
@@ -5941,12 +5962,35 @@ async function instagramLaden(){
   const titleUrl=await instagramTitelbildUrl(dates);
   const coverCard=document.createElement("div");
   coverCard.className="instagram-card";
-  coverCard.innerHTML=`<div style="font-weight:900;color:var(--green);margin-bottom:7px">Slide 1 / 6 · Titelbild</div>
-    <img src="${titleUrl}" alt="Instagram Titelbild"
-      style="display:block;width:100%;height:auto;border-radius:8px;box-shadow:0 5px 18px rgba(0,0,0,.12);background:#f7f0e2">
-    <div class="instagram-card-footer">
-      <button type="button" onclick="window.open('${titleUrl}','_blank','noopener')">Titelbild öffnen</button>
-    </div>`;
+
+  const coverLabel=document.createElement("div");
+  coverLabel.style.fontWeight="900";
+  coverLabel.style.color="var(--green)";
+  coverLabel.style.marginBottom="7px";
+  coverLabel.textContent="Slide 1 / 6 · Titelbild";
+  coverCard.appendChild(coverLabel);
+
+  const coverHolder=document.createElement("div");
+  coverHolder.className="instagram-svg-preview";
+  const coverSvgText=decodeURIComponent(titleUrl.split(",").slice(1).join(","));
+  const coverSvg=instagramSvgElement(coverSvgText);
+  coverSvg.style.display="block";
+  coverSvg.style.width="100%";
+  coverSvg.style.height="auto";
+  coverSvg.style.borderRadius="8px";
+  coverSvg.style.boxShadow="0 5px 18px rgba(0,0,0,.12)";
+  coverSvg.style.background="#f7f0e2";
+  coverHolder.appendChild(coverSvg);
+  coverCard.appendChild(coverHolder);
+
+  const coverFooter=document.createElement("div");
+  coverFooter.className="instagram-card-footer";
+  const coverOpen=document.createElement("button");
+  coverOpen.type="button";
+  coverOpen.textContent="Titelbild öffnen";
+  coverOpen.onclick=()=>window.open(titleUrl,"_blank","noopener");
+  coverFooter.appendChild(coverOpen);
+  coverCard.appendChild(coverFooter);
   preview.appendChild(coverCard);
 
   const results=[];
@@ -5978,12 +6022,34 @@ async function instagramLaden(){
 
     const card=document.createElement("div");
     card.className="instagram-card";
-    card.innerHTML=`<div style="font-weight:900;color:var(--green);margin-bottom:7px">Slide ${i+2} / 6 · ${day.toUpperCase()}</div>
-      <img src="${url}" alt="${day}"
-        style="display:block;width:100%;height:auto;border-radius:8px;box-shadow:0 5px 18px rgba(0,0,0,.12);background:#f7f0e2">
-      <div class="instagram-card-footer">
-        <button type="button" onclick="window.open('${url}','_blank','noopener')">Öffnen</button>
-      </div>`;
+
+    const label=document.createElement("div");
+    label.style.fontWeight="900";
+    label.style.color="var(--green)";
+    label.style.marginBottom="7px";
+    label.textContent=`Slide ${i+2} / 6 · ${day.toUpperCase()}`;
+    card.appendChild(label);
+
+    const svgHolder=document.createElement("div");
+    svgHolder.className="instagram-svg-preview";
+    const svgEl=instagramSvgElement(svg);
+    svgEl.style.display="block";
+    svgEl.style.width="100%";
+    svgEl.style.height="auto";
+    svgEl.style.borderRadius="8px";
+    svgEl.style.boxShadow="0 5px 18px rgba(0,0,0,.12)";
+    svgEl.style.background="#f7f0e2";
+    svgHolder.appendChild(svgEl);
+    card.appendChild(svgHolder);
+
+    const footer=document.createElement("div");
+    footer.className="instagram-card-footer";
+    const open=document.createElement("button");
+    open.type="button";
+    open.textContent="Öffnen";
+    open.onclick=()=>window.open(url,"_blank","noopener");
+    footer.appendChild(open);
+    card.appendChild(footer);
     preview.appendChild(card);
   }
 
