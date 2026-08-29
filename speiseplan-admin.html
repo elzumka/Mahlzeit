@@ -3191,7 +3191,7 @@ button{
     <p class="intro">
       Aus den gespeicherten Gerichten wird automatisch ein 6-teiliges Instagram-Car­ousel
       erzeugt: Titelbild + Montag bis Freitag. Ausverkaufte Gerichte werden nicht übernommen.
-    <br><small style="color:#777">Das Titelbild wird aus <strong>Element 1.svg</strong> geladen.</small></p>
+    <br><small style="color:#777">Das Titelbild wird aus <strong>Element 1.svg</strong> geladen.</small><br><small style="color:#777">Titelbild: <strong>instagram-titelbild.svg</strong></small></p>
 
     <div class="instagram-toolbar">
       <button type="button" onclick="instagramWocheVerschieben(-7)">← Vorwoche</button>
@@ -5692,21 +5692,16 @@ async function tvZusatzangeboteSpeichern(){
 
 
 const IG_TITLE_SVG = "instagram-titelbild.svg";
-const IG_SYMBOL_FILES = {
-  "veggie":"veggie.png","vegetarisch":"veggie.png",
-  "hähnchen":"hähnchen.png","huhn":"hähnchen.png",
-  "ente":"ente.png","gans":"gans.png","schwein":"schwein.png","rind":"rind.png",
-  "reh":"reh.png","hirsch":"reh.png","wildschwein":"wildschwein.png",
-  "fisch":"fisch.png","ei":"ei.png","camembert":"camembert.png",
-  "käse":"käse.png","rind_schwein":"rind_schwein.png","pilz":"pilz.png"
-};
-let instagramStartMontag = instagramMontag(new Date());
+
+const IG_TEMPLATES={"montag": "instagram-montag.svg", "dienstag": "instagram-dienstag.svg", "mittwoch": "instagram-mittwoch.svg", "donnerstag": "instagram-donnerstag.svg", "freitag": "instagram-freitag.svg", "titel": "instagram-titelbild.svg"};
+
+let instagramStartMontag=instagramMontag(new Date());
 
 function instagramMontag(d){
   const x=new Date(d);
   x.setHours(12,0,0,0);
   const day=x.getDay();
-  const diff=day===0 ? -6 : 1-day;
+  const diff=day===0?-6:1-day;
   x.setDate(x.getDate()+diff);
   return x;
 }
@@ -5714,148 +5709,104 @@ function instagramISO(d){
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 }
 function instagramFormatDatum(d){
-  return `${String(d.getDate()).padStart(2,"0")}.${String(d.getMonth()+1).padStart(2,"0")}.${d.getFullYear()}`;
+  return `${String(d.getDate()).padStart(2,"0")}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getFullYear()).slice(-2)}`;
 }
 function instagramWocheVerschieben(tage){
   instagramStartMontag.setDate(instagramStartMontag.getDate()+tage);
   instagramLaden();
 }
-function instagramTextWrap(ctx,text,maxWidth,maxLines=2){
-  const words=String(text||"").split(/\s+/);
-  const lines=[]; let line="";
-  for(const word of words){
-    const test=line ? line+" "+word : word;
-    if(ctx.measureText(test).width<=maxWidth){ line=test; }
-    else { if(line)lines.push(line); line=word; }
-  }
-  if(line)lines.push(line);
-  return lines.slice(0,maxLines);
-}
-function instagramSymbolPreload(name){
-  return new Promise(resolve=>{
-    const file=IG_SYMBOL_FILES[String(name||"").toLowerCase()];
-    if(!file)return resolve(null);
-    const img=new Image();
-    img.onload=()=>resolve(img);
-    img.onerror=()=>resolve(null);
-    img.src=file;
+function instagramReadSvg(url){
+  return fetch(url).then(r=>{
+    if(!r.ok)throw new Error(`Vorlage nicht gefunden: ${url}`);
+    return r.text();
   });
 }
-function instagramRoundedRect(ctx,x,y,w,h,r){
-  const rr=Math.min(r,w/2,h/2);
-  ctx.beginPath();
-  ctx.moveTo(x+rr,y);
-  ctx.arcTo(x+w,y,x+w,y+h,rr);
-  ctx.arcTo(x+w,y+h,x,y+h,rr);
-  ctx.arcTo(x,y+h,x,y,rr);
-  ctx.arcTo(x,y,x+w,y,rr);
-  ctx.closePath();
+function instagramReplaceDate(svg,date){
+  const root=new DOMParser().parseFromString(svg,"image/svg+xml");
+  const texts=[...root.querySelectorAll("text")];
+  const dateText=texts.find(t=>/\d{2}\.\d{2}\.\d{2,4}/.test(t.textContent||""));
+  if(dateText){
+    const nested=dateText.querySelector("tspan");
+    if(nested) nested.textContent=date;
+    else dateText.textContent=date;
+    dateText.setAttribute("font-family","ArialRoundedMTBold, 'Arial Rounded MT Bold'");
+  }
+  return new XMLSerializer().serializeToString(root);
 }
-async function instagramRenderSlide(dayIndex,items,weekDates){
-  const W=1080,H=1350;
-  const canvas=document.createElement("canvas");
-  canvas.width=W; canvas.height=H;
-  const ctx=canvas.getContext("2d");
-  ctx.fillStyle="#f6efe2"; ctx.fillRect(0,0,W,H);
-  ctx.strokeStyle="#31583d"; ctx.lineWidth=4; ctx.strokeRect(26,26,W-52,H-52);
 
-  // Subtle hand-made structure
-  ctx.strokeStyle="#c5b9a3"; ctx.lineWidth=2;
-  ctx.beginPath(); ctx.moveTo(78,205); ctx.lineTo(1002,205); ctx.stroke();
+function instagramReplaceRows(svg,items){
+  const root=new DOMParser().parseFromString(svg,"image/svg+xml");
+  const textEls=[...root.querySelectorAll("text")];
+  const rowTexts=textEls.filter(t=>/GERICHT\s+\d+/.test(t.textContent||"") && t.querySelector("tspan"));
 
-  if(dayIndex===0){
-    const titleImg=await new Promise(resolve=>{
-      const img=new Image();
-      img.onload=()=>resolve(img);
-      img.onerror=()=>resolve(null);
-      img.src=IG_TITLE_SVG;
-    });
+  const priceTexts=textEls.filter(t=>/PREIS\s+\d+/.test(t.textContent||""));
 
-    if(titleImg){
-      // Keep the original title artwork exactly as supplied.
-      ctx.fillStyle="#f8ede3";
-      ctx.fillRect(0,0,W,H);
-      const scale=Math.min(W/titleImg.width,H/titleImg.height);
-      const dw=titleImg.width*scale;
-      const dh=titleImg.height*scale;
-      ctx.drawImage(titleImg,(W-dw)/2,(H-dh)/2,dw,dh);
-    }else{
-      ctx.fillStyle="#f8ede3";
-      ctx.fillRect(0,0,W,H);
-      ctx.fillStyle="#31583d";
-      ctx.font="700 84px Arial";
-      ctx.textAlign="center";
-      ctx.fillText("WOCHENSPEISEPLAN",540,280);
-      ctx.font="400 28px Arial";
-      ctx.fillText("Titelbild konnte nicht geladen werden.",540,345);
-    }
-    return canvas;
-  }
-
-  const date=weekDates[dayIndex-1];
-  const weekdays=["MONTAG","DIENSTAG","MITTWOCH","DONNERSTAG","FREITAG"];
-  ctx.fillStyle="#31583d";
-  ctx.font="700 70px 'Barlow Condensed',Arial";
-  ctx.textAlign="left";
-  ctx.fillText(weekdays[dayIndex-1],78,125);
-  ctx.font="400 28px Arial";
-  ctx.textAlign="right";
-  ctx.fillText(instagramFormatDatum(date),1002,120);
-
-  const active=(items||[]).filter(g=>!g.ausverkauft).slice(0,6);
-  let y=250;
-
-  for(let i=0;i<active.length;i++){
-    const g=active[i];
-    const icon=await instagramSymbolPreload(g.symbol || (g.vegetarisch ? "veggie" : ""));
-    ctx.strokeStyle="#c8bda9"; ctx.lineWidth=1.5;
-    instagramRoundedRect(ctx,68,y,944,128,16); ctx.stroke();
-
-    if(icon){
-      ctx.drawImage(icon,88,y+22,82,82);
+  for(let i=0;i<4;i++){
+    const item=items[i];
+    if(!item){
+      if(rowTexts[i]) rowTexts[i].style.display="none";
+      if(priceTexts[i]) priceTexts[i].style.display="none";
+      const rects=[...root.querySelectorAll("rect")];
+      // Hide the matching placeholder box heuristically by order, if present.
+      continue;
     }
 
-    ctx.fillStyle="#31583d";
-    ctx.beginPath(); ctx.arc(205,y+64,24,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle="#f6efe2"; ctx.font="700 24px Arial"; ctx.textAlign="center";
-    ctx.fillText(String(i+1),205,y+73);
+    if(rowTexts[i]){
+      const spans=[...rowTexts[i].querySelectorAll("tspan")];
+      const main=spans.find(s=>/GERICHT\s*\d+/i.test(s.textContent||""));
+      const desc=spans.find(s=>/BEILAGEN\s*\d+/i.test(s.textContent||"") || /BEI|L|A|GEN/i.test(s.textContent||""));
+      if(main)main.textContent=String(item.gerichte||"").toUpperCase();
+      if(desc)desc.textContent=String(item.beilage||"").toUpperCase();
+    }
 
-    ctx.fillStyle="#171714"; ctx.textAlign="left";
-    ctx.font="700 34px 'Barlow Condensed',Arial";
-    const nameLines=instagramTextWrap(ctx,String(g.gerichte||"").toUpperCase(),520,2);
-    nameLines.forEach((line,j)=>ctx.fillText(line,250,y+43+j*35));
-
-    ctx.font="400 25px Arial";
-    const desc=instagramTextWrap(ctx,String(g.beilage||"").toUpperCase(),520,2);
-    desc.forEach((line,j)=>ctx.fillText(line,250,y+87+j*28));
-
-    ctx.textAlign="right"; ctx.fillStyle="#31583d";
-    ctx.font="700 34px Arial";
-    const price=Number(g.preis);
-    ctx.fillText(Number.isFinite(price)?price.toFixed(2).replace(".",",")+" €":"",988,y+73);
-
-    y+=148;
+    if(priceTexts[i]){
+      const price=Number(item.preis);
+      const p=Number.isFinite(price)?price.toFixed(2).replace(".",",")+" €":"";
+      const spans=[...priceTexts[i].querySelectorAll("tspan")];
+      if(spans[0])spans[0].textContent=p;
+      priceTexts[i].setAttribute("font-family","ArialRoundedMTBold, 'Arial Rounded MT Bold'");
+    }
   }
 
-  // Friday extras – a small, clear footer card
-  if(dayIndex===5){
-    ctx.textAlign="left";
-    ctx.fillStyle="#31583d";
-    ctx.font="700 30px 'Barlow Condensed',Arial";
-    ctx.fillText("TÄGLICHE KLASSIKER",80,1135);
-    ctx.font="400 23px Arial";
-    ctx.fillStyle="#222";
-    ctx.fillText("Kräuterquark · Wurstgulasch · Nudeln + Käse",80,1175);
-    ctx.fillStyle="#31583d";
-    ctx.font="italic 26px Arial";
-    ctx.fillText("Schnitzel-Menü · 11,50 €",80,1225);
-  }else{
-    ctx.fillStyle="#31583d";
-    ctx.font="italic 26px Arial";
-    ctx.textAlign="center";
-    ctx.fillText("Frisch. Regional. Lecker.",540,1230);
+  return new XMLSerializer().serializeToString(root);
+}
+
+function instagramSvgDataUrl(svg){
+  return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
+}
+
+async function instagramMakeSlide(templateUrl,items,date){
+  let svg=await instagramReadSvg(templateUrl);
+  svg=instagramReplaceDate(svg,instagramFormatDatum(date));
+  if(items) svg=instagramReplaceRows(svg,items);
+  return svg;
+}
+
+async function instagramTitelbildUrl(weekDates){
+  const raw=await instagramReadSvg(IG_TEMPLATES.titel);
+  const root=new DOMParser().parseFromString(raw,"image/svg+xml");
+
+  // KW and date exist as dedicated SVG text objects in the supplied title artwork.
+  const texts=[...root.querySelectorAll("text")];
+  const kwText=texts.find(t=>/KW\s*\d+/i.test(t.textContent||""));
+  const dateText=texts.find(t=>/\d{2}\.\d{2}\.\s*-\s*\d{2}\.\d{2}\.\d{4}/i.test(t.textContent||""));
+
+  if(kwText){
+    const n=getCalendarWeek(weekDates[0]);
+    const span=kwText.querySelector("tspan");
+    if(span)span.textContent=`KW ${n}`;
+    else kwText.textContent=`KW ${n}`;
   }
-  return canvas;
+
+  if(dateText){
+    const d=`${String(weekDates[0].getDate()).padStart(2,"0")}.${String(weekDates[0].getMonth()+1).padStart(2,"0")}. - ${String(weekDates[4].getDate()).padStart(2,"0")}.${String(weekDates[4].getMonth()+1).padStart(2,"0")}.${weekDates[4].getFullYear()}`;
+    const span=dateText.querySelector("tspan");
+    if(span)span.textContent=d;
+    else dateText.textContent=d;
+    dateText.setAttribute("font-family","ArialRoundedMTBold, 'Arial Rounded MT Bold'");
+  }
+
+  return instagramSvgDataUrl(new XMLSerializer().serializeToString(root));
 }
 
 async function instagramLaden(){
@@ -5866,29 +5817,31 @@ async function instagramLaden(){
   msg.textContent="Instagram-Carousel wird erstellt …";
   preview.innerHTML="";
 
-  const dates=[];
+  try{
+    const dates=[];
   for(let i=0;i<5;i++){
     const d=new Date(instagramStartMontag);
     d.setDate(instagramStartMontag.getDate()+i);
     dates.push(d);
   }
-  const label=`KW ${getCalendarWeek(instagramStartMontag)} · ${instagramFormatDatum(dates[0])} – ${instagramFormatDatum(dates[4])}`;
+
   const weekLabel=document.getElementById("instagram-woche-label");
-  if(weekLabel)weekLabel.textContent=label;
+  if(weekLabel)weekLabel.textContent=`KW ${getCalendarWeek(dates[0])} · ${String(dates[0].getDate()).padStart(2,"0")}.${String(dates[0].getMonth()+1).padStart(2,"0")}. – ${String(dates[4].getDate()).padStart(2,"0")}.${String(dates[4].getMonth()+1).padStart(2,"0")}.${dates[4].getFullYear()}`;
 
-  const results=[];
-
-  // Show the user's title slide immediately.
+  // Slide 1: your own title SVG.
+  const titleUrl=await instagramTitelbildUrl(dates);
   const coverCard=document.createElement("div");
   coverCard.className="instagram-card";
   coverCard.innerHTML=`<div style="font-weight:900;color:var(--green);margin-bottom:7px">Slide 1 / 6 · Titelbild</div>
-    <img src="${IG_TITLE_SVG}" alt="Instagram Titelbild"
+    <img src="${titleUrl}" alt="Instagram Titelbild"
       style="display:block;width:100%;height:auto;border-radius:8px;box-shadow:0 5px 18px rgba(0,0,0,.12);background:#f7f0e2">
     <div class="instagram-card-footer">
-      <button type="button" onclick="instagramDownloadTitelbild()">Titelbild öffnen</button>
+      <button type="button" onclick="window.open('${titleUrl}','_blank','noopener')">Titelbild öffnen</button>
     </div>`;
   preview.appendChild(coverCard);
 
+  const results=[];
+  const days=["montag","dienstag","mittwoch","donnerstag","freitag"];
   for(const date of dates){
     const {data,error}=await supabaseClient
       .from("Gerichte").select("*")
@@ -5901,56 +5854,53 @@ async function instagramLaden(){
       msg.textContent="Fehler beim Laden der Gerichte.";
       return;
     }
-    results.push(data||[]);
+    results.push([data||[]]);
   }
 
-  const weekSlides=[];
-  weekSlides.push(await instagramRenderSlide(0,[],dates));
-  for(let i=0;i<5;i++) weekSlides.push(await instagramRenderSlide(i+1,results[i],dates));
+  const slides=[];
+  slides.push(titleUrl);
 
-  weekSlides.forEach((canvas,i)=>{
+  for(let i=0;i<5;i++){
+    const day=days[i];
+    const active=(results[i][0]||[]).filter(g=>!isSold(g.ausverkauft)).slice(0,4);
+    const svg=await instagramMakeSlide(IG_TEMPLATES[day],active,dates[i]);
+    const url=instagramSvgDataUrl(svg);
+    slides.push(url);
+
     const card=document.createElement("div");
     card.className="instagram-card";
-    const title=document.createElement("div");
-    title.style.fontWeight="900";
-    title.style.color="var(--green)";
-    title.style.marginBottom="7px";
-    title.textContent=`Slide ${i+1} / 6`;
-    card.appendChild(title);
-    card.appendChild(canvas);
-
-    const footer=document.createElement("div");
-    footer.className="instagram-card-footer";
-    const dl=document.createElement("button");
-    dl.type="button"; dl.textContent="PNG herunterladen";
-    dl.onclick=()=>instagramDownloadCanvas(canvas,`mahlzeit-carousel-${i+1}.png`);
-    footer.appendChild(dl);
-    card.appendChild(footer);
+    card.innerHTML=`<div style="font-weight:900;color:var(--green);margin-bottom:7px">Slide ${i+2} / 6 · ${day.toUpperCase()}</div>
+      <img src="${url}" alt="${day}"
+        style="display:block;width:100%;height:auto;border-radius:8px;box-shadow:0 5px 18px rgba(0,0,0,.12);background:#f7f0e2">
+      <div class="instagram-card-footer">
+        <button type="button" onclick="window.open('${url}','_blank','noopener')">Öffnen</button>
+      </div>`;
     preview.appendChild(card);
-  });
+  }
 
-  window.__mahlzeitInstagramSlides=weekSlides;
-  msg.textContent="Carousel ist fertig.";
+    window.__mahlzeitInstagramSlides=slides;
+    msg.textContent="Carousel ist fertig.";
+  }catch(error){
+    console.error("Instagram-Carousel:",error);
+    msg.textContent=`Fehler: ${error?.message || "Carousel konnte nicht erstellt werden."}`;
+  }
 }
 
-function instagramDownloadTitelbild(){
-  window.open(IG_TITLE_SVG,"_blank","noopener");
-}
-
-function instagramDownloadCanvas(canvas,filename){
+function instagramDownloadCanvas(url,filename){
   const a=document.createElement("a");
-  a.href=canvas.toDataURL("image/png");
+  a.href=url;
   a.download=filename;
   a.click();
 }
+
 async function instagramAlleHerunterladen(){
   const slides=window.__mahlzeitInstagramSlides||[];
   if(!slides.length){
     await instagramLaden();
   }
   const finalSlides=window.__mahlzeitInstagramSlides||[];
-  finalSlides.forEach((canvas,i)=>{
-    setTimeout(()=>instagramDownloadCanvas(canvas,`mahlzeit-carousel-${i+1}.png`),i*400);
+  finalSlides.forEach((url,i)=>{
+    setTimeout(()=>instagramDownloadCanvas(url,`mahlzeit-carousel-${i+1}.svg`),i*400);
   });
 }
 
