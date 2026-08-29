@@ -5811,20 +5811,10 @@ async function instagramInlineAssets(svgText){
   // Fonts must live inside the SVG as well. Otherwise an SVG rendered as an
   // image/canvas can silently fall back to a system font.
   const fontStyle=root.createElementNS("http://www.w3.org/2000/svg","style");
-  const fontFiles={
-    impact:["impact.ttf","truetype"],
-    rounded:["ARLRDBD.TTF","truetype"],
-    source:["SourceSansVariable-Roman.otf","opentype"]
-  };
-  const [impactFont,roundedFont,sourceFont]=await Promise.all([
-    instagramAssetDataUrl(new URL(fontFiles.impact[0],window.location.href).href),
-    instagramAssetDataUrl(new URL(fontFiles.rounded[0],window.location.href).href),
-    instagramAssetDataUrl(new URL(fontFiles.source[0],window.location.href).href)
-  ]);
   fontStyle.textContent=`
-    @font-face{font-family:"IG-Impact";src:url("${impactFont}") format("truetype");font-weight:400;font-style:normal;}
-    @font-face{font-family:"IG-ArialRounded";src:url("${roundedFont}") format("truetype");font-weight:400;font-style:normal;}
-    @font-face{font-family:"IG-SourceSans";src:url("${sourceFont}") format("opentype");font-weight:100 900;font-style:normal;}
+    @font-face{font-family:"IG-Impact";src:url("impact.ttf") format("truetype");font-weight:400;font-style:normal;}
+    @font-face{font-family:"IG-ArialRounded";src:url("ARLRDBD.TTF") format("truetype");font-weight:400;font-style:normal;}
+    @font-face{font-family:"IG-SourceSans";src:url("SourceSansVariable-Roman.otf") format("opentype");font-weight:100 900;font-style:normal;}
     .ig-gericht{font-family:"IG-ArialRounded"!important;}
     .ig-beilage{font-family:"IG-SourceSans"!important;}
     .ig-preis,.ig-datum{font-family:"IG-ArialRounded"!important;}
@@ -5988,9 +5978,27 @@ function instagramReplaceRows(svg,items){
 }
 
 function instagramSvgElement(svgText){
-  const doc=new DOMParser().parseFromString(svgText,"image/svg+xml");
+  // The carousel stores each finished slide as a data:image/svg+xml URL.
+  // For preview/export we must decode that URL before parsing it as SVG.
+  let text=String(svgText||"").trim();
+  if(text.startsWith("data:image/svg+xml")){
+    const comma=text.indexOf(",");
+    if(comma===-1) throw new Error("Ungültige SVG-Daten-URL.");
+    const meta=text.slice(0,comma);
+    const payload=text.slice(comma+1);
+    try{
+      text=/;base64/i.test(meta)
+        ? decodeURIComponent(escape(atob(payload)))
+        : decodeURIComponent(payload);
+    }catch(e){
+      throw new Error("SVG-Daten konnten nicht dekodiert werden.");
+    }
+  }
+
+  const doc=new DOMParser().parseFromString(text,"image/svg+xml");
+  const parserError=doc.querySelector("parsererror");
   const svg=doc.documentElement;
-  if(!svg || svg.nodeName.toLowerCase()!=="svg"){
+  if(parserError || !svg || svg.nodeName.toLowerCase()!=="svg"){
     throw new Error("Ungültige SVG-Vorlage.");
   }
   // Import into the current page so nested <image href="...png"> resources
@@ -6194,25 +6202,10 @@ async function instagramLaden(){
 }
 
 async function instagramSvgToPng(svgText,filename){
-  // The carousel stores each slide as an SVG data URL. Decode that URL back
-  // to the actual SVG source before inlining fonts/images. Passing the data
-  // URL itself to DOMParser makes it look like an invalid SVG document.
-  let rawSvg=String(svgText||"");
-  if(rawSvg.startsWith("data:image/svg+xml")){
-    const comma=rawSvg.indexOf(",");
-    if(comma<0) throw new Error("Ungültige SVG-Daten-URL.");
-    const payload=rawSvg.slice(comma+1);
-    try{
-      rawSvg=decodeURIComponent(payload);
-    }catch(error){
-      throw new Error("SVG-Daten konnten nicht dekodiert werden.");
-    }
-  }
-
   // Export the SVG itself through a real Image element instead of asking
   // html2canvas to reconstruct SVG text. This keeps the supplied fonts and
   // all embedded symbols intact.
-  const preparedSvg=await instagramInlineAssets(rawSvg);
+  const preparedSvg=await instagramInlineAssets(svgText);
   const svgUrl="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(preparedSvg);
 
   const img=new Image();
