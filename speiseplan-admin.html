@@ -6241,71 +6241,44 @@ async function instagramLaden(){
 }
 
 async function instagramSvgToPngBlob(svgText){
-  // IMPORTANT: Render the same inline SVG that is visible in the admin preview.
-  // Do NOT rasterize the SVG through an <img>. Mobile Safari can drop
-  // embedded PNGs (logo/opening-hours artwork) and embedded font faces when
-  // an SVG is loaded as an image. html2canvas can capture the real SVG DOM,
-  // including everything the browser has already rendered correctly.
+  // Use the browser's native SVG renderer for the complete artwork and then
+  // rasterise that rendered SVG to a PNG. Do NOT use html2canvas here: it can
+  // omit <image> elements (logo/opening-hours artwork) and SVG text on iOS.
   const preparedSvg=await instagramInlineAssets(svgText);
-  const svgEl=instagramSvgElement(preparedSvg);
-
-  svgEl.setAttribute("width","1080");
-  svgEl.setAttribute("height","1080");
-  svgEl.style.display="block";
-  svgEl.style.width="1080px";
-  svgEl.style.height="1080px";
-  svgEl.style.maxWidth="none";
-  svgEl.style.background="#f5eee4";
-
-  const wrap=document.createElement("div");
-  wrap.style.position="fixed";
-  wrap.style.left="0";
-  wrap.style.top="0";
-  wrap.style.width="1080px";
-  wrap.style.height="1080px";
-  wrap.style.overflow="hidden";
-  wrap.style.background="#f5eee4";
-  wrap.style.margin="0";
-  wrap.style.padding="0";
-  wrap.style.opacity="1";
-  wrap.style.pointerEvents="none";
-  wrap.style.zIndex="2147483647";
-  wrap.appendChild(svgEl);
-  document.body.appendChild(wrap);
+  const blob=new Blob([preparedSvg],{type:"image/svg+xml;charset=utf-8"});
+  const svgUrl=URL.createObjectURL(blob);
 
   try{
-    if(document.fonts?.ready) await document.fonts.ready;
+    const img=new Image();
+    img.decoding="async";
+    img.src=svgUrl;
 
-    // Wait for all embedded/external SVG images to finish decoding.
-    const imageEls=[...svgEl.querySelectorAll("image")];
-    await Promise.all(imageEls.map(image=>new Promise(resolve=>{
-      const href=image.getAttribute("href") || image.getAttributeNS("http://www.w3.org/1999/xlink","href");
-      if(!href || href.startsWith("data:")){ resolve(); return; }
-      const test=new Image();
-      test.onload=()=>resolve();
-      test.onerror=()=>resolve();
-      test.src=href;
-    })));
+    await new Promise((resolve,reject)=>{
+      let settled=false;
+      const finish=(fn,value)=>{
+        if(settled)return;
+        settled=true;
+        clearTimeout(timer);
+        fn(value);
+      };
+      const timer=setTimeout(()=>finish(reject,new Error("SVG konnte auf diesem Smartphone nicht gerendert werden.")),30000);
+      img.onload=()=>finish(resolve);
+      img.onerror=()=>finish(reject,new Error("SVG konnte auf diesem Smartphone nicht gerendert werden."));
+    });
 
-    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-
-    if(typeof html2canvas!=="function"){
-      throw new Error("PNG-Exportbibliothek konnte nicht geladen werden.");
+    if(typeof img.decode==="function"){
+      try{ await img.decode(); }catch(_e){}
     }
 
-    // Capture the actual SVG DOM. This preserves the logo, opening-hours
-    // artwork, food symbols and the exact browser-resolved fonts.
-    const canvas=await html2canvas(wrap,{
-      backgroundColor:"#f5eee4",
-      width:1080,
-      height:1080,
-      scale:1,
-      useCORS:true,
-      allowTaint:false,
-      imageTimeout:20000,
-      logging:false,
-      foreignObjectRendering:false
-    });
+    const canvas=document.createElement("canvas");
+    canvas.width=1080;
+    canvas.height=1080;
+    const ctx=canvas.getContext("2d",{alpha:false});
+    if(!ctx)throw new Error("Canvas konnte nicht erstellt werden.");
+
+    ctx.fillStyle="#f5eee4";
+    ctx.fillRect(0,0,1080,1080);
+    ctx.drawImage(img,0,0,1080,1080);
 
     return await new Promise((resolve,reject)=>{
       canvas.toBlob(
@@ -6315,7 +6288,7 @@ async function instagramSvgToPngBlob(svgText){
       );
     });
   }finally{
-    wrap.remove();
+    URL.revokeObjectURL(svgUrl);
   }
 }
 
