@@ -2500,24 +2500,9 @@ button{
 </style>
 
 <style id="instagram-fonts-exakt">
-@font-face{
-  font-family:"IG-Impact";
-  src:url("impact.ttf") format("truetype");
-  font-style:normal;
-  font-weight:400;
-}
-@font-face{
-  font-family:"IG-ArialRounded";
-  src:url("ARLRDBD.TTF") format("truetype");
-  font-style:normal;
-  font-weight:400;
-}
-@font-face{
-  font-family:"IG-SourceSans";
-  src:url("SourceSansVariable-Roman.otf") format("opentype");
-  font-style:normal;
-  font-weight:100 900;
-}
+@font-face{font-family:"IG-Impact";src:url("impact.ttf") format("truetype");font-style:normal;font-weight:400;}
+@font-face{font-family:"IG-ArialRounded";src:url("ARLRDBD.TTF") format("truetype");font-style:normal;font-weight:400;}
+@font-face{font-family:"IG-SourceSans";src:url("SourceSansVariable-Roman.otf") format("opentype");font-style:normal;font-weight:100 900;}
 #instagram-preview svg .ig-gericht{
   font-family:"IG-ArialRounded","Arial Rounded MT Bold",sans-serif !important;
 }
@@ -5789,153 +5774,111 @@ function instagramReplaceDate(svg,date){
   return new XMLSerializer().serializeToString(root);
 }
 
-function instagramReplaceRows(svg,items){
+async function instagramReplaceRows(svg,items){
   const root=new DOMParser().parseFromString(svg,"image/svg+xml");
-  const textEls=[...root.querySelectorAll("text")];
 
   function leafTspans(textEl){
     return [...textEl.querySelectorAll("tspan")].filter(
       el=>!el.querySelector("tspan")
     );
   }
-
-  function setNestedText(outerTspan,value){
-    const leaves=[...outerTspan.querySelectorAll("tspan")]
-      .filter(el=>!el.querySelector("tspan"));
+  function setNestedText(outer,value){
+    const leaves=leafTspans(outer);
     if(leaves.length){
       leaves[0].textContent=String(value||"");
       for(let i=1;i<leaves.length;i++) leaves[i].textContent="";
     }else{
-      outerTspan.textContent=String(value||"");
+      outer.textContent=String(value||"");
     }
   }
 
-  const rowTexts=textEls
+  const rowTexts=[...root.querySelectorAll("text")]
     .filter(t=>/GERICHT\s+\d+/.test(t.textContent||""))
-    .sort((a,b)=>{
-      const na=Number((a.textContent.match(/GERICHT\s+(\d+)/)||[])[1]||0);
-      const nb=Number((b.textContent.match(/GERICHT\s+(\d+)/)||[])[1]||0);
-      return na-nb;
-    });
+    .sort((a,b)=>
+      Number((a.textContent.match(/GERICHT\s+(\d+)/)||[])[1]||0)-
+      Number((b.textContent.match(/GERICHT\s+(\d+)/)||[])[1]||0)
+    );
 
-  const priceTexts=textEls
+  const priceTexts=[...root.querySelectorAll("text")]
     .filter(t=>/PREIS\s+\d+/.test(t.textContent||""))
-    .sort((a,b)=>{
-      const na=Number((a.textContent.match(/PREIS\s+(\d+)/)||[])[1]||0);
-      const nb=Number((b.textContent.match(/PREIS\s+(\d+)/)||[])[1]||0);
-      return na-nb;
-    });
+    .sort((a,b)=>
+      Number((a.textContent.match(/PREIS\s+(\d+)/)||[])[1]||0)-
+      Number((b.textContent.match(/PREIS\s+(\d+)/)||[])[1]||0)
+    );
 
-  const placeholderRects=[...root.querySelectorAll("rect")]
+  const rects=[...root.querySelectorAll("rect")]
     .filter(r=>{
       const w=Number(r.getAttribute("width")||0);
       const h=Number(r.getAttribute("height")||0);
       return Math.abs(w-66.89)<2 && Math.abs(h-66.89)<2;
     })
-    .sort((a,b)=>
-      Number(a.getAttribute("y")||0)-Number(b.getAttribute("y")||0)
-    );
-
-  const iconFiles={
-    "veggie":"veggie.png",
-    "vegetarisch":"veggie.png",
-    "hähnchen":"hähnchen.png",
-    "huhn":"hähnchen.png",
-    "ente":"ente.png",
-    "gans":"gans.png",
-    "schwein":"schwein.png",
-    "rind":"rind.png",
-    "reh":"reh.png",
-    "hirsch":"reh.png",
-    "wildschwein":"wildschwein.png",
-    "fisch":"fisch.png",
-    "ei":"ei.png",
-    "camembert":"camembert.png",
-    "käse":"käse.png",
-    "rind_schwein":"rind_schwein.png",
-    "rind & schwein":"rind_schwein.png",
-    "pilz":"pilz.png"
-  };
+    .sort((a,b)=>Number(a.getAttribute("y")||0)-Number(b.getAttribute("y")||0));
 
   for(let i=0;i<4;i++){
     const item=items[i];
-    const row=rowTexts[i];
-    const priceText=priceTexts[i];
-    const rect=placeholderRects[i];
+    const row=rowTexts[i], priceText=priceTexts[i], rect=rects[i];
 
-    // Placeholder square is only a design aid. Never show the square in the final post.
-    if(rect) rect.style.display="none";
+    if(rect)rect.setAttribute("display","none");
 
     if(!item){
-      if(row) row.style.display="none";
-      if(priceText) priceText.style.display="none";
+      if(row)row.setAttribute("display","none");
+      if(priceText)priceText.setAttribute("display","none");
       continue;
     }
 
     if(row){
-      const topSpans=[...row.querySelectorAll(":scope > tspan")];
-
-      if(topSpans[0]){
-        setNestedText(topSpans[0],String(item.gerichte||"").toUpperCase());
+      const top=[...row.querySelectorAll(":scope > tspan")];
+      const main=top[0];
+      const desc=top[1];
+      if(main){
+        setNestedText(main,String(item.gerichte||"").toUpperCase());
+        main.setAttribute("font-family","IG-ArialRounded");
+        main.setAttribute("class",((main.getAttribute("class")||"")+" ig-gericht").trim());
       }
-
-      if(topSpans[1]){
-        setNestedText(topSpans[1],String(item.beilage||"").toUpperCase());
-        topSpans[1].setAttribute("font-family","SourceSansRoman-Regular, 'Source Sans Variable'");
-        topSpans[1].setAttribute("font-size","42.64");
+      if(desc){
+        setNestedText(desc,String(item.beilage||"").toUpperCase());
+        desc.setAttribute("font-family","IG-SourceSans");
+        desc.setAttribute("font-variation-settings","'wght' 400");
+        desc.setAttribute("class",((desc.getAttribute("class")||"")+" ig-beilage").trim());
       }
     }
 
     if(priceText){
-      const leaves=leafTspans(priceText);
       const price=Number(item.preis);
-      const formatted=Number.isFinite(price)
-        ? price.toFixed(2).replace(".",",")+" €"
-        : "";
-      if(leaves.length) leaves[0].textContent=formatted;
+      const formatted=Number.isFinite(price)?price.toFixed(2).replace(".",",")+" €":"";
+      const leaves=leafTspans(priceText);
+      if(leaves[0])leaves[0].textContent=formatted;
       else priceText.textContent=formatted;
-      priceText.setAttribute("font-family","IG-ArialRounded, 'Arial Rounded MT Bold'");
+      priceText.setAttribute("font-family","IG-ArialRounded");
       priceText.setAttribute("class",((priceText.getAttribute("class")||"")+" ig-preis").trim());
     }
 
-    // Insert the matching PNG exactly into the template's placeholder square.
     if(rect){
-      const raw=String(
-        item.symbol || (item.vegetarisch ? "veggie" : "")
-      ).trim().toLowerCase();
-      const file=iconFiles[raw]||"";
-
-      root.querySelectorAll("image.instagram-food-icon").forEach(el=>el.remove());
-
-      if(file){
-        const image=document.createElementNS("http://www.w3.org/2000/svg","image");
-        image.classList.add("instagram-food-icon");
-        image.setAttribute("x",rect.getAttribute("x")||"95.89");
-        image.setAttribute("y",rect.getAttribute("y")||"348.58");
-        image.setAttribute("width",rect.getAttribute("width")||"66.89");
-        image.setAttribute("height",rect.getAttribute("height")||"66.89");
-        image.setAttribute("preserveAspectRatio","xMidYMid meet");
-        const iconUrl=new URL(file,window.location.href).href;
-        image.setAttribute("href",iconUrl);
-        image.setAttributeNS("http://www.w3.org/1999/xlink","xlink:href",iconUrl);
-        root.documentElement.appendChild(image);
+      const symbol=item.symbol || (item.vegetarisch ? "veggie" : "");
+      if(symbol){
+        try{
+          const dataUrl=await instagramIconDataUrl(symbol);
+          if(dataUrl){
+            const image=document.createElementNS("http://www.w3.org/2000/svg","image");
+            image.setAttribute("x",rect.getAttribute("x")||"95.89");
+            image.setAttribute("y",rect.getAttribute("y")||"348.58");
+            image.setAttribute("width",rect.getAttribute("width")||"66.89");
+            image.setAttribute("height",rect.getAttribute("height")||"66.89");
+            image.setAttribute("preserveAspectRatio","xMidYMid meet");
+            image.setAttribute("href",dataUrl);
+            image.setAttributeNS("http://www.w3.org/1999/xlink","xlink:href",dataUrl);
+            image.setAttribute("class","instagram-food-icon");
+            root.documentElement.appendChild(image);
+          }
+        }catch(error){
+          console.warn("Instagram-Symbol:",error);
+        }
       }
     }
   }
 
   return new XMLSerializer().serializeToString(root);
 }
-function instagramSvgElement(svgText){
-  const doc=new DOMParser().parseFromString(svgText,"image/svg+xml");
-  const svg=doc.documentElement;
-  if(!svg || svg.nodeName.toLowerCase()!=="svg"){
-    throw new Error("Ungültige SVG-Vorlage.");
-  }
-  // Import into the current page so nested <image href="...png"> resources
-  // resolve normally against the GitHub page origin.
-  return document.importNode(svg,true);
-}
-
 function instagramSvgDataUrl(svg){
   return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
 }
@@ -5943,7 +5886,7 @@ function instagramSvgDataUrl(svg){
 async function instagramMakeSlide(templateUrl,items,date){
   let svg=await instagramReadSvg(templateUrl);
   svg=instagramReplaceDate(svg,instagramFormatDatum(date));
-  if(items) svg=instagramReplaceRows(svg,items);
+  if(items) svg=await instagramReplaceRows(svg,items);
   return svg;
 }
 
