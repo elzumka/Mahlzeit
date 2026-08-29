@@ -2498,6 +2498,40 @@ button{
 }
 </style>
 </style>
+
+<style id="instagram-fonts-exakt">
+@font-face{
+  font-family:"IG-Impact";
+  src:url("impact.ttf") format("truetype");
+  font-style:normal;
+  font-weight:400;
+}
+@font-face{
+  font-family:"IG-ArialRounded";
+  src:url("ARLRDBD.TTF") format("truetype");
+  font-style:normal;
+  font-weight:400;
+}
+@font-face{
+  font-family:"IG-SourceSans";
+  src:url("SourceSansVariable-Roman.otf") format("opentype");
+  font-style:normal;
+  font-weight:100 900;
+}
+#instagram-preview svg .ig-gericht{
+  font-family:"IG-ArialRounded","Arial Rounded MT Bold",sans-serif !important;
+}
+#instagram-preview svg .ig-beilage{
+  font-family:"IG-SourceSans","Source Sans Variable",sans-serif !important;
+}
+#instagram-preview svg .ig-preis,
+#instagram-preview svg .ig-datum{
+  font-family:"IG-ArialRounded","Arial Rounded MT Bold",sans-serif !important;
+}
+#instagram-preview svg .ig-kw{
+  font-family:"IG-Impact",Impact,sans-serif !important;
+}
+</style>
 </head>
 <body>
 <div class="container">
@@ -5749,7 +5783,8 @@ function instagramReplaceDate(svg,date){
     const nested=dateText.querySelector("tspan");
     if(nested) nested.textContent=date;
     else dateText.textContent=date;
-    dateText.setAttribute("font-family","ArialRoundedMTBold, 'Arial Rounded MT Bold'");
+    dateText.setAttribute("font-family","IG-ArialRounded, 'Arial Rounded MT Bold'");
+    dateText.setAttribute("class",((dateText.getAttribute("class")||"")+" ig-datum").trim());
   }
   return new XMLSerializer().serializeToString(root);
 }
@@ -5859,7 +5894,8 @@ function instagramReplaceRows(svg,items){
         : "";
       if(leaves.length) leaves[0].textContent=formatted;
       else priceText.textContent=formatted;
-      priceText.setAttribute("font-family","ArialRoundedMTBold, 'Arial Rounded MT Bold'");
+      priceText.setAttribute("font-family","IG-ArialRounded, 'Arial Rounded MT Bold'");
+      priceText.setAttribute("class",((priceText.getAttribute("class")||"")+" ig-preis").trim());
     }
 
     // Insert the matching PNG exactly into the template's placeholder square.
@@ -5869,8 +5905,7 @@ function instagramReplaceRows(svg,items){
       ).trim().toLowerCase();
       const file=iconFiles[raw]||"";
 
-      const old=row ? row.parentElement.querySelector("image.instagram-food-icon") : null;
-      if(old) old.remove();
+      root.querySelectorAll("image.instagram-food-icon").forEach(el=>el.remove());
 
       if(file){
         const image=document.createElementNS("http://www.w3.org/2000/svg","image");
@@ -5883,7 +5918,7 @@ function instagramReplaceRows(svg,items){
         const iconUrl=new URL(file,window.location.href).href;
         image.setAttribute("href",iconUrl);
         image.setAttributeNS("http://www.w3.org/1999/xlink","xlink:href",iconUrl);
-        (row?.parentNode || root.documentElement).appendChild(image);
+        root.documentElement.appendChild(image);
       }
     }
   }
@@ -5926,6 +5961,8 @@ async function instagramTitelbildUrl(weekDates){
     const span=kwText.querySelector("tspan");
     if(span)span.textContent=`KW ${n}`;
     else kwText.textContent=`KW ${n}`;
+    kwText.setAttribute("font-family","IG-Impact, Impact");
+    kwText.setAttribute("class",((kwText.getAttribute("class")||"")+" ig-kw").trim());
   }
 
   if(dateText){
