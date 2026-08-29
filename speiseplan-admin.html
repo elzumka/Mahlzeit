@@ -3068,7 +3068,7 @@ button{
       type="text"
       id="setting-telefon"
       placeholder="0355 25057"
-     onchange="websiteEinstellungenAutoSpeichern()">
+     onchange="websiteKontaktdatenSpeichern()">
 
     <label for="setting-instagram">
       Instagram
@@ -3078,7 +3078,7 @@ button{
       type="text"
       id="setting-instagram"
       placeholder="@mahlzeit_cottbus"
-     onchange="websiteEinstellungenAutoSpeichern()">
+     onchange="websiteKontaktdatenSpeichern()">
 
     <label for="setting-email">
       Mail
@@ -3088,7 +3088,7 @@ button{
       type="email"
       id="setting-email"
       placeholder="info@mahlzeit-cottbus.de"
-     onchange="websiteEinstellungenAutoSpeichern()">
+     onchange="websiteKontaktdatenSpeichern()">
 
     <button
       type="button"
@@ -8729,6 +8729,111 @@ function websiteEinstellungenWerte(){
       "Aktuell ausschließlich Mittagstisch · BALD AUCH FRÜHSTÜCK UND LIEFERSERVICE FÜR EUCH"
   };
 
+}
+
+
+async function websiteKontaktdatenSpeichern(){
+
+  const meldung =
+    document.getElementById(
+      "website-einstellungen-meldung"
+    );
+
+  const telefon =
+    document.getElementById(
+      "setting-telefon"
+    )?.value.trim() || "";
+
+  const instagram =
+    document.getElementById(
+      "setting-instagram"
+    )?.value.trim() || "";
+
+  const email =
+    document.getElementById(
+      "setting-email"
+    )?.value.trim() || "";
+
+  if(meldung){
+    meldung.textContent =
+      "Kontaktdaten werden gespeichert …";
+  }
+
+  try{
+
+    /*
+     * Die Kontaktdaten werden bewusst separat gespeichert.
+     * Dadurch kann z.B. ein fehlendes optionales Website-Feld
+     * nicht mehr verhindern, dass Telefon/Instagram/Mail
+     * übernommen werden.
+     */
+    const {error} =
+      await supabaseClient
+        .from("WebsiteEinstellungen")
+        .update({
+          telefon,
+          instagram,
+          email
+        })
+        .eq("id",1);
+
+    if(error){
+      throw new Error(
+        "Kontaktdaten konnten nicht gespeichert werden: " +
+        error.message
+      );
+    }
+
+    const {
+      data:check,
+      error:checkError
+    } =
+      await supabaseClient
+        .from("WebsiteEinstellungen")
+        .select(
+          "telefon,instagram,email"
+        )
+        .eq("id",1)
+        .single();
+
+    if(checkError){
+      throw new Error(
+        "Gespeichert, aber die Kontrolle ist fehlgeschlagen: " +
+        checkError.message
+      );
+    }
+
+    if(
+      String(check?.telefon ?? "") !== telefon ||
+      String(check?.instagram ?? "") !== instagram ||
+      String(check?.email ?? "") !== email
+    ){
+      throw new Error(
+        "Die Kontaktdaten wurden von Supabase nicht unverändert übernommen."
+      );
+    }
+
+    if(meldung){
+      meldung.textContent =
+        "✓ Kontaktdaten gespeichert.";
+    }
+
+  }catch(error){
+
+    console.error(
+      "Kontaktdaten speichern:",
+      error
+    );
+
+    if(meldung){
+      meldung.textContent =
+        "⚠ " + (
+          error?.message ||
+          "Kontaktdaten konnten nicht gespeichert werden."
+        );
+    }
+
+  }
 }
 
 
