@@ -5741,40 +5741,138 @@ function instagramReplaceDate(svg,date){
 function instagramReplaceRows(svg,items){
   const root=new DOMParser().parseFromString(svg,"image/svg+xml");
   const textEls=[...root.querySelectorAll("text")];
-  const rowTexts=textEls.filter(t=>/GERICHT\s+\d+/.test(t.textContent||"") && t.querySelector("tspan"));
 
-  const priceTexts=textEls.filter(t=>/PREIS\s+\d+/.test(t.textContent||""));
+  function leafTspans(textEl){
+    return [...textEl.querySelectorAll("tspan")].filter(
+      el=>!el.querySelector("tspan")
+    );
+  }
+
+  function setNestedText(outerTspan,value){
+    const leaves=[...outerTspan.querySelectorAll("tspan")]
+      .filter(el=>!el.querySelector("tspan"));
+    if(leaves.length){
+      leaves[0].textContent=String(value||"");
+      for(let i=1;i<leaves.length;i++) leaves[i].textContent="";
+    }else{
+      outerTspan.textContent=String(value||"");
+    }
+  }
+
+  const rowTexts=textEls
+    .filter(t=>/GERICHT\s+\d+/.test(t.textContent||""))
+    .sort((a,b)=>{
+      const na=Number((a.textContent.match(/GERICHT\s+(\d+)/)||[])[1]||0);
+      const nb=Number((b.textContent.match(/GERICHT\s+(\d+)/)||[])[1]||0);
+      return na-nb;
+    });
+
+  const priceTexts=textEls
+    .filter(t=>/PREIS\s+\d+/.test(t.textContent||""))
+    .sort((a,b)=>{
+      const na=Number((a.textContent.match(/PREIS\s+(\d+)/)||[])[1]||0);
+      const nb=Number((b.textContent.match(/PREIS\s+(\d+)/)||[])[1]||0);
+      return na-nb;
+    });
+
+  const placeholderRects=[...root.querySelectorAll("rect")]
+    .filter(r=>{
+      const w=Number(r.getAttribute("width")||0);
+      const h=Number(r.getAttribute("height")||0);
+      return Math.abs(w-66.89)<2 && Math.abs(h-66.89)<2;
+    })
+    .sort((a,b)=>
+      Number(a.getAttribute("y")||0)-Number(b.getAttribute("y")||0)
+    );
+
+  const iconFiles={
+    "veggie":"veggie.png",
+    "vegetarisch":"veggie.png",
+    "hähnchen":"hähnchen.png",
+    "huhn":"hähnchen.png",
+    "ente":"ente.png",
+    "gans":"gans.png",
+    "schwein":"schwein.png",
+    "rind":"rind.png",
+    "reh":"reh.png",
+    "hirsch":"reh.png",
+    "wildschwein":"wildschwein.png",
+    "fisch":"fisch.png",
+    "ei":"ei.png",
+    "camembert":"camembert.png",
+    "käse":"käse.png",
+    "rind_schwein":"rind_schwein.png",
+    "rind & schwein":"rind_schwein.png",
+    "pilz":"pilz.png"
+  };
 
   for(let i=0;i<4;i++){
     const item=items[i];
+    const row=rowTexts[i];
+    const priceText=priceTexts[i];
+    const rect=placeholderRects[i];
+
+    // Placeholder square is only a design aid. Never show the square in the final post.
+    if(rect) rect.style.display="none";
+
     if(!item){
-      if(rowTexts[i]) rowTexts[i].style.display="none";
-      if(priceTexts[i]) priceTexts[i].style.display="none";
-      const rects=[...root.querySelectorAll("rect")];
-      // Hide the matching placeholder box heuristically by order, if present.
+      if(row) row.style.display="none";
+      if(priceText) priceText.style.display="none";
       continue;
     }
 
-    if(rowTexts[i]){
-      const spans=[...rowTexts[i].querySelectorAll("tspan")];
-      const main=spans.find(s=>/GERICHT\s*\d+/i.test(s.textContent||""));
-      const desc=spans.find(s=>/BEILAGEN\s*\d+/i.test(s.textContent||"") || /BEI|L|A|GEN/i.test(s.textContent||""));
-      if(main)main.textContent=String(item.gerichte||"").toUpperCase();
-      if(desc)desc.textContent=String(item.beilage||"").toUpperCase();
+    if(row){
+      const topSpans=[...row.querySelectorAll(":scope > tspan")];
+
+      if(topSpans[0]){
+        setNestedText(topSpans[0],String(item.gerichte||"").toUpperCase());
+      }
+
+      if(topSpans[1]){
+        setNestedText(topSpans[1],String(item.beilage||"").toUpperCase());
+        topSpans[1].setAttribute("font-family","SourceSansRoman-Regular, 'Source Sans Variable'");
+        topSpans[1].setAttribute("font-size","42.64");
+      }
     }
 
-    if(priceTexts[i]){
+    if(priceText){
+      const leaves=leafTspans(priceText);
       const price=Number(item.preis);
-      const p=Number.isFinite(price)?price.toFixed(2).replace(".",",")+" €":"";
-      const spans=[...priceTexts[i].querySelectorAll("tspan")];
-      if(spans[0])spans[0].textContent=p;
-      priceTexts[i].setAttribute("font-family","ArialRoundedMTBold, 'Arial Rounded MT Bold'");
+      const formatted=Number.isFinite(price)
+        ? price.toFixed(2).replace(".",",")+" €"
+        : "";
+      if(leaves.length) leaves[0].textContent=formatted;
+      else priceText.textContent=formatted;
+      priceText.setAttribute("font-family","ArialRoundedMTBold, 'Arial Rounded MT Bold'");
+    }
+
+    // Insert the matching PNG exactly into the template's placeholder square.
+    if(rect){
+      const raw=String(
+        item.symbol || (item.vegetarisch ? "veggie" : "")
+      ).trim().toLowerCase();
+      const file=iconFiles[raw]||"";
+
+      const old=row ? row.parentElement.querySelector("image.instagram-food-icon") : null;
+      if(old) old.remove();
+
+      if(file){
+        const image=document.createElementNS("http://www.w3.org/2000/svg","image");
+        image.classList.add("instagram-food-icon");
+        image.setAttribute("x",rect.getAttribute("x")||"95.89");
+        image.setAttribute("y",rect.getAttribute("y")||"348.58");
+        image.setAttribute("width",rect.getAttribute("width")||"66.89");
+        image.setAttribute("height",rect.getAttribute("height")||"66.89");
+        image.setAttribute("preserveAspectRatio","xMidYMid meet");
+        image.setAttribute("href",file);
+        image.setAttributeNS("http://www.w3.org/1999/xlink","xlink:href",file);
+        (row?.parentNode || root.documentElement).appendChild(image);
+      }
     }
   }
 
   return new XMLSerializer().serializeToString(root);
 }
-
 function instagramSvgDataUrl(svg){
   return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
 }
