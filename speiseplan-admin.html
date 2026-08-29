@@ -8840,30 +8840,14 @@ async function websiteKontaktdatenSpeichern(){
 async function websiteEinstellungenSpeichern(){
 
   const meldung =
-    document.getElementById(
-      "website-einstellungen-meldung"
-    );
+    document.getElementById("website-einstellungen-meldung");
 
   const button =
     document.querySelector(
       '#website-einstellungen-bereich button[onclick="websiteEinstellungenSpeichern()"]'
     );
 
-  const values =
-    websiteEinstellungenWerte();
-
-  /*
-   * Die vorhandene WebsiteEinstellungen-Tabelle besitzt aktuell
-   * keine top_banner_text-Spalte. Deshalb darf dieses optionale
-   * Feld die übrigen Einstellungen nicht blockieren.
-   *
-   * Sobald die Spalte in Supabase vorhanden ist, kann sie unten
-   * wieder automatisch mitgespeichert werden.
-   */
-  const {
-    top_banner_text,
-    ...databaseValues
-  } = values;
+  const values = websiteEinstellungenWerte();
 
   if(button){
     button.disabled=true;
@@ -8876,21 +8860,49 @@ async function websiteEinstellungenSpeichern(){
 
   try{
 
-    const {
-      error
-    } =
+    // Kontaktwerte separat speichern und anschließend kontrollieren.
+    const kontakt={
+      telefon:values.telefon,
+      instagram:values.instagram,
+      email:values.email
+    };
+
+    const {error:kontaktError} =
       await supabaseClient
         .from("WebsiteEinstellungen")
-        .update(databaseValues)
+        .update(kontakt)
+        .eq("id",1);
+
+    if(kontaktError){
+      throw new Error(
+        "Kontaktdaten konnten nicht gespeichert werden: " +
+        kontaktError.message
+      );
+    }
+
+    // Übrige Einstellungen separat speichern.
+    const {
+      telefon,
+      instagram,
+      email,
+      top_banner_text,
+      ...rest
+    } = values;
+
+    const {error} =
+      await supabaseClient
+        .from("WebsiteEinstellungen")
+        .update(rest)
         .eq("id",1);
 
     if(error){
       throw new Error(
-        "Supabase konnte die Einstellungen nicht speichern: " +
+        "Die übrigen Website-Einstellungen konnten nicht gespeichert werden: " +
         error.message
       );
     }
 
+    // Alles Wichtige direkt aus Supabase zurücklesen.
     const {
       data:check,
       error:checkError
@@ -8898,42 +8910,45 @@ async function websiteEinstellungenSpeichern(){
       await supabaseClient
         .from("WebsiteEinstellungen")
         .select(
-          "mittagstisch_aktiv,fruehstueck_aktiv,lieferservice_aktiv"
+          "telefon,instagram,email,mittagstisch_aktiv,fruehstueck_aktiv,lieferservice_aktiv"
         )
         .eq("id",1)
         .single();
 
     if(checkError){
       throw new Error(
-        "Gespeichert, aber Prüfung fehlgeschlagen: " +
+        "Gespeichert, aber die Kontrolle aus Supabase ist fehlgeschlagen: " +
         checkError.message
       );
     }
 
     if(
-      Boolean(check.mittagstisch_aktiv) !==
-        Boolean(values.mittagstisch_aktiv) ||
-      Boolean(check.fruehstueck_aktiv) !==
-        Boolean(values.fruehstueck_aktiv) ||
-      Boolean(check.lieferservice_aktiv) !==
-        Boolean(values.lieferservice_aktiv)
+      String(check?.telefon ?? "") !== String(values.telefon ?? "") ||
+      String(check?.instagram ?? "") !== String(values.instagram ?? "") ||
+      String(check?.email ?? "") !== String(values.email ?? "")
     ){
       throw new Error(
-        "Supabase hat einen Aktiv-Status nicht übernommen."
+        "Die Kontaktdaten wurden nicht exakt übernommen. " +
+        "Bitte prüfe insbesondere, ob die Spalte „email“ in WebsiteEinstellungen vorhanden ist."
       );
+    }
+
+    if(
+      Boolean(check.mittagstisch_aktiv) !== Boolean(values.mittagstisch_aktiv) ||
+      Boolean(check.fruehstueck_aktiv) !== Boolean(values.fruehstueck_aktiv) ||
+      Boolean(check.lieferservice_aktiv) !== Boolean(values.lieferservice_aktiv)
+    ){
+      throw new Error("Supabase hat einen Aktiv-Status nicht übernommen.");
     }
 
     if(meldung){
       meldung.textContent =
-        "✓ Gespeichert – Frühstück, Mittagstisch und Lieferservice wurden übernommen.";
+        "✓ Gespeichert – Kontaktdaten und Website-Einstellungen wurden übernommen.";
     }
 
   }catch(error){
 
-    console.error(
-      "Website-Einstellungen speichern:",
-      error
-    );
+    console.error("Website-Einstellungen speichern:",error);
 
     if(meldung){
       meldung.textContent =
@@ -8953,6 +8968,8 @@ async function websiteEinstellungenSpeichern(){
   }
 
 }
+
+
 
 function websiteEinstellungenAutoSpeichern(){
 
