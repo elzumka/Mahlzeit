@@ -3007,7 +3007,7 @@ button{
     <h3 class="settings-subtitle">Lieferservice</h3>
 
     <label class="checkbox">
-      <input type="checkbox" id="setting-lieferung-aktiv" onchange="websiteEinstellungenAutoSpeichern()">
+      <input type="checkbox" id="setting-lieferung-aktiv" onchange="websiteLieferserviceToggle()">
       Lieferservice aktiviert
     </label>
 
@@ -8936,6 +8936,125 @@ async function websiteFruehstueckToggle(){
         "⚠ " + (
           error?.message ||
           "Frühstück konnte nicht gespeichert werden."
+        );
+    }
+
+  }finally{
+
+    checkbox.disabled=false;
+
+  }
+}
+
+
+async function websiteLieferserviceToggle(){
+
+  const checkbox =
+    document.getElementById(
+      "setting-lieferung-aktiv"
+    );
+
+  const meldung =
+    document.getElementById(
+      "website-einstellungen-meldung"
+    );
+
+  if(!checkbox)return;
+
+  const aktiv =
+    checkbox.checked === true;
+
+  if(meldung){
+    meldung.textContent =
+      aktiv
+        ? "Lieferservice wird aktiviert …"
+        : "Lieferservice wird deaktiviert …";
+  }
+
+  checkbox.disabled=true;
+
+  try{
+
+    const {error} =
+      await supabaseClient
+        .from("WebsiteEinstellungen")
+        .update({
+          lieferservice_aktiv: aktiv
+        })
+        .eq("id",1);
+
+    if(error){
+      throw new Error(
+        "Lieferservice konnte nicht gespeichert werden: " +
+        error.message
+      );
+    }
+
+    const {
+      data:check,
+      error:checkError
+    } =
+      await supabaseClient
+        .from("WebsiteEinstellungen")
+        .select("lieferservice_aktiv")
+        .eq("id",1)
+        .single();
+
+    if(checkError){
+      throw new Error(
+        "Speichern erfolgreich, aber die Prüfung ist fehlgeschlagen: " +
+        checkError.message
+      );
+    }
+
+    if(
+      Boolean(check.lieferservice_aktiv) !== aktiv
+    ){
+      throw new Error(
+        "Supabase hat den Lieferservice-Aktiv-Status nicht übernommen."
+      );
+    }
+
+    if(meldung){
+      meldung.textContent =
+        aktiv
+          ? "✓ Lieferservice ist aktiviert."
+          : "✓ Lieferservice ist deaktiviert.";
+    }
+
+  }catch(error){
+
+    console.error(
+      "Lieferservice aktivieren:",
+      error
+    );
+
+    try{
+      const {
+        data
+      } =
+        await supabaseClient
+          .from("WebsiteEinstellungen")
+          .select("lieferservice_aktiv")
+          .eq("id",1)
+          .single();
+
+      if(data){
+        checkbox.checked =
+          data.lieferservice_aktiv === true;
+      }
+    }catch(resetError){
+      console.error(
+        "Lieferservice-Status zurücksetzen:",
+        resetError
+      );
+    }
+
+    if(meldung){
+      meldung.textContent =
+        "⚠ " + (
+          error?.message ||
+          "Lieferservice konnte nicht gespeichert werden."
         );
     }
 
