@@ -6371,7 +6371,7 @@ function instagramMobileFensterOeffnen(titel="Mahlzeit! PNG",initialImageUrl="")
     if(!win)return null;
     try{
       win.document.open();
-      win.document.write(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>${String(titel).replace(/[<>]/g,"")}</title><style>html,body{margin:0;min-height:100%;background:#f5eee4;color:#20201d;font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif}body{padding:16px;text-align:center}h1{font-size:20px;color:#285437;margin:8px 0 10px}.loading{font-size:14px;line-height:1.45;padding:12px;color:#555}.result{display:block}.imgwrap{background:#fff;border-radius:12px;padding:8px;box-shadow:0 3px 14px rgba(0,0,0,.12)}img{display:block;width:100%;height:auto;border-radius:8px}.save{display:block;width:100%;box-sizing:border-box;margin-top:12px;padding:14px 12px;border:0;border-radius:10px;background:#285437;color:#fff;font-size:16px;font-weight:800}.secondary{display:block;width:100%;box-sizing:border-box;margin-top:8px;padding:12px;border:1px solid #b8ad9d;border-radius:10px;background:#fff;color:#285437;font-size:14px;font-weight:700}.error{display:none;color:#8b1e1e;background:#fff;border:1px solid #d5aaaa;border-radius:10px;padding:14px;text-align:left;line-height:1.45}</style></head><body><h1>Mahlzeit! PNG</h1><div id="loading" class="loading">PNG wird vorbereitet …</div><div id="error" class="error"></div><div id="result" class="result"><div class="imgwrap"><img id="png" alt="Mahlzeit! PNG"></div><button class="save" id="share" style="display:none">Teilen / In Fotos sichern</button><button class="secondary" id="open" style="display:none">Bild separat öffnen</button></div></body></html>`);
+      win.document.write(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>${String(titel).replace(/[<>]/g,"")}</title><style>html,body{margin:0;min-height:100%;background:#f5eee4;color:#20201d;font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif}body{padding:10px;text-align:center}.stage{position:relative;width:100%;max-width:1080px;margin:0 auto}.imgwrap{position:relative;background:#fff;border-radius:12px;padding:8px;box-shadow:0 3px 14px rgba(0,0,0,.12);overflow:hidden}.art{display:block;width:100%;height:auto;border-radius:8px}.final{position:absolute;inset:8px;width:calc(100% - 16px);height:calc(100% - 16px);object-fit:contain;border-radius:8px;opacity:0;transition:opacity .18s ease}.save{display:block;width:100%;box-sizing:border-box;margin-top:12px;padding:14px 12px;border:0;border-radius:10px;background:#285437;color:#fff;font-size:16px;font-weight:800}.secondary{display:block;width:100%;box-sizing:border-box;margin-top:8px;padding:12px;border:1px solid #b8ad9d;border-radius:10px;background:#fff;color:#285437;font-size:14px;font-weight:700}.status{font-size:12px;color:#777;margin:8px 0 2px;min-height:17px}.error{display:none;color:#8b1e1e;background:#fff;border:1px solid #d5aaaa;border-radius:10px;padding:14px;text-align:left;line-height:1.45}</style></head><body><div id="error" class="error"></div><div class="stage"><div class="imgwrap"><img id="png" class="art" alt="Mahlzeit! PNG"><img id="final" class="final" alt=""></div></div><div id="loading" class="status"></div><button class="save" id="share" style="display:none">Teilen / In Fotos sichern</button><button class="secondary" id="open" style="display:none">Bild separat öffnen</button></body></html>`);
       win.document.close();
       const img=win.document.getElementById("png");
       const loading=win.document.getElementById("loading");
@@ -6410,14 +6410,24 @@ async function instagramPngAusgeben(blob,filename,mobileWindow=null){
       // finished PNG. This avoids Safari's blank-tab/race condition.
       try{
         const img=mobileWindow.document.getElementById("png");
-        const result=mobileWindow.document.getElementById("result");
+        const finalImg=mobileWindow.document.getElementById("final");
         const loading=mobileWindow.document.getElementById("loading");
         const share=mobileWindow.document.getElementById("share");
         const open=mobileWindow.document.getElementById("open");
 
-        if(img) img.src=url;
-        if(result) result.style.display="block";
-        if(loading) loading.style.display="none";
+        // Keep the already visible SVG on screen while the final PNG loads.
+        // Only fade the PNG in after it has fully loaded; this removes the
+        // visible jump/flicker that Safari can otherwise produce on mobile.
+        if(finalImg){
+          finalImg.onload=()=>{
+            finalImg.style.opacity="1";
+            if(loading) loading.textContent="";
+          };
+          finalImg.onerror=()=>{
+            if(loading) loading.textContent="PNG konnte nicht angezeigt werden.";
+          };
+          finalImg.src=url;
+        }
 
         if(share){
           share.onclick=async()=>{
