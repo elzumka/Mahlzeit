@@ -2500,9 +2500,24 @@ button{
 </style>
 
 <style id="instagram-fonts-exakt">
-@font-face{font-family:"IG-Impact";src:url("impact.ttf") format("truetype");font-style:normal;font-weight:400;}
-@font-face{font-family:"IG-ArialRounded";src:url("ARLRDBD.TTF") format("truetype");font-style:normal;font-weight:400;}
-@font-face{font-family:"IG-SourceSans";src:url("SourceSansVariable-Roman.otf") format("opentype");font-style:normal;font-weight:100 900;}
+@font-face{
+  font-family:"IG-Impact";
+  src:url("impact.ttf") format("truetype");
+  font-style:normal;
+  font-weight:400;
+}
+@font-face{
+  font-family:"IG-ArialRounded";
+  src:url("ARLRDBD.TTF") format("truetype");
+  font-style:normal;
+  font-weight:400;
+}
+@font-face{
+  font-family:"IG-SourceSans";
+  src:url("SourceSansVariable-Roman.otf") format("opentype");
+  font-style:normal;
+  font-weight:100 900;
+}
 #instagram-preview svg .ig-gericht{
   font-family:"IG-ArialRounded","Arial Rounded MT Bold",sans-serif !important;
 }
@@ -5754,6 +5769,143 @@ function instagramWocheVerschieben(tage){
   instagramStartMontag.setDate(instagramStartMontag.getDate()+tage);
   instagramLaden();
 }
+
+const IG_FONT_DATA={};
+
+async function instagramFontDataUrl(file){
+  if(IG_FONT_DATA[file])return IG_FONT_DATA[file];
+  const response=await fetch(new URL(`./${file}`,window.location.href),{cache:"force-cache"});
+  if(!response.ok)throw new Error(`Schrift ${file} nicht gefunden (${response.status}).`);
+  const blob=await response.blob();
+  const data=await new Promise((resolve,reject)=>{
+    const r=new FileReader();
+    r.onload=()=>resolve(r.result);
+    r.onerror=()=>reject(r.error);
+    r.readAsDataURL(blob);
+  });
+  IG_FONT_DATA[file]=data;
+  return data;
+}
+
+async function instagramFontsInSvg(svg){
+  const fonts=await Promise.all([
+    instagramFontDataUrl("impact.ttf"),
+    instagramFontDataUrl("ARLRDBD.TTF"),
+    instagramFontDataUrl("SourceSansVariable-Roman.otf")
+  ]);
+
+  const style=`<style>
+  @font-face{font-family:'IG-Impact';src:url('${fonts[0]}') format('truetype');font-weight:400;font-style:normal}
+  @font-face{font-family:'IG-ArialRounded';src:url('${fonts[1]}') format('truetype');font-weight:400;font-style:normal}
+  @font-face{font-family:'IG-SourceSans';src:url('${fonts[2]}') format('opentype');font-weight:100 900;font-style:normal}
+  .ig-gericht{font-family:'IG-ArialRounded','Arial Rounded MT Bold',Arial,sans-serif!important}
+  .ig-beilage{font-family:'IG-SourceSans','Source Sans Variable',Arial,sans-serif!important}
+  .ig-preis,.ig-datum{font-family:'IG-ArialRounded','Arial Rounded MT Bold',Arial,sans-serif!important}
+  .ig-kw{font-family:'IG-Impact',Impact,sans-serif!important}
+  </style>`;
+
+  return svg.replace(/<svg\b([^>]*)>/i,`<svg$1>${style}`);
+}
+
+async function instagramIconDataUrl(symbol){
+  const files={
+    "veggie":"veggie.png","vegetarisch":"veggie.png",
+    "hähnchen":"hähnchen.png","huhn":"hähnchen.png",
+    "hahn":"hähnchen.png","ente":"ente.png","gans":"gans.png",
+    "schwein":"schwein.png","rind":"rind.png","reh":"reh.png",
+    "hirsch":"reh.png","wildschwein":"wildschwein.png","fisch":"fisch.png",
+    "ei":"ei.png","camembert":"camembert.png","käse":"käse.png",
+    "rind_schwein":"rind_schwein.png","rind & schwein":"rind_schwein.png",
+    "pilz":"pilz.png"
+  };
+  const file=files[String(symbol||"").trim().toLowerCase()];
+  if(!file)return "";
+  const response=await fetch(new URL(`./${file}`,window.location.href),{cache:"no-store"});
+  if(!response.ok)throw new Error(`Symbol ${file} nicht gefunden (${response.status}).`);
+  const blob=await response.blob();
+  return await new Promise((resolve,reject)=>{
+    const r=new FileReader();
+    r.onload=()=>resolve(r.result);
+    r.onerror=()=>reject(r.error);
+    r.readAsDataURL(blob);
+  });
+}
+
+async function instagramEmbedImages(svg){
+  const root=new DOMParser().parseFromString(svg,"image/svg+xml");
+  const images=[...root.querySelectorAll("image")];
+  for(const image of images){
+    const href=image.getAttribute("href") || image.getAttributeNS("http://www.w3.org/1999/xlink","href");
+    if(!href || href.startsWith("data:"))continue;
+    try{
+      const response=await fetch(new URL(href,window.location.href),{cache:"force-cache"});
+      if(!response.ok)continue;
+      const blob=await response.blob();
+      const data=await new Promise((resolve,reject)=>{
+        const r=new FileReader();
+        r.onload=()=>resolve(r.result);
+        r.onerror=()=>reject(r.error);
+        r.readAsDataURL(blob);
+      });
+      image.setAttribute("href",data);
+      image.setAttributeNS("http://www.w3.org/1999/xlink","xlink:href",data);
+    }catch(error){
+      console.warn("Instagram-Bild konnte nicht eingebettet werden:",href,error);
+    }
+  }
+  return new XMLSerializer().serializeToString(root);
+}
+
+function instagramSvgElement(svgText){
+  const doc=new DOMParser().parseFromString(svgText,"image/svg+xml");
+  const svg=doc.documentElement;
+  if(!svg || svg.nodeName.toLowerCase()!=="svg"){
+    throw new Error("Ungültige SVG-Vorlage.");
+  }
+  return document.importNode(svg,true);
+}
+
+async function instagramSvgExportReady(svg){
+  svg=await instagramEmbedImages(svg);
+  svg=await instagramFontsInSvg(svg);
+  return svg;
+}
+
+async function instagramSvgToPng(svgText,filename){
+  const ready=await instagramSvgExportReady(svgText);
+  const blob=new Blob([ready],{type:"image/svg+xml;charset=utf-8"});
+  const blobUrl=URL.createObjectURL(blob);
+
+  try{
+    const img=new Image();
+    img.decoding="async";
+    await new Promise((resolve,reject)=>{
+      img.onload=()=>resolve();
+      img.onerror=()=>reject(new Error("SVG konnte für PNG nicht gerendert werden."));
+      img.src=blobUrl;
+    });
+
+    const W=1080,H=1350;
+    const canvas=document.createElement("canvas");
+    canvas.width=W;
+    canvas.height=H;
+    const ctx=canvas.getContext("2d");
+    ctx.fillStyle="#f5eee4";
+    ctx.fillRect(0,0,W,H);
+    ctx.drawImage(img,0,0,W,H);
+
+    const png=canvas.toDataURL("image/png");
+    const a=document.createElement("a");
+    a.href=png;
+    a.download=filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }finally{
+    URL.revokeObjectURL(blobUrl);
+  }
+}
+
 function instagramReadSvg(url){
   return fetch(url).then(r=>{
     if(!r.ok)throw new Error(`Vorlage nicht gefunden: ${url}`);
@@ -5777,101 +5929,92 @@ function instagramReplaceDate(svg,date){
 async function instagramReplaceRows(svg,items){
   const root=new DOMParser().parseFromString(svg,"image/svg+xml");
 
-  function leafTspans(textEl){
-    return [...textEl.querySelectorAll("tspan")].filter(
-      el=>!el.querySelector("tspan")
-    );
+  function leaves(textEl){
+    return [...textEl.querySelectorAll("tspan")].filter(el=>!el.querySelector("tspan"));
   }
-  function setNestedText(outer,value){
-    const leaves=leafTspans(outer);
-    if(leaves.length){
-      leaves[0].textContent=String(value||"");
-      for(let i=1;i<leaves.length;i++) leaves[i].textContent="";
+
+  function setText(target,value){
+    const ls=leaves(target);
+    if(ls.length){
+      ls[0].textContent=String(value||"");
+      for(let i=1;i<ls.length;i++)ls[i].textContent="";
     }else{
-      outer.textContent=String(value||"");
+      target.textContent=String(value||"");
     }
   }
 
-  const rowTexts=[...root.querySelectorAll("text")]
+  const rows=[...root.querySelectorAll("text")]
     .filter(t=>/GERICHT\s+\d+/.test(t.textContent||""))
-    .sort((a,b)=>
-      Number((a.textContent.match(/GERICHT\s+(\d+)/)||[])[1]||0)-
-      Number((b.textContent.match(/GERICHT\s+(\d+)/)||[])[1]||0)
-    );
+    .sort((a,b)=>Number((a.textContent.match(/GERICHT\s+(\d+)/)||[])[1]||0)-Number((b.textContent.match(/GERICHT\s+(\d+)/)||[])[1]||0));
 
-  const priceTexts=[...root.querySelectorAll("text")]
+  const prices=[...root.querySelectorAll("text")]
     .filter(t=>/PREIS\s+\d+/.test(t.textContent||""))
-    .sort((a,b)=>
-      Number((a.textContent.match(/PREIS\s+(\d+)/)||[])[1]||0)-
-      Number((b.textContent.match(/PREIS\s+(\d+)/)||[])[1]||0)
-    );
+    .sort((a,b)=>Number((a.textContent.match(/PREIS\s+(\d+)/)||[])[1]||0)-Number((b.textContent.match(/PREIS\s+(\d+)/)||[])[1]||0));
 
-  const rects=[...root.querySelectorAll("rect")]
-    .filter(r=>{
-      const w=Number(r.getAttribute("width")||0);
-      const h=Number(r.getAttribute("height")||0);
-      return Math.abs(w-66.89)<2 && Math.abs(h-66.89)<2;
-    })
+  const placeholders=[...root.querySelectorAll("rect")]
+    .filter(r=>Math.abs(Number(r.getAttribute("width")||0)-66.89)<2 && Math.abs(Number(r.getAttribute("height")||0)-66.89)<2)
     .sort((a,b)=>Number(a.getAttribute("y")||0)-Number(b.getAttribute("y")||0));
+
+  // No old dynamic icons survive a refresh.
+  root.querySelectorAll(".instagram-food-icon").forEach(el=>el.remove());
 
   for(let i=0;i<4;i++){
     const item=items[i];
-    const row=rowTexts[i], priceText=priceTexts[i], rect=rects[i];
+    const row=rows[i];
+    const price=prices[i];
+    const square=placeholders[i];
 
-    if(rect)rect.setAttribute("display","none");
+    if(square)square.setAttribute("display","none");
 
     if(!item){
       if(row)row.setAttribute("display","none");
-      if(priceText)priceText.setAttribute("display","none");
+      if(price)price.setAttribute("display","none");
       continue;
     }
 
     if(row){
+      row.setAttribute("display","block");
       const top=[...row.querySelectorAll(":scope > tspan")];
-      const main=top[0];
-      const desc=top[1];
-      if(main){
-        setNestedText(main,String(item.gerichte||"").toUpperCase());
-        main.setAttribute("font-family","IG-ArialRounded");
-        main.setAttribute("class",((main.getAttribute("class")||"")+" ig-gericht").trim());
+      if(top[0]){
+        setText(top[0],String(item.gerichte||"").toUpperCase());
+        top[0].setAttribute("font-family","IG-ArialRounded");
+        top[0].setAttribute("class",((top[0].getAttribute("class")||"")+" ig-gericht").trim());
       }
-      if(desc){
-        setNestedText(desc,String(item.beilage||"").toUpperCase());
-        desc.setAttribute("font-family","IG-SourceSans");
-        desc.setAttribute("font-variation-settings","'wght' 400");
-        desc.setAttribute("class",((desc.getAttribute("class")||"")+" ig-beilage").trim());
+      if(top[1]){
+        setText(top[1],String(item.beilage||"").toUpperCase());
+        top[1].setAttribute("font-family","IG-SourceSans");
+        top[1].setAttribute("class",((top[1].getAttribute("class")||"")+" ig-beilage").trim());
       }
     }
 
-    if(priceText){
-      const price=Number(item.preis);
-      const formatted=Number.isFinite(price)?price.toFixed(2).replace(".",",")+" €":"";
-      const leaves=leafTspans(priceText);
-      if(leaves[0])leaves[0].textContent=formatted;
-      else priceText.textContent=formatted;
-      priceText.setAttribute("font-family","IG-ArialRounded");
-      priceText.setAttribute("class",((priceText.getAttribute("class")||"")+" ig-preis").trim());
+    if(price){
+      const formatted=Number.isFinite(Number(item.preis))?Number(item.preis).toFixed(2).replace(".",",")+" €":"";
+      const ls=leaves(price);
+      if(ls[0])ls[0].textContent=formatted;
+      else price.textContent=formatted;
+      price.setAttribute("font-family","IG-ArialRounded");
+      price.setAttribute("class",((price.getAttribute("class")||"")+" ig-preis").trim());
     }
 
-    if(rect){
+    if(square){
       const symbol=item.symbol || (item.vegetarisch ? "veggie" : "");
       if(symbol){
         try{
           const dataUrl=await instagramIconDataUrl(symbol);
           if(dataUrl){
             const image=document.createElementNS("http://www.w3.org/2000/svg","image");
-            image.setAttribute("x",rect.getAttribute("x")||"95.89");
-            image.setAttribute("y",rect.getAttribute("y")||"348.58");
-            image.setAttribute("width",rect.getAttribute("width")||"66.89");
-            image.setAttribute("height",rect.getAttribute("height")||"66.89");
+            image.classList.add("instagram-food-icon");
+            image.setAttribute("x",square.getAttribute("x")||"95.89");
+            image.setAttribute("y",square.getAttribute("y")||"348.58");
+            image.setAttribute("width",square.getAttribute("width")||"66.89");
+            image.setAttribute("height",square.getAttribute("height")||"66.89");
             image.setAttribute("preserveAspectRatio","xMidYMid meet");
             image.setAttribute("href",dataUrl);
             image.setAttributeNS("http://www.w3.org/1999/xlink","xlink:href",dataUrl);
-            image.setAttribute("class","instagram-food-icon");
             root.documentElement.appendChild(image);
           }
         }catch(error){
-          console.warn("Instagram-Symbol:",error);
+          console.warn("Symbol konnte nicht geladen werden:",error);
         }
       }
     }
@@ -5879,17 +6022,7 @@ async function instagramReplaceRows(svg,items){
 
   return new XMLSerializer().serializeToString(root);
 }
-function instagramSvgElement(svgText){
-  const doc = new DOMParser().parseFromString(svgText, "image/svg+xml");
-  const svg = doc.documentElement;
-
-  if (!svg || svg.nodeName.toLowerCase() !== "svg") {
-    throw new Error("Ungültige SVG-Vorlage.");
-  }
-
-  return document.importNode(svg, true);
-}
-  function instagramSvgDataUrl(svg){
+function instagramSvgDataUrl(svg){
   return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
 }
 
@@ -5975,11 +6108,19 @@ async function instagramLaden(){
 
   const coverFooter=document.createElement("div");
   coverFooter.className="instagram-card-footer";
+
   const coverOpen=document.createElement("button");
   coverOpen.type="button";
-  coverOpen.textContent="Titelbild öffnen";
+  coverOpen.textContent="Öffnen";
   coverOpen.onclick=()=>window.open(titleUrl,"_blank","noopener");
+
+  const coverPng=document.createElement("button");
+  coverPng.type="button";
+  coverPng.textContent="PNG";
+  coverPng.onclick=()=>instagramDownloadSlide(0);
+
   coverFooter.appendChild(coverOpen);
+  coverFooter.appendChild(coverPng);
   coverCard.appendChild(coverFooter);
   preview.appendChild(coverCard);
 
@@ -6034,11 +6175,19 @@ async function instagramLaden(){
 
     const footer=document.createElement("div");
     footer.className="instagram-card-footer";
+
     const open=document.createElement("button");
     open.type="button";
     open.textContent="Öffnen";
     open.onclick=()=>window.open(url,"_blank","noopener");
+
+    const png=document.createElement("button");
+    png.type="button";
+    png.textContent="PNG";
+    png.onclick=()=>instagramDownloadSlide(i+1);
+
     footer.appendChild(open);
+    footer.appendChild(png);
     card.appendChild(footer);
     preview.appendChild(card);
   }
@@ -6051,11 +6200,10 @@ async function instagramLaden(){
   }
 }
 
-function instagramDownloadCanvas(url,filename){
-  const a=document.createElement("a");
-  a.href=url;
-  a.download=filename;
-  a.click();
+async function instagramDownloadSlide(index){
+  const slides=window.__mahlzeitInstagramSlides||[];
+  if(!slides[index])return;
+  await instagramSvgToPng(slides[index],`mahlzeit-carousel-${index+1}.png`);
 }
 
 async function instagramAlleHerunterladen(){
@@ -6064,10 +6212,19 @@ async function instagramAlleHerunterladen(){
     await instagramLaden();
   }
   const finalSlides=window.__mahlzeitInstagramSlides||[];
-  finalSlides.forEach((url,i)=>{
-    setTimeout(()=>instagramDownloadCanvas(url,`mahlzeit-carousel-${i+1}.svg`),i*400);
-  });
+  for(let i=0;i<finalSlides.length;i++){
+    try{
+      await instagramSvgToPng(finalSlides[i],`mahlzeit-carousel-${i+1}.png`);
+      await new Promise(r=>setTimeout(r,250));
+    }catch(error){
+      console.error("PNG-Export:",error);
+      const msg=document.getElementById("instagram-meldung");
+      if(msg)msg.textContent=`PNG-Export Fehler bei Slide ${i+1}: ${error.message||error}`;
+      break;
+    }
+  }
 }
+
 
 function getCalendarWeek(date){
   const d=new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));
