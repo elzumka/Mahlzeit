@@ -5790,19 +5790,82 @@ function instagramReplaceDate(svg,date){
   return new XMLSerializer().serializeToString(root);
 }
 
+async function instagramAssetDataUrl(file){
+  const response=await fetch(file,{cache:"no-cache"});
+  if(!response.ok) throw new Error(`Asset nicht gefunden: ${file}`);
+  const blob=await response.blob();
+  return await new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(reader.result);
+    reader.onerror=()=>reject(reader.error||new Error(`Asset konnte nicht gelesen werden: ${file}`));
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function instagramInlineAssets(svgText){
+  const root=new DOMParser().parseFromString(svgText,"image/svg+xml");
+  if(!root.documentElement || root.documentElement.nodeName.toLowerCase()!=="svg"){
+    throw new Error("Ungültige SVG-Vorlage.");
+  }
+
+  // Fonts must live inside the SVG as well. Otherwise an SVG rendered as an
+  // image/canvas can silently fall back to a system font.
+  const fontStyle=root.createElementNS("http://www.w3.org/2000/svg","style");
+  const fontFiles={
+    impact:["impact.ttf","truetype"],
+    rounded:["ARLRDBD.TTF","truetype"],
+    source:["SourceSansVariable-Roman.otf","opentype"]
+  };
+  const [impactFont,roundedFont,sourceFont]=await Promise.all([
+    instagramAssetDataUrl(new URL(fontFiles.impact[0],window.location.href).href),
+    instagramAssetDataUrl(new URL(fontFiles.rounded[0],window.location.href).href),
+    instagramAssetDataUrl(new URL(fontFiles.source[0],window.location.href).href)
+  ]);
+  fontStyle.textContent=`
+    @font-face{font-family:"IG-Impact";src:url("${impactFont}") format("truetype");font-weight:400;font-style:normal;}
+    @font-face{font-family:"IG-ArialRounded";src:url("${roundedFont}") format("truetype");font-weight:400;font-style:normal;}
+    @font-face{font-family:"IG-SourceSans";src:url("${sourceFont}") format("opentype");font-weight:100 900;font-style:normal;}
+    .ig-gericht{font-family:"IG-ArialRounded"!important;}
+    .ig-beilage{font-family:"IG-SourceSans"!important;}
+    .ig-preis,.ig-datum{font-family:"IG-ArialRounded"!important;}
+    .ig-kw{font-family:"IG-Impact"!important;}
+  `;
+  let defs=root.querySelector("defs");
+  if(!defs){
+    defs=root.createElementNS("http://www.w3.org/2000/svg","defs");
+    root.documentElement.insertBefore(defs,root.documentElement.firstChild);
+  }
+  defs.appendChild(fontStyle);
+
+  // Inline every local image so the PNG export cannot be blocked by CORS or
+  // by the SVG image renderer resolving relative URLs differently.
+  const images=[...root.querySelectorAll("image")];
+  for(const image of images){
+    const href=image.getAttribute("href") || image.getAttributeNS("http://www.w3.org/1999/xlink","href");
+    if(!href || href.startsWith("data:")) continue;
+    try{
+      const absolute=new URL(href,window.location.href).href;
+      const dataUrl=await instagramAssetDataUrl(absolute);
+      image.setAttribute("href",dataUrl);
+      image.setAttributeNS("http://www.w3.org/1999/xlink","xlink:href",dataUrl);
+    }catch(error){
+      console.warn("Instagram-Bild konnte nicht eingebettet werden:",href,error);
+    }
+  }
+
+  return new XMLSerializer().serializeToString(root);
+}
+
 function instagramReplaceRows(svg,items){
   const root=new DOMParser().parseFromString(svg,"image/svg+xml");
   const textEls=[...root.querySelectorAll("text")];
 
   function leafTspans(textEl){
-    return [...textEl.querySelectorAll("tspan")].filter(
-      el=>!el.querySelector("tspan")
-    );
+    return [...textEl.querySelectorAll("tspan")].filter(el=>!el.querySelector("tspan"));
   }
 
   function setNestedText(outerTspan,value){
-    const leaves=[...outerTspan.querySelectorAll("tspan")]
-      .filter(el=>!el.querySelector("tspan"));
+    const leaves=[...outerTspan.querySelectorAll("tspan")].filter(el=>!el.querySelector("tspan"));
     if(leaves.length){
       leaves[0].textContent=String(value||"");
       for(let i=1;i<leaves.length;i++) leaves[i].textContent="";
@@ -5833,9 +5896,7 @@ function instagramReplaceRows(svg,items){
       const h=Number(r.getAttribute("height")||0);
       return Math.abs(w-66.89)<2 && Math.abs(h-66.89)<2;
     })
-    .sort((a,b)=>
-      Number(a.getAttribute("y")||0)-Number(b.getAttribute("y")||0)
-    );
+    .sort((a,b)=>Number(a.getAttribute("y")||0)-Number(b.getAttribute("y")||0));
 
   const iconFiles={
     "veggie":"veggie.png",
@@ -5855,8 +5916,13 @@ function instagramReplaceRows(svg,items){
     "käse":"käse.png",
     "rind_schwein":"rind_schwein.png",
     "rind & schwein":"rind_schwein.png",
-    "pilz":"pilz.png"
+    "pilz":"pilz.png",
+    "pilze":"pilz.png"
   };
+
+  // Remove only generated icons once. The old code removed all generated
+  // icons inside the loop, so only the LAST dish could keep its symbol.
+  root.querySelectorAll("image.instagram-food-icon").forEach(el=>el.remove());
 
   for(let i=0;i<4;i++){
     const item=items[i];
@@ -5864,50 +5930,44 @@ function instagramReplaceRows(svg,items){
     const priceText=priceTexts[i];
     const rect=placeholderRects[i];
 
-    // Placeholder square is only a design aid. Never show the square in the final post.
-    if(rect) rect.style.display="none";
+    if(rect) rect.setAttribute("display","none");
 
     if(!item){
-      if(row) row.style.display="none";
-      if(priceText) priceText.style.display="none";
+      if(row) row.setAttribute("display","none");
+      if(priceText) priceText.setAttribute("display","none");
       continue;
     }
 
     if(row){
       const topSpans=[...row.querySelectorAll(":scope > tspan")];
-
       if(topSpans[0]){
         setNestedText(topSpans[0],String(item.gerichte||"").toUpperCase());
+        topSpans[0].setAttribute("font-family","IG-ArialRounded");
+        topSpans[0].setAttribute("class",((topSpans[0].getAttribute("class")||"")+" ig-gericht").trim());
       }
-
       if(topSpans[1]){
         setNestedText(topSpans[1],String(item.beilage||"").toUpperCase());
-        topSpans[1].setAttribute("font-family","SourceSansRoman-Regular, 'Source Sans Variable'");
+        topSpans[1].setAttribute("font-family","IG-SourceSans");
+        topSpans[1].setAttribute("class",((topSpans[1].getAttribute("class")||"")+" ig-beilage").trim());
         topSpans[1].setAttribute("font-size","42.64");
       }
+      row.setAttribute("font-family","IG-ArialRounded");
+      row.setAttribute("class",((row.getAttribute("class")||"")+" ig-gericht").trim());
     }
 
     if(priceText){
       const leaves=leafTspans(priceText);
       const price=Number(item.preis);
-      const formatted=Number.isFinite(price)
-        ? price.toFixed(2).replace(".",",")+" €"
-        : "";
+      const formatted=Number.isFinite(price)?price.toFixed(2).replace(".",",")+" €":"";
       if(leaves.length) leaves[0].textContent=formatted;
       else priceText.textContent=formatted;
-      priceText.setAttribute("font-family","IG-ArialRounded, 'Arial Rounded MT Bold'");
+      priceText.setAttribute("font-family","IG-ArialRounded");
       priceText.setAttribute("class",((priceText.getAttribute("class")||"")+" ig-preis").trim());
     }
 
-    // Insert the matching PNG exactly into the template's placeholder square.
     if(rect){
-      const raw=String(
-        item.symbol || (item.vegetarisch ? "veggie" : "")
-      ).trim().toLowerCase();
+      const raw=String(item.symbol || (item.vegetarisch ? "veggie" : "")).trim().toLowerCase();
       const file=iconFiles[raw]||"";
-
-      root.querySelectorAll("image.instagram-food-icon").forEach(el=>el.remove());
-
       if(file){
         const image=document.createElementNS("http://www.w3.org/2000/svg","image");
         image.classList.add("instagram-food-icon");
@@ -5926,6 +5986,7 @@ function instagramReplaceRows(svg,items){
 
   return new XMLSerializer().serializeToString(root);
 }
+
 function instagramSvgElement(svgText){
   const doc=new DOMParser().parseFromString(svgText,"image/svg+xml");
   const svg=doc.documentElement;
@@ -6133,66 +6194,45 @@ async function instagramLaden(){
 }
 
 async function instagramSvgToPng(svgText,filename){
-  if(typeof html2canvas!=="function"){
-    throw new Error("PNG-Exportbibliothek konnte nicht geladen werden.");
-  }
+  // Export the SVG itself through a real Image element instead of asking
+  // html2canvas to reconstruct SVG text. This keeps the supplied fonts and
+  // all embedded symbols intact.
+  const preparedSvg=await instagramInlineAssets(svgText);
+  const svgUrl="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(preparedSvg);
 
-  // Make a clean, inline SVG. Embedded images/fonts are preserved.
-  const svgEl=instagramSvgElement(svgText);
-  svgEl.setAttribute("width","1080");
-  svgEl.setAttribute("height","1080");
-  svgEl.style.width="1080px";
-  svgEl.style.height="1080px";
-  svgEl.style.display="block";
+  const img=new Image();
+  img.decoding="async";
+  img.width=1080;
+  img.height=1080;
+  img.src=svgUrl;
 
-  const wrap=document.createElement("div");
-  wrap.style.position="fixed";
-  wrap.style.left="-20000px";
-  wrap.style.top="0";
-  wrap.style.width="1080px";
-  wrap.style.height="1080px";
-  wrap.style.overflow="hidden";
-  wrap.style.background="#f5eee4";
-  wrap.style.margin="0";
-  wrap.style.padding="0";
-  wrap.style.zIndex="-1";
-  wrap.appendChild(svgEl);
-  document.body.appendChild(wrap);
+  await new Promise((resolve,reject)=>{
+    img.onload=()=>resolve();
+    img.onerror=()=>reject(new Error("SVG konnte für den PNG-Export nicht geladen werden."));
+  });
 
-  try{
-    if(document.fonts?.ready) await document.fonts.ready;
-    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+  const canvas=document.createElement("canvas");
+  canvas.width=1080;
+  canvas.height=1080;
+  const ctx=canvas.getContext("2d");
+  if(!ctx) throw new Error("Canvas konnte nicht erstellt werden.");
 
-    const canvas=await html2canvas(wrap,{
-      backgroundColor:"#f5eee4",
-      width:1080,
-      height:1080,
-      scale:1,
-      useCORS:true,
-      allowTaint:false,
-      imageTimeout:15000,
-      logging:false
-    });
+  ctx.clearRect(0,0,1080,1080);
+  ctx.drawImage(img,0,0,1080,1080);
 
-    const blob=await new Promise((resolve,reject)=>{
-      canvas.toBlob(
-        b=>b?resolve(b):reject(new Error("PNG konnte nicht erzeugt werden.")),
-        "image/png",
-        1
-      );
-    });
+  const blob=await new Promise((resolve,reject)=>{
+    canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("PNG konnte nicht erzeugt werden.")),"image/png",1);
+  });
 
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement("a");
-    a.href=url;
-    a.download=filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),1500);
-  }finally{
-    wrap.remove();
-  }
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=filename;
+  a.rel="noopener";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
 }
 
 async function instagramDownloadSlide(index){
