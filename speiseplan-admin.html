@@ -2481,6 +2481,12 @@ button{
   .instagram-preview{grid-template-columns:1fr}
   .instagram-toolbar{grid-template-columns:1fr}
 }
+<style id="instagram-exakte-schriften">
+#instagram-preview .instagram-card svg text,
+#instagram-preview .instagram-card svg text tspan{
+  vector-effect:non-scaling-stroke;
+}
+</style>
 </style>
 </head>
 <body>
@@ -5864,8 +5870,9 @@ function instagramReplaceRows(svg,items){
         image.setAttribute("width",rect.getAttribute("width")||"66.89");
         image.setAttribute("height",rect.getAttribute("height")||"66.89");
         image.setAttribute("preserveAspectRatio","xMidYMid meet");
-        image.setAttribute("href",file);
-        image.setAttributeNS("http://www.w3.org/1999/xlink","xlink:href",file);
+        const iconUrl=new URL(file,window.location.href).href;
+        image.setAttribute("href",iconUrl);
+        image.setAttributeNS("http://www.w3.org/1999/xlink","xlink:href",iconUrl);
         (row?.parentNode || root.documentElement).appendChild(image);
       }
     }
