@@ -6194,10 +6194,25 @@ async function instagramLaden(){
 }
 
 async function instagramSvgToPng(svgText,filename){
+  // The carousel stores each slide as an SVG data URL. Decode that URL back
+  // to the actual SVG source before inlining fonts/images. Passing the data
+  // URL itself to DOMParser makes it look like an invalid SVG document.
+  let rawSvg=String(svgText||"");
+  if(rawSvg.startsWith("data:image/svg+xml")){
+    const comma=rawSvg.indexOf(",");
+    if(comma<0) throw new Error("Ungültige SVG-Daten-URL.");
+    const payload=rawSvg.slice(comma+1);
+    try{
+      rawSvg=decodeURIComponent(payload);
+    }catch(error){
+      throw new Error("SVG-Daten konnten nicht dekodiert werden.");
+    }
+  }
+
   // Export the SVG itself through a real Image element instead of asking
   // html2canvas to reconstruct SVG text. This keeps the supplied fonts and
   // all embedded symbols intact.
-  const preparedSvg=await instagramInlineAssets(svgText);
+  const preparedSvg=await instagramInlineAssets(rawSvg);
   const svgUrl="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(preparedSvg);
 
   const img=new Image();
