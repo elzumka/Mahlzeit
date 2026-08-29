@@ -6361,18 +6361,24 @@ function instagramIstMobil(){
   return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
 }
 
-function instagramMobileFensterOeffnen(titel="Mahlzeit! PNG"){
+function instagramMobileFensterOeffnen(titel="Mahlzeit! PNG",initialImageUrl=""){
   if(!instagramIstMobil()) return null;
-  // Open AND initialise the mobile window synchronously during the user click.
-  // Safari can otherwise leave a completely white about:blank tab while the
-  // asynchronous SVG/PNG rendering is still running.
+  // Open and initialise the mobile window synchronously during the user click.
+  // The existing SVG is shown immediately. The PNG replaces it as soon as
+  // rasterisation has finished, so Safari never shows a blank/white window.
   try{
     const win=window.open("about:blank","_blank");
     if(!win)return null;
     try{
       win.document.open();
-      win.document.write(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>${String(titel).replace(/[<>]/g,"")}</title><style>html,body{margin:0;min-height:100%;background:#f5eee4;color:#20201d;font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif}body{padding:16px;text-align:center}h1{font-size:20px;color:#285437;margin:8px 0 10px}.loading{font-size:15px;line-height:1.45;padding:24px 12px;color:#555}.result{display:none}.imgwrap{background:#fff;border-radius:12px;padding:8px;box-shadow:0 3px 14px rgba(0,0,0,.12)}img{display:block;width:100%;height:auto;border-radius:8px}.save{display:block;width:100%;box-sizing:border-box;margin-top:12px;padding:14px 12px;border:0;border-radius:10px;background:#285437;color:#fff;font-size:16px;font-weight:800}.secondary{display:block;width:100%;box-sizing:border-box;margin-top:8px;padding:12px;border:1px solid #b8ad9d;border-radius:10px;background:#fff;color:#285437;font-size:14px;font-weight:700}.error{display:none;color:#8b1e1e;background:#fff;border:1px solid #d5aaaa;border-radius:10px;padding:14px;text-align:left;line-height:1.45}</style></head><body><h1>Mahlzeit! PNG</h1><div id="loading" class="loading">PNG wird vorbereitet …<br>Bitte dieses Fenster geöffnet lassen.</div><div id="error" class="error"></div><div id="result" class="result"><div class="imgwrap"><img id="png" alt="PNG"></div><button class="save" id="share">Teilen / In Fotos sichern</button><button class="secondary" id="open">Bild separat öffnen</button></div></body></html>`);
+      win.document.write(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>${String(titel).replace(/[<>]/g,"")}</title><style>html,body{margin:0;min-height:100%;background:#f5eee4;color:#20201d;font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif}body{padding:16px;text-align:center}h1{font-size:20px;color:#285437;margin:8px 0 10px}.loading{font-size:14px;line-height:1.45;padding:12px;color:#555}.result{display:block}.imgwrap{background:#fff;border-radius:12px;padding:8px;box-shadow:0 3px 14px rgba(0,0,0,.12)}img{display:block;width:100%;height:auto;border-radius:8px}.save{display:block;width:100%;box-sizing:border-box;margin-top:12px;padding:14px 12px;border:0;border-radius:10px;background:#285437;color:#fff;font-size:16px;font-weight:800}.secondary{display:block;width:100%;box-sizing:border-box;margin-top:8px;padding:12px;border:1px solid #b8ad9d;border-radius:10px;background:#fff;color:#285437;font-size:14px;font-weight:700}.error{display:none;color:#8b1e1e;background:#fff;border:1px solid #d5aaaa;border-radius:10px;padding:14px;text-align:left;line-height:1.45}</style></head><body><h1>Mahlzeit! PNG</h1><div id="loading" class="loading">PNG wird vorbereitet …</div><div id="error" class="error"></div><div id="result" class="result"><div class="imgwrap"><img id="png" alt="Mahlzeit! PNG"></div><button class="save" id="share" style="display:none">Teilen / In Fotos sichern</button><button class="secondary" id="open" style="display:none">Bild separat öffnen</button></div></body></html>`);
       win.document.close();
+      const img=win.document.getElementById("png");
+      const loading=win.document.getElementById("loading");
+      // Show the already generated SVG immediately. This is intentionally the
+      // same artwork used by the working preview, not a simplified fallback.
+      if(img && initialImageUrl) img.src=initialImageUrl;
+      if(loading) loading.textContent="PNG wird vorbereitet …";
     }catch(_e){}
     return win;
   }catch(_e){ return null; }
@@ -6488,8 +6494,10 @@ async function instagramDownloadSlide(index){
   const slides=window.__mahlzeitInstagramSlides||[];
   if(!slides[index])throw new Error(`Slide ${index+1} ist nicht vorhanden.`);
 
-  // Open and initialise the mobile tab immediately, before awaiting PNG generation.
-  const mobileWindow=instagramMobileFensterOeffnen(`Mahlzeit! – ${index+1}. PNG`);
+  // Open the mobile tab immediately and show the existing SVG artwork at once.
+  // The finished PNG is swapped in later, so the user sees the image on the
+  // very first tap instead of a blank loading page.
+  const mobileWindow=instagramMobileFensterOeffnen(`Mahlzeit! – ${index+1}. PNG`,slides[index]);
   try{
     await instagramSvgToPng(slides[index],`mahlzeit-carousel-${index+1}.png`,mobileWindow);
   }catch(error){
