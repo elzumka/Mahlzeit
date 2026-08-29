@@ -5803,7 +5803,25 @@ async function instagramAssetDataUrl(file){
 }
 
 async function instagramInlineAssets(svgText){
-  const root=new DOMParser().parseFromString(svgText,"image/svg+xml");
+  // The carousel stores its slides as SVG data URLs.  Desktop browsers may
+  // tolerate passing that URL through the SVG parser, but mobile browsers
+  // generally do not.  Normalize both plain SVG text and data URLs here.
+  let source=String(svgText||"");
+  if(source.startsWith("data:image/svg+xml")){
+    const comma=source.indexOf(",");
+    if(comma===-1) throw new Error("Ungültige SVG-Data-URL.");
+    const meta=source.slice(0,comma);
+    const payload=source.slice(comma+1);
+    try{
+      source=meta.toLowerCase().includes(";base64")
+        ? atob(payload)
+        : decodeURIComponent(payload);
+    }catch(error){
+      throw new Error("SVG-Data-URL konnte nicht dekodiert werden.");
+    }
+  }
+
+  const root=new DOMParser().parseFromString(source,"image/svg+xml");
   if(!root.documentElement || root.documentElement.nodeName.toLowerCase()!=="svg"){
     throw new Error("Ungültige SVG-Vorlage.");
   }
