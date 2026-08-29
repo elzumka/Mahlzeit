@@ -6201,10 +6201,9 @@ async function instagramLaden(){
   }
 }
 
-async function instagramSvgToPng(svgText,filename){
-  // Export the SVG itself through a real Image element instead of asking
-  // html2canvas to reconstruct SVG text. This keeps the supplied fonts and
-  // all embedded symbols intact.
+async function instagramSvgToPngBlob(svgText){
+  // Export the SVG itself through a real Image element. This keeps the supplied
+  // fonts and all embedded symbols intact on desktop and mobile browsers.
   const preparedSvg=await instagramInlineAssets(svgText);
   const svgUrl="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(preparedSvg);
 
@@ -6228,10 +6227,43 @@ async function instagramSvgToPng(svgText,filename){
   ctx.clearRect(0,0,1080,1080);
   ctx.drawImage(img,0,0,1080,1080);
 
-  const blob=await new Promise((resolve,reject)=>{
-    canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("PNG konnte nicht erzeugt werden.")),"image/png",1);
+  return await new Promise((resolve,reject)=>{
+    canvas.toBlob(
+      blob=>blob?resolve(blob):reject(new Error("PNG konnte nicht erzeugt werden.")),
+      "image/png",
+      1
+    );
   });
+}
 
+function instagramIstMobil(){
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
+}
+
+async function instagramPngAusgeben(blob,filename){
+  // Mobile Safari/Chrome do not reliably honor <a download> for Blob URLs.
+  // Prefer the native share sheet there; the user can choose "Fotos sichern",
+  // "In Dateien sichern" or another installed destination.
+  if(instagramIstMobil() && typeof navigator.share==="function"){
+    const file=new File([blob],filename,{type:"image/png"});
+    try{
+      if(!navigator.canShare || navigator.canShare({files:[file]})){
+        await navigator.share({
+          files:[file],
+          title:filename,
+          text:"Mahlzeit! Instagram-Carousel"
+        });
+        return;
+      }
+    }catch(error){
+      // User cancellation is not an export error. For other share failures,
+      // continue with the browser fallback below.
+      if(error && error.name==="AbortError") return;
+      console.warn("Mobiler PNG-Share fehlgeschlagen:",error);
+    }
+  }
+
+  // Desktop and browsers without Web Share API: normal download.
   const url=URL.createObjectURL(blob);
   const a=document.createElement("a");
   a.href=url;
@@ -6241,6 +6273,11 @@ async function instagramSvgToPng(svgText,filename){
   a.click();
   a.remove();
   setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+
+async function instagramSvgToPng(svgText,filename){
+  const blob=await instagramSvgToPngBlob(svgText);
+  await instagramPngAusgeben(blob,filename);
 }
 
 async function instagramDownloadSlide(index){
@@ -6255,10 +6292,40 @@ async function instagramAlleHerunterladen(){
     await instagramLaden();
   }
   const finalSlides=window.__mahlzeitInstagramSlides||[];
+  if(!finalSlides.length) throw new Error("Keine Instagram-Slides vorhanden.");
+
+  // On mobile, share all six PNGs in one native share sheet when supported.
+  // This avoids six separate blocked/ignored downloads on iOS and Android.
+  if(instagramIstMobil() && typeof navigator.share==="function"){
+    try{
+      const files=[];
+      for(let i=0;i<finalSlides.length;i++){
+        const blob=await instagramSvgToPngBlob(finalSlides[i]);
+        files.push(new File([blob],`mahlzeit-carousel-${i+1}.png`,{type:"image/png"}));
+      }
+
+      if(!navigator.canShare || navigator.canShare({files})){
+        await navigator.share({
+          files,
+          title:"Mahlzeit! Instagram-Carousel",
+          text:"6 PNG-Bilder für den Instagram-Carousel"
+        });
+        const msg=document.getElementById("instagram-meldung");
+        if(msg)msg.textContent="Alle 6 PNGs wurden für die Freigabe vorbereitet.";
+        return;
+      }
+    }catch(error){
+      if(error && error.name==="AbortError") return;
+      console.warn("Mobiler Sammel-Share fehlgeschlagen:",error);
+      // Continue with the normal per-file fallback below.
+    }
+  }
 
   for(let i=0;i<finalSlides.length;i++){
     try{
-      await instagramSvgToPng(finalSlides[i],`mahlzeit-carousel-${i+1}.png`);
+      const blob=await instagramSvgToPngBlob(finalSlides[i]);
+      await instagramPngAusgeben(blob,`mahlzeit-carousel-${i+1}.png`);
+      // Give mobile browsers a moment between fallback downloads.
       await new Promise(r=>setTimeout(r,300));
     }catch(error){
       console.error("PNG-Export:",error);
