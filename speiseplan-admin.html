@@ -6508,13 +6508,28 @@ async function instagramDownloadSlide(index){
   const slides=window.__mahlzeitInstagramSlides||[];
   if(!slides[index])throw new Error(`Slide ${index+1} ist nicht vorhanden.`);
 
+  const status=document.getElementById("instagram-meldung");
+  if(status){
+    status.textContent=`PNG für Slide ${index+1} wird generiert …`;
+    status.style.color="var(--green)";
+  }
+
   // Open the mobile tab immediately and show the existing SVG artwork at once.
   // The finished PNG is swapped in later, so the user sees the image on the
   // very first tap instead of a blank loading page.
   const mobileWindow=instagramMobileFensterOeffnen(`Mahlzeit! – ${index+1}. PNG`,slides[index]);
   try{
     await instagramSvgToPng(slides[index],`mahlzeit-carousel-${index+1}.png`,mobileWindow);
+    if(status){
+      status.textContent=`✓ PNG für Slide ${index+1} wurde erfolgreich generiert.`;
+      status.style.color="var(--green)";
+      status.style.fontWeight="700";
+    }
   }catch(error){
+    if(status){
+      status.textContent=`PNG-Export Fehler bei Slide ${index+1}: ${error.message||error}`;
+      status.style.color="#a33";
+    }
     instagramMobileFensterFehler(mobileWindow,error);
     throw error;
   }
