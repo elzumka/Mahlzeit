@@ -2533,6 +2533,7 @@ button{
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 </head>
 <body>
 <div class="container">
@@ -5003,181 +5004,87 @@ async function sp_erzeugePNGBlob(){
 
 async function sp_drucken(){
 
-  const sheet =
-    document.querySelector(
-      "#speiseplan-bereich .sp-sheet"
-    );
+  try{
 
-  if(!sheet){
-    alert(
-      "Der Speiseplan konnte nicht für den Druck vorbereitet werden."
-    );
-    return;
-  }
+    if(
+      !window.jspdf ||
+      !window.jspdf.jsPDF
+    ){
+      throw new Error(
+        "Die PDF-Bibliothek konnte nicht geladen werden. Bitte die Seite neu laden."
+      );
+    }
 
-  const printWindow =
-    window.open(
-      "",
-      "_blank"
-    );
+    const blob =
+      await sp_erzeugePNGBlob();
 
-  if(!printWindow){
+    const dataUrl =
+      await new Promise(
+        (resolve,reject)=>{
+          const reader =
+            new FileReader();
 
-    alert(
-      "Das Druckfenster wurde vom Browser blockiert. Bitte Pop-ups für diese Seite erlauben."
-    );
+          reader.onload =
+            ()=>resolve(reader.result);
 
-    return;
-  }
-
-  const baseHref =
-    document.baseURI;
-
-  const sheetHtml =
-    sheet.outerHTML;
-
-  printWindow.document.open();
-
-  printWindow.document.write(`
-    <!doctype html>
-    <html lang="de">
-      <head>
-
-        <meta charset="utf-8">
-
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1"
-        >
-
-        <base href="${baseHref}">
-
-        <title>Speiseplan</title>
-
-        <style>
-
-          @page{
-            size:A4 portrait;
-            margin:0;
-          }
-
-          html,
-          body{
-            width:210mm;
-            height:297mm;
-            margin:0;
-            padding:0;
-            background:#fff;
-            overflow:hidden;
-          }
-
-          body{
-            display:flex;
-            align-items:flex-start;
-            justify-content:flex-start;
-          }
-
-          .sp-sheet{
-            position:relative;
-            display:block;
-            width:210mm !important;
-            min-width:210mm !important;
-            max-width:210mm !important;
-            height:297mm !important;
-            min-height:297mm !important;
-            max-height:297mm !important;
-            margin:0 !important;
-            padding:0 !important;
-            overflow:hidden !important;
-            background:#f7eee4;
-            box-shadow:none !important;
-          }
-
-          .sp-sheet-bg{
-            position:absolute !important;
-            inset:0 !important;
-            display:block !important;
-            width:210mm !important;
-            height:297mm !important;
-            max-width:none !important;
-            margin:0 !important;
-            object-fit:fill !important;
-          }
-
-          #sp-overlay{
-            position:absolute !important;
-            inset:0 !important;
-            display:block !important;
-            width:210mm !important;
-            height:297mm !important;
-          }
-
-        </style>
-
-      </head>
-
-      <body>
-        ${sheetHtml}
-
-        <script>
-
-          (async function(){
-
-            try{
-
-              if(
-                document.fonts &&
-                document.fonts.ready
-              ){
-                await document.fonts.ready;
-              }
-
-            }catch(e){}
-
-            const images =
-              Array.from(
-                document.images
-              );
-
-            await Promise.all(
-              images.map(
-                img =>
-                  img.complete
-                    ? Promise.resolve()
-                    : new Promise(
-                        resolve=>{
-                          img.addEventListener(
-                            "load",
-                            resolve,
-                            {once:true}
-                          );
-
-                          img.addEventListener(
-                            "error",
-                            resolve,
-                            {once:true}
-                          );
-                        }
-                      )
+          reader.onerror =
+            ()=>reject(
+              new Error(
+                "Der Speiseplan konnte nicht für das PDF verarbeitet werden."
               )
             );
 
-            setTimeout(
-              ()=>{
-                window.focus();
-                window.print();
-              },
-              250
-            );
+          reader.readAsDataURL(blob);
+        }
+      );
 
-          })();
+    const {
+      jsPDF
+    } =
+      window.jspdf;
 
-        <\/script>
-      </body>
-    </html>
-  `);
+    /*
+     * Der Speiseplan wird als fertiges 2480 × 3508 px Bild
+     * exakt auf eine A4-Seite (210 × 297 mm) gesetzt.
+     * Dadurch kann der Browser keine zweite Druckseite erzeugen
+     * und das Blatt bleibt vollständig ausgefüllt.
+     */
+    const pdf =
+      new jsPDF({
+        orientation:"portrait",
+        unit:"mm",
+        format:"a4",
+        compress:true
+      });
 
-  printWindow.document.close();
+    pdf.addImage(
+      dataUrl,
+      "PNG",
+      0,
+      0,
+      210,
+      297,
+      undefined,
+      "FAST"
+    );
+
+    pdf.save(
+      `Speiseplan-KW-${String(spState.week).padStart(2,"0")}-${spState.year}.pdf`
+    );
+
+  }catch(error){
+
+    console.error(
+      "PDF-Download:",
+      error
+    );
+
+    alert(
+      error?.message ||
+      "Der PDF-Download konnte nicht gestartet werden."
+    );
+
+  }
 
 }
 
@@ -5790,111 +5697,19 @@ function instagramReplaceDate(svg,date){
   return new XMLSerializer().serializeToString(root);
 }
 
-async function instagramAssetDataUrl(file){
-  const response=await fetch(file,{cache:"no-cache"});
-  if(!response.ok) throw new Error(`Asset nicht gefunden: ${file}`);
-  const blob=await response.blob();
-  return await new Promise((resolve,reject)=>{
-    const reader=new FileReader();
-    reader.onload=()=>resolve(reader.result);
-    reader.onerror=()=>reject(reader.error||new Error(`Asset konnte nicht gelesen werden: ${file}`));
-    reader.readAsDataURL(blob);
-  });
-}
-
-async function instagramInlineAssets(svgText){
-  // Normalize both plain SVG text and data:image/svg+xml URLs.
-  let source=String(svgText||"").trim();
-  if(source.startsWith("data:image/svg+xml")){
-    const comma=source.indexOf(",");
-    if(comma===-1) throw new Error("Ungültige SVG-Data-URL.");
-    const meta=source.slice(0,comma);
-    const payload=source.slice(comma+1);
-    try{
-      source=/;base64/i.test(meta)
-        ? decodeURIComponent(escape(atob(payload)))
-        : decodeURIComponent(payload);
-    }catch(error){
-      throw new Error("SVG-Data-URL konnte nicht dekodiert werden.");
-    }
-  }
-
-  const doc=new DOMParser().parseFromString(source,"image/svg+xml");
-  const parserError=doc.querySelector("parsererror");
-  const root=doc.documentElement;
-  if(parserError || !root || root.nodeName.toLowerCase()!=="svg"){
-    throw new Error("Ungültige SVG-Vorlage.");
-  }
-
-  // IMPORTANT for iPhone/iPad: a data:image/svg+xml rendered through an
-  // <img> does not reliably load relative @font-face URLs. Embed the exact
-  // supplied font files directly into the SVG as data URLs.
-  const [impactUrl,roundedUrl,sourceSansUrl]=await Promise.all([
-    instagramAssetDataUrl(new URL("impact.ttf",window.location.href).href),
-    instagramAssetDataUrl(new URL("ARLRDBD.TTF",window.location.href).href),
-    instagramAssetDataUrl(new URL("SourceSansVariable-Roman.otf",window.location.href).href)
-  ]);
-
-  let defs=root.querySelector("defs");
-  if(!defs){
-    defs=doc.createElementNS("http://www.w3.org/2000/svg","defs");
-    root.insertBefore(defs,root.firstChild);
-  }
-
-  const fontStyle=doc.createElementNS("http://www.w3.org/2000/svg","style");
-  fontStyle.setAttribute("type","text/css");
-  fontStyle.textContent=`
-    @font-face{font-family:"IG-Impact";src:url("${impactUrl}") format("truetype");font-weight:400;font-style:normal;}
-    @font-face{font-family:"IG-ArialRounded";src:url("${roundedUrl}") format("truetype");font-weight:400;font-style:normal;}
-    @font-face{font-family:"IG-SourceSans";src:url("${sourceSansUrl}") format("opentype");font-weight:100 900;font-style:normal;}
-    .ig-gericht{font-family:"IG-ArialRounded" !important;}
-    .ig-beilage{font-family:"IG-SourceSans" !important;}
-    .ig-preis,.ig-datum{font-family:"IG-ArialRounded" !important;}
-    .ig-kw{font-family:"IG-Impact" !important;}
-    text{font-synthesis:none;}
-  `;
-  defs.appendChild(fontStyle);
-
-  // Replace the original font-family names throughout the SVG as a second
-  // line of defence. This is especially important on iOS where CSS inside a
-  // nested SVG can otherwise be ignored by the SVG image decoder.
-  root.querySelectorAll("text,tspan").forEach(el=>{
-    const f=(el.getAttribute("font-family")||"").toLowerCase();
-    if(f.includes("source sans")) el.setAttribute("font-family","IG-SourceSans");
-    else if(f.includes("arialrounded") || f.includes("arial rounded")) el.setAttribute("font-family","IG-ArialRounded");
-    else if(f.includes("impact")) el.setAttribute("font-family","IG-Impact");
-  });
-
-  // All template images are normally already embedded as PNG data URLs.
-  // If a template contains a relative/local image, inline it as well so the
-  // rasterizer never has to resolve an external resource.
-  const images=[...root.querySelectorAll("image")];
-  for(const image of images){
-    const href=image.getAttribute("href") || image.getAttributeNS("http://www.w3.org/1999/xlink","href");
-    if(!href || href.startsWith("data:")) continue;
-    try{
-      const absolute=new URL(href,window.location.href).href;
-      const dataUrl=await instagramAssetDataUrl(absolute);
-      image.setAttribute("href",dataUrl);
-      image.setAttributeNS("http://www.w3.org/1999/xlink","xlink:href",dataUrl);
-    }catch(error){
-      console.warn("Instagram-Bild konnte nicht eingebettet werden:",href,error);
-    }
-  }
-
-  return new XMLSerializer().serializeToString(root);
-}
-
 function instagramReplaceRows(svg,items){
   const root=new DOMParser().parseFromString(svg,"image/svg+xml");
   const textEls=[...root.querySelectorAll("text")];
 
   function leafTspans(textEl){
-    return [...textEl.querySelectorAll("tspan")].filter(el=>!el.querySelector("tspan"));
+    return [...textEl.querySelectorAll("tspan")].filter(
+      el=>!el.querySelector("tspan")
+    );
   }
 
   function setNestedText(outerTspan,value){
-    const leaves=[...outerTspan.querySelectorAll("tspan")].filter(el=>!el.querySelector("tspan"));
+    const leaves=[...outerTspan.querySelectorAll("tspan")]
+      .filter(el=>!el.querySelector("tspan"));
     if(leaves.length){
       leaves[0].textContent=String(value||"");
       for(let i=1;i<leaves.length;i++) leaves[i].textContent="";
@@ -5925,7 +5740,9 @@ function instagramReplaceRows(svg,items){
       const h=Number(r.getAttribute("height")||0);
       return Math.abs(w-66.89)<2 && Math.abs(h-66.89)<2;
     })
-    .sort((a,b)=>Number(a.getAttribute("y")||0)-Number(b.getAttribute("y")||0));
+    .sort((a,b)=>
+      Number(a.getAttribute("y")||0)-Number(b.getAttribute("y")||0)
+    );
 
   const iconFiles={
     "veggie":"veggie.png",
@@ -5945,13 +5762,8 @@ function instagramReplaceRows(svg,items){
     "käse":"käse.png",
     "rind_schwein":"rind_schwein.png",
     "rind & schwein":"rind_schwein.png",
-    "pilz":"pilz.png",
-    "pilze":"pilz.png"
+    "pilz":"pilz.png"
   };
-
-  // Remove only generated icons once. The old code removed all generated
-  // icons inside the loop, so only the LAST dish could keep its symbol.
-  root.querySelectorAll("image.instagram-food-icon").forEach(el=>el.remove());
 
   for(let i=0;i<4;i++){
     const item=items[i];
@@ -5959,44 +5771,50 @@ function instagramReplaceRows(svg,items){
     const priceText=priceTexts[i];
     const rect=placeholderRects[i];
 
-    if(rect) rect.setAttribute("display","none");
+    // Placeholder square is only a design aid. Never show the square in the final post.
+    if(rect) rect.style.display="none";
 
     if(!item){
-      if(row) row.setAttribute("display","none");
-      if(priceText) priceText.setAttribute("display","none");
+      if(row) row.style.display="none";
+      if(priceText) priceText.style.display="none";
       continue;
     }
 
     if(row){
       const topSpans=[...row.querySelectorAll(":scope > tspan")];
+
       if(topSpans[0]){
         setNestedText(topSpans[0],String(item.gerichte||"").toUpperCase());
-        topSpans[0].setAttribute("font-family","IG-ArialRounded");
-        topSpans[0].setAttribute("class",((topSpans[0].getAttribute("class")||"")+" ig-gericht").trim());
       }
+
       if(topSpans[1]){
         setNestedText(topSpans[1],String(item.beilage||"").toUpperCase());
-        topSpans[1].setAttribute("font-family","IG-SourceSans");
-        topSpans[1].setAttribute("class",((topSpans[1].getAttribute("class")||"")+" ig-beilage").trim());
+        topSpans[1].setAttribute("font-family","SourceSansRoman-Regular, 'Source Sans Variable'");
         topSpans[1].setAttribute("font-size","42.64");
       }
-      row.setAttribute("font-family","IG-ArialRounded");
-      row.setAttribute("class",((row.getAttribute("class")||"")+" ig-gericht").trim());
     }
 
     if(priceText){
       const leaves=leafTspans(priceText);
       const price=Number(item.preis);
-      const formatted=Number.isFinite(price)?price.toFixed(2).replace(".",",")+" €":"";
+      const formatted=Number.isFinite(price)
+        ? price.toFixed(2).replace(".",",")+" €"
+        : "";
       if(leaves.length) leaves[0].textContent=formatted;
       else priceText.textContent=formatted;
-      priceText.setAttribute("font-family","IG-ArialRounded");
+      priceText.setAttribute("font-family","IG-ArialRounded, 'Arial Rounded MT Bold'");
       priceText.setAttribute("class",((priceText.getAttribute("class")||"")+" ig-preis").trim());
     }
 
+    // Insert the matching PNG exactly into the template's placeholder square.
     if(rect){
-      const raw=String(item.symbol || (item.vegetarisch ? "veggie" : "")).trim().toLowerCase();
+      const raw=String(
+        item.symbol || (item.vegetarisch ? "veggie" : "")
+      ).trim().toLowerCase();
       const file=iconFiles[raw]||"";
+
+      root.querySelectorAll("image.instagram-food-icon").forEach(el=>el.remove());
+
       if(file){
         const image=document.createElementNS("http://www.w3.org/2000/svg","image");
         image.classList.add("instagram-food-icon");
@@ -6015,29 +5833,10 @@ function instagramReplaceRows(svg,items){
 
   return new XMLSerializer().serializeToString(root);
 }
-
 function instagramSvgElement(svgText){
-  // The carousel stores each finished slide as a data:image/svg+xml URL.
-  // For preview/export we must decode that URL before parsing it as SVG.
-  let text=String(svgText||"").trim();
-  if(text.startsWith("data:image/svg+xml")){
-    const comma=text.indexOf(",");
-    if(comma===-1) throw new Error("Ungültige SVG-Daten-URL.");
-    const meta=text.slice(0,comma);
-    const payload=text.slice(comma+1);
-    try{
-      text=/;base64/i.test(meta)
-        ? decodeURIComponent(escape(atob(payload)))
-        : decodeURIComponent(payload);
-    }catch(e){
-      throw new Error("SVG-Daten konnten nicht dekodiert werden.");
-    }
-  }
-
-  const doc=new DOMParser().parseFromString(text,"image/svg+xml");
-  const parserError=doc.querySelector("parsererror");
+  const doc=new DOMParser().parseFromString(svgText,"image/svg+xml");
   const svg=doc.documentElement;
-  if(parserError || !svg || svg.nodeName.toLowerCase()!=="svg"){
+  if(!svg || svg.nodeName.toLowerCase()!=="svg"){
     throw new Error("Ungültige SVG-Vorlage.");
   }
   // Import into the current page so nested <image href="...png"> resources
@@ -6240,299 +6039,73 @@ async function instagramLaden(){
   }
 }
 
-async function instagramPreloadExportResources(svgText){
-  // iOS Safari can fire <img>.onload for an SVG before the SVG's nested
-  // <image> resources and embedded @font-face files have actually finished
-  // decoding. The second click then works because those resources are cached.
-  // Preload everything explicitly before the first rasterisation.
-  const source=String(svgText||"").trim();
-  const doc=new DOMParser().parseFromString(source,"image/svg+xml");
-  const root=doc.documentElement;
-  if(!root || root.nodeName.toLowerCase()!=="svg") return;
-
-  const imageUrls=[...root.querySelectorAll("image")]
-    .map(el=>el.getAttribute("href") || el.getAttributeNS("http://www.w3.org/1999/xlink","href"))
-    .filter(Boolean)
-    .filter(src=>src.startsWith("data:image/"));
-
-  await Promise.all(imageUrls.map(src=>new Promise(resolve=>{
-    const im=new Image();
-    let done=false;
-    const finish=()=>{if(done)return;done=true;resolve();};
-    im.onload=async()=>{
-      try{if(typeof im.decode==="function") await im.decode();}catch(_e){}
-      finish();
-    };
-    im.onerror=finish;
-    im.src=src;
-    setTimeout(finish,15000);
-  })));
-
-  // The fonts are embedded in the SVG as data URLs. Loading the same font
-  // data into document.fonts first removes the iOS first-render race.
-  const fontDefs=[
-    ["IG-Impact", /@font-face\{font-family:\"IG-Impact\";src:url\("([^\"]+)"\)/],
-    ["IG-ArialRounded", /@font-face\{font-family:\"IG-ArialRounded\";src:url\("([^\"]+)"\)/],
-    ["IG-SourceSans", /@font-face\{font-family:\"IG-SourceSans\";src:url\("([^\"]+)"\)/]
-  ];
-
-  if(document.fonts && typeof FontFace!=="undefined"){
-    for(const [family,re] of fontDefs){
-      const match=source.match(re);
-      if(!match) continue;
-      try{
-        const ff=new FontFace(family,`url("${match[1]}")`);
-        await ff.load();
-        document.fonts.add(ff);
-      }catch(error){
-        console.warn("Instagram-Font konnte nicht vorgeladen werden:",family,error);
-      }
-    }
-    try{await document.fonts.ready;}catch(_e){}
+async function instagramSvgToPng(svgText,filename){
+  if(typeof html2canvas!=="function"){
+    throw new Error("PNG-Exportbibliothek konnte nicht geladen werden.");
   }
 
-  // Give WebKit two paint cycles after the resources are decoded.
-  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-  await new Promise(resolve=>setTimeout(resolve,80));
-}
+  // Make a clean, inline SVG. Embedded images/fonts are preserved.
+  const svgEl=instagramSvgElement(svgText);
+  svgEl.setAttribute("width","1080");
+  svgEl.setAttribute("height","1080");
+  svgEl.style.width="1080px";
+  svgEl.style.height="1080px";
+  svgEl.style.display="block";
 
-async function instagramSvgToPngBlob(svgText){
-  // Use the browser's native SVG renderer for the complete artwork and then
-  // rasterise that rendered SVG to a PNG. Do NOT use html2canvas here: it can
-  // omit <image> elements (logo/opening-hours artwork) and SVG text on iOS.
-  const preparedSvg=await instagramInlineAssets(svgText);
-
-  // Critical mobile fix: preload all embedded PNGs and fonts before creating
-  // the SVG image. Without this, Safari may produce a partially rendered PNG
-  // on the first click and a complete one only on the second click.
-  await instagramPreloadExportResources(preparedSvg);
-
-  const blob=new Blob([preparedSvg],{type:"image/svg+xml;charset=utf-8"});
-  const svgUrl=URL.createObjectURL(blob);
+  const wrap=document.createElement("div");
+  wrap.style.position="fixed";
+  wrap.style.left="-20000px";
+  wrap.style.top="0";
+  wrap.style.width="1080px";
+  wrap.style.height="1080px";
+  wrap.style.overflow="hidden";
+  wrap.style.background="#f5eee4";
+  wrap.style.margin="0";
+  wrap.style.padding="0";
+  wrap.style.zIndex="-1";
+  wrap.appendChild(svgEl);
+  document.body.appendChild(wrap);
 
   try{
-    const img=new Image();
-    img.decoding="async";
-    img.src=svgUrl;
+    if(document.fonts?.ready) await document.fonts.ready;
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
 
-    await new Promise((resolve,reject)=>{
-      let settled=false;
-      const finish=(fn,value)=>{
-        if(settled)return;
-        settled=true;
-        clearTimeout(timer);
-        fn(value);
-      };
-      const timer=setTimeout(()=>finish(reject,new Error("SVG konnte auf diesem Smartphone nicht gerendert werden.")),30000);
-      img.onload=()=>finish(resolve);
-      img.onerror=()=>finish(reject,new Error("SVG konnte auf diesem Smartphone nicht gerendert werden."));
+    const canvas=await html2canvas(wrap,{
+      backgroundColor:"#f5eee4",
+      width:1080,
+      height:1080,
+      scale:1,
+      useCORS:true,
+      allowTaint:false,
+      imageTimeout:15000,
+      logging:false
     });
 
-    if(typeof img.decode==="function"){
-      try{ await img.decode(); }catch(_e){}
-    }
-
-    // WebKit can report decode completion one frame before nested SVG assets
-    // are painted. Wait for two more frames before drawing the canvas.
-    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-
-    const canvas=document.createElement("canvas");
-    canvas.width=1080;
-    canvas.height=1080;
-    const ctx=canvas.getContext("2d",{alpha:false});
-    if(!ctx)throw new Error("Canvas konnte nicht erstellt werden.");
-
-    ctx.fillStyle="#f5eee4";
-    ctx.fillRect(0,0,1080,1080);
-    ctx.drawImage(img,0,0,1080,1080);
-
-    return await new Promise((resolve,reject)=>{
+    const blob=await new Promise((resolve,reject)=>{
       canvas.toBlob(
-        blob=>blob?resolve(blob):reject(new Error("PNG konnte nicht erzeugt werden.")),
+        b=>b?resolve(b):reject(new Error("PNG konnte nicht erzeugt werden.")),
         "image/png",
         1
       );
     });
-  }finally{
-    URL.revokeObjectURL(svgUrl);
-  }
-}
-function instagramIstMobil(){
-  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
-}
 
-function instagramMobileFensterOeffnen(titel="Mahlzeit! PNG",initialImageUrl=""){
-  if(!instagramIstMobil()) return null;
-  // Open and initialise the mobile window synchronously during the user click.
-  // The existing SVG is shown immediately. The PNG replaces it as soon as
-  // rasterisation has finished, so Safari never shows a blank/white window.
-  try{
-    const win=window.open("about:blank","_blank");
-    if(!win)return null;
-    try{
-      win.document.open();
-      win.document.write(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>${String(titel).replace(/[<>]/g,"")}</title><style>html,body{margin:0;min-height:100%;background:#f5eee4;color:#20201d;font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif}body{padding:10px;text-align:center}.stage{position:relative;width:100%;max-width:1080px;margin:0 auto}.imgwrap{position:relative;background:#fff;border-radius:12px;padding:8px;box-shadow:0 3px 14px rgba(0,0,0,.12);overflow:hidden}.art{display:block;width:100%;height:auto;border-radius:8px}.final{position:absolute;inset:8px;width:calc(100% - 16px);height:calc(100% - 16px);object-fit:contain;border-radius:8px;opacity:0;transition:opacity .18s ease}.save{display:block;width:100%;box-sizing:border-box;margin-top:12px;padding:14px 12px;border:0;border-radius:10px;background:#285437;color:#fff;font-size:16px;font-weight:800}.secondary{display:block;width:100%;box-sizing:border-box;margin-top:8px;padding:12px;border:1px solid #b8ad9d;border-radius:10px;background:#fff;color:#285437;font-size:14px;font-weight:700}.status{font-size:12px;color:#777;margin:8px 0 2px;min-height:17px}.error{display:none;color:#8b1e1e;background:#fff;border:1px solid #d5aaaa;border-radius:10px;padding:14px;text-align:left;line-height:1.45}</style></head><body><div id="error" class="error"></div><div class="stage"><div class="imgwrap"><img id="png" class="art" alt="Mahlzeit! PNG"><img id="final" class="final" alt=""></div></div><div id="loading" class="status"></div><button class="save" id="share" style="display:none">Teilen / In Fotos sichern</button><button class="secondary" id="open" style="display:none">Bild separat öffnen</button></body></html>`);
-      win.document.close();
-      const img=win.document.getElementById("png");
-      const loading=win.document.getElementById("loading");
-      // Show the already generated SVG immediately. This is intentionally the
-      // same artwork used by the working preview, not a simplified fallback.
-      if(img && initialImageUrl) img.src=initialImageUrl;
-      if(loading) loading.textContent="PNG wird vorbereitet …";
-    }catch(_e){}
-    return win;
-  }catch(_e){ return null; }
-}
-
-function instagramMobileFensterFehler(win,error){
-  if(!win || win.closed)return;
-  try{
-    const el=win.document.getElementById("error");
-    const loading=win.document.getElementById("loading");
-    if(loading)loading.style.display="none";
-    if(el){
-      el.style.display="block";
-      el.textContent="Der PNG-Export konnte nicht abgeschlossen werden: "+(error?.message||error||"Unbekannter Fehler")+". Bitte das Fenster schließen und den PNG-Button erneut drücken.";
-    }
-  }catch(_e){}
-}
-
-async function instagramPngAusgeben(blob,filename,mobileWindow=null){
-  if(instagramIstMobil()){
     const url=URL.createObjectURL(blob);
-
-    // Most reliable mobile fallback: show the actual PNG as a standalone
-    // image. The user can then use the browser's native "Bild sichern /
-    // Bild herunterladen" action. This works even when the browser refuses
-    // Blob downloads and when navigator.share({files}) is unavailable.
-    if(mobileWindow && !mobileWindow.closed){
-      // The mobile tab was already created synchronously. Now only attach the
-      // finished PNG. This avoids Safari's blank-tab/race condition.
-      try{
-        const img=mobileWindow.document.getElementById("png");
-        const finalImg=mobileWindow.document.getElementById("final");
-        const loading=mobileWindow.document.getElementById("loading");
-        const share=mobileWindow.document.getElementById("share");
-        const open=mobileWindow.document.getElementById("open");
-
-        // Keep the already visible SVG on screen while the final PNG loads.
-        // Only fade the PNG in after it has fully loaded; this removes the
-        // visible jump/flicker that Safari can otherwise produce on mobile.
-        if(finalImg){
-          finalImg.onload=()=>{
-            finalImg.style.opacity="1";
-            if(loading){
-              loading.textContent="✓ PNG wurde erfolgreich generiert";
-              loading.style.color="#285437";
-              loading.style.fontWeight="700";
-            }
-          };
-          finalImg.onerror=()=>{
-            if(loading) loading.textContent="PNG konnte nicht angezeigt werden.";
-          };
-          finalImg.src=url;
-        }
-
-        if(share){
-          share.onclick=async()=>{
-            try{
-              const r=await fetch(url);
-              const b=await r.blob();
-              const f=new File([b],filename,{type:"image/png"});
-              if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[f]}))){
-                await navigator.share({files:[f],title:filename});
-              }else{
-                alert("Bitte halte das Bild gedrückt und wähle „Bild sichern“. ");
-              }
-            }catch(e){
-              if(!e || e.name!=="AbortError") alert("Bitte halte das Bild gedrückt und wähle „Bild sichern“. ");
-            }
-          };
-        }
-        if(open) open.onclick=()=>{ mobileWindow.location.href=url; };
-      }catch(error){
-        instagramMobileFensterFehler(mobileWindow,error);
-      }
-      setTimeout(()=>URL.revokeObjectURL(url),60000);
-      return;
-    }
-
-    // If the browser did not allow the synchronously opened tab, try the
-    // native share sheet as a secondary option.
-    if(typeof navigator.share==="function"){
-      const file=new File([blob],filename,{type:"image/png"});
-      try{
-        if(!navigator.canShare || navigator.canShare({files:[file]})){
-          await navigator.share({
-            files:[file],
-            title:filename,
-            text:"Mahlzeit! Instagram-Carousel"
-          });
-          URL.revokeObjectURL(url);
-          return;
-        }
-      }catch(error){
-        if(error && error.name==="AbortError"){
-          URL.revokeObjectURL(url);
-          return;
-        }
-        console.warn("Mobiler PNG-Share fehlgeschlagen:",error);
-      }
-    }
-
-    // Last mobile fallback: navigate the current page to the PNG in a way
-    // that is still usable for saving the image.
-    window.location.href=url;
-    setTimeout(()=>URL.revokeObjectURL(url),60000);
-    return;
+    const a=document.createElement("a");
+    a.href=url;
+    a.download=filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+  }finally{
+    wrap.remove();
   }
-
-  // Desktop: keep the direct download that already works reliably.
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;
-  a.download=filename;
-  a.rel="noopener";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),2000);
-}
-
-async function instagramSvgToPng(svgText,filename,mobileWindow=null){
-  const blob=await instagramSvgToPngBlob(svgText);
-  await instagramPngAusgeben(blob,filename,mobileWindow);
 }
 
 async function instagramDownloadSlide(index){
   const slides=window.__mahlzeitInstagramSlides||[];
   if(!slides[index])throw new Error(`Slide ${index+1} ist nicht vorhanden.`);
-
-  const status=document.getElementById("instagram-meldung");
-  if(status){
-    status.textContent=`PNG für Slide ${index+1} wird generiert …`;
-    status.style.color="var(--green)";
-  }
-
-  // Open the mobile tab immediately and show the existing SVG artwork at once.
-  // The finished PNG is swapped in later, so the user sees the image on the
-  // very first tap instead of a blank loading page.
-  const mobileWindow=instagramMobileFensterOeffnen(`Mahlzeit! – ${index+1}. PNG`,slides[index]);
-  try{
-    await instagramSvgToPng(slides[index],`mahlzeit-carousel-${index+1}.png`,mobileWindow);
-    if(status){
-      status.textContent=`✓ PNG für Slide ${index+1} wurde erfolgreich generiert.`;
-      status.style.color="var(--green)";
-      status.style.fontWeight="700";
-    }
-  }catch(error){
-    if(status){
-      status.textContent=`PNG-Export Fehler bei Slide ${index+1}: ${error.message||error}`;
-      status.style.color="#a33";
-    }
-    instagramMobileFensterFehler(mobileWindow,error);
-    throw error;
-  }
+  await instagramSvgToPng(slides[index],`mahlzeit-carousel-${index+1}.png`);
 }
 
 async function instagramAlleHerunterladen(){
@@ -6541,50 +6114,10 @@ async function instagramAlleHerunterladen(){
     await instagramLaden();
   }
   const finalSlides=window.__mahlzeitInstagramSlides||[];
-  if(!finalSlides.length) throw new Error("Keine Instagram-Slides vorhanden.");
 
-  if(instagramIstMobil()){
-    // Open one gallery tab synchronously. This is considerably more reliable
-    // on phones than six automatic downloads, which mobile browsers commonly
-    // block. Each PNG is shown as a real image with its own save/download link.
-    const mobileWindow=instagramMobileFensterOeffnen("Mahlzeit! – Instagram PNGs");
-
-    if(mobileWindow && !mobileWindow.closed){
-      const images=[];
-      for(let i=0;i<finalSlides.length;i++){
-        const blob=await instagramSvgToPngBlob(finalSlides[i]);
-        const url=URL.createObjectURL(blob);
-        images.push({url,name:`mahlzeit-carousel-${i+1}.png`});
-      }
-
-      mobileWindow.document.open();
-      mobileWindow.document.write(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mahlzeit! – Instagram PNGs</title><style>body{font-family:Arial,sans-serif;margin:0;padding:16px;background:#f5eee4;color:#20201d}h1{font-size:22px;color:#285437}p{font-size:14px;line-height:1.45}.item{margin:18px 0;padding:12px;background:#fff;border-radius:12px}.item img{display:block;width:100%;height:auto;border-radius:8px}.save{display:block;margin-top:10px;padding:12px;text-align:center;background:#285437;color:#fff;text-decoration:none;border-radius:8px;font-weight:700}</style></head><body><h1>Instagram · PNGs</h1><p>Tippe auf „PNG speichern“. Falls dein Browser keinen direkten Download anbietet, halte das Bild gedrückt und wähle „Bild sichern“ bzw. „Bild herunterladen“.</p><div id="list"></div></body></html>`);
-      mobileWindow.document.close();
-      const list=mobileWindow.document.getElementById("list");
-      images.forEach((item,i)=>{
-        const box=mobileWindow.document.createElement("div");
-        box.className="item";
-        const img=mobileWindow.document.createElement("img");
-        img.src=item.url;
-        img.alt=`Instagram Slide ${i+1}`;
-        const a=mobileWindow.document.createElement("a");
-        a.className="save";
-        a.href=item.url;
-        a.download=item.name;
-        a.textContent=`PNG ${i+1} speichern`;
-        box.appendChild(img);box.appendChild(a);list.appendChild(box);
-      });
-      const msg=document.getElementById("instagram-meldung");
-      if(msg)msg.textContent="Die 6 PNGs wurden in einem mobilen Speicherfenster geöffnet. Dort kannst du jedes Bild speichern.";
-      return;
-    }
-  }
-
-  // Desktop: download all six directly, one after another.
   for(let i=0;i<finalSlides.length;i++){
     try{
-      const blob=await instagramSvgToPngBlob(finalSlides[i]);
-      await instagramPngAusgeben(blob,`mahlzeit-carousel-${i+1}.png`);
+      await instagramSvgToPng(finalSlides[i],`mahlzeit-carousel-${i+1}.png`);
       await new Promise(r=>setTimeout(r,300));
     }catch(error){
       console.error("PNG-Export:",error);
@@ -6594,6 +6127,7 @@ async function instagramAlleHerunterladen(){
     }
   }
 }
+
 
 function getCalendarWeek(date){
   const d=new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));
