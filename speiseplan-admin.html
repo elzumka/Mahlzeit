@@ -6421,7 +6421,11 @@ async function instagramPngAusgeben(blob,filename,mobileWindow=null){
         if(finalImg){
           finalImg.onload=()=>{
             finalImg.style.opacity="1";
-            if(loading) loading.textContent="";
+            if(loading){
+              loading.textContent="✓ PNG wurde erfolgreich generiert";
+              loading.style.color="#285437";
+              loading.style.fontWeight="700";
+            }
           };
           finalImg.onerror=()=>{
             if(loading) loading.textContent="PNG konnte nicht angezeigt werden.";
