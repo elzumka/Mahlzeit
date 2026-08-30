@@ -3,29 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script>
-  /*
-   * Beim normalen Öffnen/Neuladen der Startseite immer ganz oben beginnen.
-   * Browser dürfen die zuletzt gespeicherte Scrollposition nicht wiederherstellen.
-   * Interne Sprunglinks (#mittagstisch usw.) bleiben davon unberührt.
-   */
-  if ("scrollRestoration" in history) {
-    history.scrollRestoration = "manual";
-  }
-
-  window.addEventListener("pageshow", function (event) {
-    if (!window.location.hash) {
-      window.scrollTo(0, 0);
-    }
-  });
-
-  window.addEventListener("load", function () {
-    if (!window.location.hash) {
-      window.scrollTo(0, 0);
-    }
-  });
-</script>
-
 <title>Mahlzeit! – Kantine & Mittagstisch</title>
 
 <style>
@@ -5967,9 +5944,3 @@ setInterval(
 
 </body>
 </html>
-window.addEventListener(
-  "focus",
-  ()=>{
-    ladeGerichte();
-  }
-);
