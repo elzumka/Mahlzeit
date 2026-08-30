@@ -3578,23 +3578,30 @@ button{
       <label for="txt-impressum-heading">Impressum · Überschrift</label>
       <input id="txt-impressum-heading" type="text">
 
-      <label for="txt-impressum-inhaberin">Inhaberin · Label</label>
-      <input id="txt-impressum-inhaberin" type="text">
+      <label for="txt-impressum-heading">Impressum · Überschrift</label>
+      <input id="txt-impressum-heading" type="text">
 
-      <label for="txt-impressum-firma">Firmenname</label>
-      <input id="txt-impressum-firma" type="text">
+      <label for="txt-impressum-placeholder">Impressum · Inhalt</label>
+      <textarea
+        id="txt-impressum-placeholder"
+        rows="14"
+        placeholder="Hier den vollständigen Impressumstext eintragen …"
+      ></textarea>
 
-      <label for="txt-impressum-telefon">Telefon · Label</label>
-      <input id="txt-impressum-telefon" type="text">
-
-      <label for="txt-impressum-placeholder">Hinweistext</label>
-      <textarea id="txt-impressum-placeholder" rows="3"></textarea>
-
-      <label for="txt-datenschutz-heading">Datenschutz · Überschrift</label>
+      <label for="txt-datenschutz-heading">Datenschutzerklärung · Überschrift</label>
       <input id="txt-datenschutz-heading" type="text">
 
-      <label for="txt-datenschutz-placeholder">Datenschutztext</label>
-      <textarea id="txt-datenschutz-placeholder" rows="4"></textarea>
+      <label for="txt-datenschutz-placeholder">Datenschutzerklärung · Inhalt</label>
+      <textarea
+        id="txt-datenschutz-placeholder"
+        rows="20"
+        placeholder="Hier den vollständigen Text der Datenschutzerklärung eintragen …"
+      ></textarea>
+
+      <p class="intro" style="margin-top:12px;">
+        Die Texte werden über die Website-Texte gespeichert und können auch
+        nach der Veröffentlichung jederzeit geändert und erneut gespeichert werden.
+      </p>
     </div>
 
 
@@ -3605,6 +3612,18 @@ button{
       <input id="txt-footer-slogan" type="text">
     </div>
 
+  </div>
+
+  <div style="margin-top:18px;">
+    <button
+      type="button"
+      class="save"
+      id="website-rechtliches-save"
+      onclick="websiteRechtlichesSpeichern()"
+    >
+      Rechtliche Angaben speichern
+    </button>
+    <div id="website-rechtliches-meldung" style="margin-top:8px;"></div>
   </div>
 
 </section>
@@ -10151,6 +10170,130 @@ async function websiteTexteLaden(){
         : "Standardtexte angezeigt – noch nicht gespeichert.";
   }
 }
+
+
+async function websiteRechtlichesSpeichern(){
+
+  const button =
+    document.getElementById(
+      "website-rechtliches-save"
+    );
+
+  const meldung =
+    document.getElementById(
+      "website-rechtliches-meldung"
+    );
+
+  const impressum =
+    document.getElementById(
+      "txt-impressum-placeholder"
+    )?.value.trim() || "";
+
+  const datenschutz =
+    document.getElementById(
+      "txt-datenschutz-placeholder"
+    )?.value.trim() || "";
+
+  if(button){
+    button.disabled=true;
+    button.textContent="Speichern …";
+  }
+
+  if(meldung){
+    meldung.textContent=
+      "Rechtliche Angaben werden gespeichert …";
+  }
+
+  try{
+
+    const {
+      data:existing,
+      error:loadError
+    } =
+      await supabaseClient
+        .from("WebsiteTexte")
+        .select("id")
+        .eq("id",1)
+        .maybeSingle();
+
+    if(loadError){
+      throw loadError;
+    }
+
+    const payload={
+      id:1,
+      impressum_placeholder:impressum,
+      datenschutz_placeholder:datenschutz
+    };
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("WebsiteTexte")
+        .upsert(
+          [payload],
+          {onConflict:"id"}
+        );
+
+    if(error){
+      throw error;
+    }
+
+    const {
+      data:check,
+      error:checkError
+    } =
+      await supabaseClient
+        .from("WebsiteTexte")
+        .select(
+          "impressum_placeholder,datenschutz_placeholder"
+        )
+        .eq("id",1)
+        .single();
+
+    if(checkError){
+      throw checkError;
+    }
+
+    if(
+      String(check?.impressum_placeholder ?? "") !== impressum ||
+      String(check?.datenschutz_placeholder ?? "") !== datenschutz
+    ){
+      throw new Error(
+        "Die rechtlichen Texte wurden nicht vollständig übernommen."
+      );
+    }
+
+    if(meldung){
+      meldung.textContent=
+        "✓ Impressum und Datenschutzerklärung gespeichert.";
+    }
+
+  }catch(error){
+
+    console.error(
+      "Rechtliche Angaben speichern:",
+      error
+    );
+
+    if(meldung){
+      meldung.textContent=
+        "⚠ Speichern fehlgeschlagen: " +
+        (error?.message || "");
+    }
+
+  }finally{
+
+    if(button){
+      button.disabled=false;
+      button.textContent=
+        "Rechtliche Angaben speichern";
+    }
+
+  }
+}
+
 
 
 async function websiteTexteSpeichern(){
