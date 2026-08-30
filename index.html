@@ -3,6 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+  /*
+   * Beim normalen Öffnen/Neuladen der Startseite immer ganz oben beginnen.
+   * Browser dürfen die zuletzt gespeicherte Scrollposition nicht wiederherstellen.
+   * Interne Sprunglinks (#mittagstisch usw.) bleiben davon unberührt.
+   */
+  if ("scrollRestoration" in history) {
+    history.scrollRestoration = "manual";
+  }
+
+  window.addEventListener("pageshow", function (event) {
+    if (!window.location.hash) {
+      window.scrollTo(0, 0);
+    }
+  });
+
+  window.addEventListener("load", function () {
+    if (!window.location.hash) {
+      window.scrollTo(0, 0);
+    }
+  });
+</script>
+
 <title>Mahlzeit! – Kantine & Mittagstisch</title>
 
 <style>
@@ -3266,16 +3289,6 @@ async function downloadSpeiseplanPDF(){
       </a>
     </p>
 
-    <p class="contact-line">
-      <strong class="contact-label">MAIL</strong>
-      <a
-        id="kontakt-email"
-        href="mailto:info@mahlzeit-cottbus.de"
-      >
-        info@mahlzeit-cottbus.de
-      </a>
-    </p>
-
     <div class="contact-offers">
       <div class="contact-offer">
         <strong>MITTAGSTISCH</strong>
@@ -4646,26 +4659,6 @@ async function ladeWebsiteEinstellungen(){
 
     instagram.href =
       `https://www.instagram.com/${handle}/`;
-  }
-
-  const email =
-    document.getElementById(
-      "kontakt-email"
-    );
-
-  if(
-    email &&
-    data.email
-  ){
-    const adresse =
-      String(data.email).trim();
-
-    email.textContent =
-      adresse;
-
-    email.href =
-      "mailto:" +
-      adresse;
   }
 
   const topBannerText =
