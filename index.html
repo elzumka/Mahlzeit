@@ -3,6 +3,40 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+  /*
+   * Startseite: Bei einem echten Öffnen/Neuladen immer ganz oben starten.
+   * Besonders wichtig bei Smartphone-Links, die einen alten #anker
+   * (z.B. #fruehstueck) mitbringen.
+   *
+   * Der Anker wird nur beim initialen Seitenaufruf entfernt.
+   * Die Navigation innerhalb der bereits geöffneten Seite bleibt normal.
+   */
+  if ("scrollRestoration" in history) {
+    history.scrollRestoration = "manual";
+  }
+
+  (function () {
+    if (window.location.hash) {
+      history.replaceState(
+        null,
+        document.title,
+        window.location.pathname + window.location.search
+      );
+    }
+
+    window.scrollTo(0, 0);
+
+    window.addEventListener("load", function () {
+      window.scrollTo(0, 0);
+    });
+
+    window.addEventListener("pageshow", function () {
+      window.scrollTo(0, 0);
+    });
+  })();
+</script>
+
 <title>Mahlzeit! – Kantine & Mittagstisch</title>
 
 <style>
