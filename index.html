@@ -2442,6 +2442,18 @@ body.legal-modal-open{overflow:hidden;}
 
 }
 
+
+/* Hinweis zu Änderungen, Allergenen und Zusatzstoffen */
+.menu-disclaimer{
+  max-width:980px;
+  margin:0 auto 18px;
+  padding:0 5vw;
+  text-align:center;
+  font-size:12px;
+  line-height:1.5;
+  color:#6f685f;
+}
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
@@ -3300,6 +3312,16 @@ async function downloadSpeiseplanPDF(){
       </a>
     </p>
 
+    <p class="contact-line">
+      <strong class="contact-label">MAIL</strong>
+      <a
+        id="kontakt-email"
+        href="mailto:info@mahlzeit-cottbus.de"
+      >
+        info@mahlzeit-cottbus.de
+      </a>
+    </p>
+
     <div class="contact-offers">
       <div class="contact-offer">
         <strong>MITTAGSTISCH</strong>
@@ -3353,6 +3375,11 @@ async function downloadSpeiseplanPDF(){
 
   </div>
 </section>
+
+<div class="menu-disclaimer">
+  Änderungen vorbehalten, Informationen zu Allergenen und Zusatzstoffen
+  erhalten Sie von unseren Mitarbeitern.
+</div>
 
 <section class="legal" aria-label="Rechtliche Hinweise">
   <div class="legal-inner">
@@ -4672,6 +4699,15 @@ async function ladeWebsiteEinstellungen(){
       `https://www.instagram.com/${handle}/`;
   }
 
+  const email =
+    document.getElementById("kontakt-email");
+
+  if(email && data.email){
+    const adresse = String(data.email).trim();
+    email.textContent = adresse;
+    email.href = "mailto:" + adresse;
+  }
+
   const topBannerText =
     document.getElementById(
       "top-banner-text"
@@ -5974,6 +6010,10 @@ setInterval(
   60000
 );
 
+</script>
+
+</body>
+</html>
 </script>
 
 </body>
