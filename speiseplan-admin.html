@@ -4054,14 +4054,14 @@ async function gerichteLaden(){
                           >
                             <input
                               type="text"
-                              id="edit-name-${gericht.id}"
+                              class="gericht-edit-name"
                               value="${htmlAttr(gericht.gerichte || "")}"
                               placeholder="Gericht"
                             >
 
                             <input
                               type="text"
-                              id="edit-beilage-${gericht.id}"
+                              class="gericht-edit-beilage"
                               value="${htmlAttr(gericht.beilage || "")}"
                               placeholder="Beilage"
                             >
@@ -4069,13 +4069,13 @@ async function gerichteLaden(){
                             <input
                               type="number"
                               step="0.01"
-                              id="edit-preis-${gericht.id}"
+                              class="gericht-edit-preis"
                               value="${gericht.preis ?? ""}"
                               placeholder="Preis"
                             >
 
                             <select
-                              id="edit-symbol-${gericht.id}"
+                              class="edit-symbol gericht-edit-symbol"
                               class="edit-symbol"
                             >
                               <option value="">Kein Symbol</option>
@@ -4176,45 +4176,46 @@ async function gerichtAenderungSpeichern(
     id
 ){
 
-    const gericht =
-        document.getElementById(
-            `edit-name-${id}`
-        ).value.trim();
+    /*
+     * Bearbeitungsfelder werden nicht mehr über globale dynamische IDs
+     * angesprochen. Stattdessen werden sie ausschließlich innerhalb des
+     * zugehörigen .gericht-eintrag gesucht.
+     */
+    const eintrag =
+        document.querySelector(
+            `.gericht-eintrag[data-id="${id}"]`
+        );
 
-    const beilage =
-        document.getElementById(
-            `edit-beilage-${id}`
-        ).value.trim();
-
-    const preis =
-        document.getElementById(
-            `edit-preis-${id}`
-        ).value;
-
-    const symbol =
-        document.getElementById(
-            `edit-symbol-${id}`
-        ).value;
-
-
-    if(
-        !gericht ||
-        preis === ""
-    ){
-
-        document.getElementById(
-            'meldung'
-        ).textContent =
-            'Bitte Gericht und Preis ausfüllen.';
-
+    if(!eintrag){
+        document.getElementById('meldung').textContent =
+            'Gericht konnte nicht gefunden werden.';
         return;
-
     }
 
+    const gerichtEl =
+        eintrag.querySelector('.gericht-edit-name');
 
-    const {
-        error
-    } =
+    const beilageEl =
+        eintrag.querySelector('.gericht-edit-beilage');
+
+    const preisEl =
+        eintrag.querySelector('.gericht-edit-preis');
+
+    const symbolEl =
+        eintrag.querySelector('.gericht-edit-symbol');
+
+    const gericht = gerichtEl ? gerichtEl.value.trim() : "";
+    const beilage = beilageEl ? beilageEl.value.trim() : "";
+    const preis = preisEl ? preisEl.value : "";
+    const symbol = symbolEl ? symbolEl.value : "";
+
+    if(!gericht || preis === ""){
+        document.getElementById('meldung').textContent =
+            'Bitte Gericht und Preis ausfüllen.';
+        return;
+    }
+
+    const { error } =
         await supabaseClient
             .from('Gerichte')
             .update({
@@ -4224,36 +4225,20 @@ async function gerichtAenderungSpeichern(
                 symbol:symbol,
                 vegetarisch:(symbol === "veggie")
             })
-            .eq(
-                'id',
-                id
-            );
-
+            .eq('id', id);
 
     if(error){
-
         console.error(error);
-
-        document.getElementById(
-            'meldung'
-        ).textContent =
+        document.getElementById('meldung').textContent =
             'Fehler beim Bearbeiten des Gerichts.';
-
         return;
-
     }
 
-
-    document.getElementById(
-        'meldung'
-    ).textContent =
+    document.getElementById('meldung').textContent =
         'Gericht wurde aktualisiert.';
 
     await gerichteLaden();
-
 }
-
-
 
 function htmlAttr(value){
   return String(value ?? "")
