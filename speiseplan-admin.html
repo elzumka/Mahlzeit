@@ -3576,10 +3576,10 @@ button{
       <h3>Rechtliches</h3>
 
       <label for="txt-impressum-heading">Impressum · Überschrift</label>
-      <input id="txt-impressum-heading" name="txt-impressum-heading" type="text">
+      <input id="txt-impressum-heading" type="text">
 
-      <label for="txt-impressum-inhaberin">Impressum · Inhaberin</label>
-      <input id="txt-impressum-inhaberin" name="txt-impressum-inhaberin" type="text">
+      <label for="txt-impressum-heading">Impressum · Überschrift</label>
+      <input id="txt-impressum-heading" type="text">
 
       <label for="txt-impressum-placeholder">Impressum · Inhalt</label>
       <textarea
@@ -4049,20 +4049,19 @@ async function gerichteLaden(){
 
                           <div
                             class="gericht-edit"
+                            id="gericht-edit-${gericht.id}"
                             style="display:none"
                           >
                             <input
                               type="text"
-                              class="gericht-edit-name"
-                              name="gericht-edit-name"
+                              id="edit-name-${gericht.id}"
                               value="${htmlAttr(gericht.gerichte || "")}"
                               placeholder="Gericht"
                             >
 
                             <input
                               type="text"
-                              class="gericht-edit-beilage"
-                              name="gericht-edit-beilage"
+                              id="edit-beilage-${gericht.id}"
                               value="${htmlAttr(gericht.beilage || "")}"
                               placeholder="Beilage"
                             >
@@ -4070,15 +4069,14 @@ async function gerichteLaden(){
                             <input
                               type="number"
                               step="0.01"
-                              class="gericht-edit-preis"
-                              name="gericht-edit-preis"
+                              id="edit-preis-${gericht.id}"
                               value="${gericht.preis ?? ""}"
                               placeholder="Preis"
                             >
 
                             <select
-                              class="edit-symbol gericht-edit-symbol"
-                              name="gericht-edit-symbol"
+                              id="edit-symbol-${gericht.id}"
+                              class="edit-symbol"
                             >
                               <option value="">Kein Symbol</option>
                               <option value="veggie" ${gericht.symbol==="veggie" ? "selected" : ""}>Vegetarisch</option>
@@ -4106,14 +4104,14 @@ async function gerichteLaden(){
                             <button
                               type="button"
                               class="save"
-                              onclick="gerichtAenderungSpeichern(this)"
+                              onclick="gerichtAenderungSpeichern(${gericht.id})"
                             >
                               Speichern
                             </button>
 
                             <button
                               type="button"
-                              onclick="gerichtBearbeitenAbbrechen(this)"
+                              onclick="gerichtBearbeitenAbbrechen(${gericht.id})"
                             >
                               Abbrechen
                             </button>
@@ -4126,7 +4124,7 @@ async function gerichteLaden(){
 
                         <button
                           type="button"
-                          onclick="gerichtBearbeiten(this)"
+                          onclick="gerichtBearbeiten(${gericht.id})"
                         >
                           Bearbeiten
                         </button>
@@ -4174,58 +4172,45 @@ async function gerichteLaden(){
 
 }
 
-async function gerichtAenderungSpeichern(button){
-
-    const eintrag =
-        button?.closest('.gericht-eintrag');
-
-    if(!eintrag){
-        document.getElementById('meldung').textContent =
-            'Gericht konnte nicht gefunden werden.';
-        return;
-    }
-
-    const id =
-        eintrag.dataset.id;
-
-    const gerichtEl =
-        eintrag.querySelector('.gericht-edit-name');
-
-    const beilageEl =
-        eintrag.querySelector('.gericht-edit-beilage');
-
-    const preisEl =
-        eintrag.querySelector('.gericht-edit-preis');
-
-    const symbolEl =
-        eintrag.querySelector('.gericht-edit-symbol');
+async function gerichtAenderungSpeichern(
+    id
+){
 
     const gericht =
-        gerichtEl ? gerichtEl.value.trim() : "";
+        document.getElementById(
+            `edit-name-${id}`
+        ).value.trim();
 
     const beilage =
-        beilageEl ? beilageEl.value.trim() : "";
+        document.getElementById(
+            `edit-beilage-${id}`
+        ).value.trim();
 
     const preis =
-        preisEl ? preisEl.value : "";
+        document.getElementById(
+            `edit-preis-${id}`
+        ).value;
 
     const symbol =
-        symbolEl ? symbolEl.value : "";
+        document.getElementById(
+            `edit-symbol-${id}`
+        ).value;
 
-    if(!id){
-        document.getElementById('meldung').textContent =
-            'Die Gerichts-ID fehlt.';
-        return;
-    }
 
-    if(!gericht || preis === ""){
-        document.getElementById('meldung').textContent =
+    if(
+        !gericht ||
+        preis === ""
+    ){
+
+        document.getElementById(
+            'meldung'
+        ).textContent =
             'Bitte Gericht und Preis ausfüllen.';
+
         return;
+
     }
 
-    button.disabled = true;
-    button.textContent = "Speichern …";
 
     const {
         error
@@ -4235,30 +4220,39 @@ async function gerichtAenderungSpeichern(button){
             .update({
                 gerichte:gericht,
                 beilage:beilage,
-                preis:Number(preis),
-                symbol:symbol || null,
+                preis:preis,
+                symbol:symbol,
                 vegetarisch:(symbol === "veggie")
             })
-            .eq('id', id);
+            .eq(
+                'id',
+                id
+            );
+
 
     if(error){
 
-        console.error('Gericht bearbeiten – Supabase UPDATE:', error);
+        console.error(error);
 
-        document.getElementById('meldung').textContent =
-            'Fehler beim Bearbeiten des Gerichts: ' +
-            (error.message || 'Unbekannter Fehler');
+        document.getElementById(
+            'meldung'
+        ).textContent =
+            'Fehler beim Bearbeiten des Gerichts.';
 
-        button.disabled = false;
-        button.textContent = "Speichern";
         return;
+
     }
 
-    document.getElementById('meldung').textContent =
+
+    document.getElementById(
+        'meldung'
+    ).textContent =
         'Gericht wurde aktualisiert.';
 
     await gerichteLaden();
+
 }
+
 
 
 function htmlAttr(value){
@@ -4269,44 +4263,39 @@ function htmlAttr(value){
     .replace(/>/g,"&gt;");
 }
 
-function gerichtBearbeiten(button){
-
-  const eintrag =
-    button?.closest('.gericht-eintrag');
-
-  if(!eintrag){
-    document.getElementById('meldung').textContent =
-      'Gericht konnte nicht gefunden werden.';
-    return;
-  }
+function gerichtBearbeiten(id){
 
   const edit =
-    eintrag.querySelector('.gericht-edit');
+    document.getElementById(
+      `gericht-edit-${id}`
+    );
 
   const actions =
-    eintrag.querySelector('.gericht-edit-actions');
+    document.getElementById(
+      `gericht-edit-actions-${id}`
+    );
 
   if(edit)edit.style.display="grid";
   if(actions)actions.style.display="flex";
+
 }
 
-function gerichtBearbeitenAbbrechen(button){
-
-  const eintrag =
-    button?.closest('.gericht-eintrag');
-
-  if(!eintrag)return;
+function gerichtBearbeitenAbbrechen(id){
 
   const edit =
-    eintrag.querySelector('.gericht-edit');
+    document.getElementById(
+      `gericht-edit-${id}`
+    );
 
   const actions =
-    eintrag.querySelector('.gericht-edit-actions');
+    document.getElementById(
+      `gericht-edit-actions-${id}`
+    );
 
   if(edit)edit.style.display="none";
   if(actions)actions.style.display="none";
-}
 
+}
 
 async function gerichtAusverkauftUmschalten(
     id,
